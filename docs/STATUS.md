@@ -17,6 +17,10 @@ Honest inventory of what exists in this repository, what has been verified and h
 | Encrypted-DB schema, DAOs, audited repositories, erasure, v1→v2 migration | `core:database` | 5 Robolectric tests (plain SQLite; SQLCipher only on device) |
 | Config loading with generic device fallback | `core:datastore` | 3 tests |
 | Chart geometry, CSV/JSON exporters (de-identified) | `feature:report` | 6 tests |
+| PIN hashing (PBKDF2), session history mapping | `app` | 3 tests |
+
+## Static quality gates
+`./gradlew detekt` (0 issues at the tuned thresholds in `config/detekt/detekt.yml`), `./gradlew :app:lintClinicalDebug` (0 errors), `tools/ci/phi_log_scan.py` and `tools/ci/soup_check.py` all pass; the clinical flavour is verified to request no INTERNET permission.
 
 ## Implemented, compiles, needs device verification (Phases 3–4 exit criteria)
 
