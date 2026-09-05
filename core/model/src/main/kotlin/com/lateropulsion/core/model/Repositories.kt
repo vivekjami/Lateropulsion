@@ -43,6 +43,8 @@ public interface SessionRepository {
     public suspend fun summary(id: SessionId): SessionSummary?
     public suspend fun blocks(id: SessionId): List<BlockResult>
     public suspend fun events(id: SessionId): List<SessionEvent>
+    /** Persist events as they happen so crash recovery can rebuild block boundaries. */
+    public suspend fun appendEvents(events: List<SessionEvent>)
     public suspend fun timeseries(id: SessionId): TimeseriesFile?
     public suspend fun nextSessionNumber(patientId: PatientId): Int
     /** Sessions with no end reason: candidates for crash recovery on next launch. */

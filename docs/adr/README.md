@@ -1,0 +1,30 @@
+# Architecture decision records
+
+ADR-001 … ADR-010 are recorded in `docs/ARCHITECTURE.md` §19. Decisions taken during implementation:
+
+## ADR-011 — Parquet export is produced off-device
+**Decision.** The app exports CSV and JSON; Parquet is produced by `tools/analysis/lpx_reader.py` (pyarrow) from the CSV/`.lpx` files.
+**Rationale.** Parquet writers for Android drag in Hadoop-sized dependencies (SOUP burden, APK size) for a research-only format.
+**Consequence.** Researchers run one script; the in-app export remains dependency-free.
+
+## ADR-012 — Fusion and rendering in Kotlin, no NDK in v1
+**Decision.** The complementary filter, roll extraction and GLES renderer are Kotlin. C++/JNI is deferred until profiling shows a need.
+**Rationale.** IMPLEMENTATION Phase 2: "Do not start in C++." The hot loops are allocation-free and O(1) per sample; the allocation-free property is unit-tested (REQ-SEN-031).
+**Consequence.** No NDK/CMake toolchain required to build; an iOS/KMP port shares more code.
+
+## ADR-013 — No game engine (Godot/Unity) for the passthrough renderer
+**Decision.** Camera2 → `SurfaceTexture` → custom GLES 3.0 stereo renderer, as ADR-002.
+**Rationale.** A game engine adds at least one frame of latency in its own pipeline, a large SOUP surface, and awkward Camera2 zero-copy access on Android. The latency budget (≤ 45 ms) is the second-ranked architectural driver.
+**Consequence.** Stereo, distortion and overlays are ~1 k lines of our own GL code with pure-Kotlin geometry that is unit-tested; Godot remains an option for future gamified functional tasks rendered *inside* our passthrough, not as the host.
+
+## ADR-014 — `.lpx` record is 22 bytes
+**Decision.** The record layout listed in ARCHITECTURE §11.1 sums to 22 bytes (u32 + 2×i16 + 3×i16 + 3×i16 + u16); the text said 20. The implementation uses 22 and the architecture text has been corrected.
+**Consequence.** ~1.1 MB per 20-minute session at 50 Hz.
+
+## ADR-015 — Roll sign, mount offset and render-rotation sign are per-device data resolved empirically
+**Decision.** `DeviceProfile` carries `roll_sign`, `theta_mount_deg`, `scale_error` (jig) and `render_rotation_sign` (lens-calibration screen). A `generic-android` fallback profile lets the app run on any Android 10+ phone with a gyroscope after on-device field calibration, flagged UNQUALIFIED until a jig report exists.
+**Rationale.** Vendor sensor axes, camera orientation and headset mounting differ across phones; assuming any of them is how a measurement device silently reports the wrong sign.
+
+## ADR-016 — Phone compatibility floor
+**Decision.** minSdk 29 (Android 10), GLES 3.0, any back camera with a `SurfaceTexture` output, raw gyroscope + accelerometer required (`ImuCapabilities.measurementCapable`). Preview size and fps range are chosen at runtime from `CameraCharacteristics`; 30 fps phones run but are flagged for latency.
+**Consequence.** Runs on the large majority of active Android phones; clinical qualification remains per model.

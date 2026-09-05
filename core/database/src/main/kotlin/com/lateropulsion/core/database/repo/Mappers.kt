@@ -126,24 +126,23 @@ internal fun SessionEntity.toDomain() = Session(
     crashRecovered, overrideReason,
 )
 
-private val cueList = ListSerializer(CueType.serializer())
-private val episodeList = ListSerializer(Episode.serializer())
-private val checkpointList = ListSerializer(Checkpoint.serializer())
+private val cueListSer = ListSerializer(CueType.serializer())
+private val episodeListSer = ListSerializer(Episode.serializer())
+private val checkpointListSer = ListSerializer(Checkpoint.serializer())
 
 internal fun BlockResult.toEntity() = BlockResultEntity(
     id.value, sessionId.value, blockId, orderIndex, exercise.name, position.name, startedMonoNs, durationS, targetDeg, toleranceDeg, gain,
-    json.encodeToString(cueList, cues), json.encodeToString(DeviationMetrics.serializer(), metrics), json.encodeToString(EpisodeStats.serializer(), episodes),
-    json.encodeToString(episodeList, episodeList.let { episodeListValue() }), json.encodeToString(checkpointList, checkpoints), endReason.name,
+    json.encodeToString(cueListSer, cues), json.encodeToString(DeviationMetrics.serializer(), metrics), json.encodeToString(EpisodeStats.serializer(), episodes),
+    json.encodeToString(episodeListSer, episodeList), json.encodeToString(checkpointListSer, checkpoints), endReason.name,
     json.encodeToString(FilterParams.serializer(), filterParams), metrics.madDeg, metrics.tib5Pct, metrics.validSamplePct,
 )
 
-private fun BlockResult.episodeListValue(): List<Episode> = this.episodeList
 
 internal fun BlockResultEntity.toDomain() = BlockResult(
     BlockResultId(id), SessionId(sessionId), blockId, orderIndex, ExerciseType.valueOf(exercise), BodyPosition.valueOf(position), startedMonoNs, durationS,
-    targetDeg, toleranceDeg, gain, json.decodeFromString(cueList, cuesJson), json.decodeFromString(DeviationMetrics.serializer(), metricsJson),
-    json.decodeFromString(EpisodeStats.serializer(), episodeStatsJson), json.decodeFromString(episodeList, episodesJson),
-    json.decodeFromString(checkpointList, checkpointsJson), BlockEndReason.valueOf(endReason), json.decodeFromString(FilterParams.serializer(), filterParamsJson),
+    targetDeg, toleranceDeg, gain, json.decodeFromString(cueListSer, cuesJson), json.decodeFromString(DeviationMetrics.serializer(), metricsJson),
+    json.decodeFromString(EpisodeStats.serializer(), episodeStatsJson), json.decodeFromString(episodeListSer, episodesJson),
+    json.decodeFromString(checkpointListSer, checkpointsJson), BlockEndReason.valueOf(endReason), json.decodeFromString(FilterParams.serializer(), filterParamsJson),
 )
 
 internal fun SessionSummary.toEntity() = SessionSummaryEntity(

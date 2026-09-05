@@ -25,6 +25,11 @@ public data class DeviceProfile(
     val cameraMaxFps: Int? = null,
     val displayHz: Int? = null,
     val motionToPhotonMs: Double? = null,
+    /**
+     * Direction of the Mode B image counter-rotation for this phone's camera/display chain: +1 or -1.
+     * Verified on the lens-calibration screen (plumb line must stay on a real vertical edge at k = 1).
+     */
+    val renderRotationSign: Int = 1,
     val qualified: Boolean = false,
     val qualifiedAt: String? = null,
     val qualifiedBy: String? = null,

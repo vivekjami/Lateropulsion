@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Lint, unit tests, clinical debug build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platforms;android-35 build-tools;35.0.1
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: PHI log scan (REQ-SEC-004)
+        run: python3 tools/ci/phi_log_scan.py .
+
+      - name: SOUP list check (REQ-QMS-002)
+        run: python3 tools/ci/soup_check.py .
+
+      - name: Python reference self-test and golden fixtures up to date
+        run: |
+          python3 tools/analysis/reference_metrics.py
+          python3 tools/analysis/make_golden.py /tmp/golden >/dev/null
+          diff -r /tmp/golden feature/metrics/src/test/resources/golden
+
+      - name: Unit tests (JVM + Android JVM)
+        run: ./gradlew --no-daemon test testDebugUnitTest --continue
+
+      - name: Static analysis
+        run: ./gradlew --no-daemon detekt
+
+      - name: Android lint (clinical debug)
+        run: ./gradlew --no-daemon :app:lintClinicalDebug
+
+      - name: Assemble clinical debug APK and verify no INTERNET permission (REQ-SEC-011)
+        run: ./gradlew --no-daemon :app:assembleClinicalDebug :app:verifyNoInternetPermissionClinicalDebug
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            **/build/reports/tests/**
+            **/build/reports/detekt/**
+            app/build/reports/lint-results-*.html
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: lateropulsion-clinical-debug
+          path: app/build/outputs/apk/clinical/debug/*.apk
+
+  sbom:
+    name: SBOM and dependency vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platforms;android-35 build-tools;35.0.1
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Resolve dependency tree (SBOM input)
+        run: ./gradlew --no-daemon :app:dependencies --configuration clinicalReleaseRuntimeClasspath > sbom-dependencies.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom-dependencies.txt
+      - name: OSV vulnerability scan of the lockfile-free tree
+        uses: google/osv-scanner-action/osv-scanner-action@v2
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --lockfile=gradle.lockfile:gradle/libs.versions.toml

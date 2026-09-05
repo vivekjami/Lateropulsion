@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lateropulsion</string>
+    <string name="not_certified">Pre-clinical research prototype. Not a certified medical device. Clinician supervision required.</string>
+
+    <!-- auth -->
+    <string name="create_account_title">Create clinician account</string>
+    <string name="display_name">Display name</string>
+    <string name="role">Role</string>
+    <string name="pin">PIN (at least %1$d digits)</string>
+    <string name="pin_confirm">Confirm PIN</string>
+    <string name="create_account">Create account</string>
+    <string name="unlock_title">Unlock</string>
+    <string name="select_clinician">Select clinician</string>
+    <string name="unlock">Unlock</string>
+    <string name="use_biometric">Use biometric</string>
+    <string name="wrong_pin">Wrong PIN (%1$d of %2$d attempts)</string>
+    <string name="locked_out">Too many attempts. Try again in %1$d s.</string>
+    <string name="locked_auto">Locked after inactivity</string>
+    <string name="sign_out">Lock</string>
+
+    <!-- dashboard -->
+    <string name="treatment">Treatment</string>
+    <string name="treatment_sub">Start or run a session</string>
+    <string name="reports">Reports</string>
+    <string name="reports_sub">Look up by Patient ID</string>
+    <string name="today_summary">Today: %1$d sessions · %2$d patients</string>
+    <string name="device_check">Device check</string>
+    <string name="check_camera">camera</string>
+    <string name="check_imu">IMU</string>
+    <string name="check_battery">battery</string>
+    <string name="check_thermal">thermal</string>
+    <string name="check_storage">storage</string>
+    <string name="check_device_profile">device profile</string>
+    <string name="unqualified_device">Unqualified device — research mode only</string>
+    <string name="settings">Settings</string>
+    <string name="training_mode">Training mode (simulated patient)</string>
+    <string name="crash_recovered_sessions">%1$d session(s) recovered after a crash. Review them in Reports.</string>
+    <string name="config_errors">Configuration problems: %1$s</string>
+
+    <!-- treatment -->
+    <string name="new_patient">New patient</string>
+    <string name="existing_patient">Existing patient</string>
+    <string name="registration">Registration</string>
+    <string name="patient_id">Patient ID</string>
+    <string name="name">Name</string>
+    <string name="age">Age</string>
+    <string name="sex">Sex</string>
+    <string name="mrn">MRN (optional)</string>
+    <string name="contact">Contact (optional)</string>
+    <string name="diagnosis">Diagnosis</string>
+    <string name="lesion_side">Lesion side</string>
+    <string name="affected_side">Affected (paretic) side</string>
+    <string name="lateropulsion_direction">Lateropulsion direction (pushes toward)</string>
+    <string name="onset_date">Date of onset (YYYY-MM-DD)</string>
+    <string name="consent_media">Consent to video/screenshots (separate consent item)</string>
+    <string name="consent_research">Consent to de-identified research reuse</string>
+    <string name="consent_version">Consent form version</string>
+    <string name="notes">Notes</string>
+    <string name="possible_duplicates">Possible duplicates found — check before creating:</string>
+    <string name="create_patient">Register patient</string>
+    <string name="continue_label">Continue</string>
+    <string name="back">Back</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- baseline -->
+    <string name="clinical_baseline">Clinical baseline</string>
+    <string name="severity">Overall severity</string>
+    <string name="head_deviation">Head deviation (°, + right)</string>
+    <string name="trunk_deviation">Trunk deviation (°, + right)</string>
+    <string name="sitting_balance">Sitting balance</string>
+    <string name="standing_balance">Standing balance</string>
+    <string name="walking_ability">Walking ability</string>
+    <string name="assistance_level">Assistance required</string>
+    <string name="midline_awareness">Midline awareness</string>
+    <string name="correction_ability">Correction ability</string>
+    <string name="fall_risk">Fall risk</string>
+    <string name="scales_optional">Clinical scales (optional)</string>
+    <string name="enter_scale">Enter %1$s</string>
+    <string name="scale_total">Total: %1$s</string>
+    <string name="scale_incomplete">%1$d item(s) unanswered</string>
+    <string name="baseline_measurement">Baseline measurement</string>
+    <string name="baseline_instruction">Headset on, seated and supported. Say: “Look straight ahead and hold.” Set the midline at the patient\'s clinical upright, then capture 60 s with correction off.</string>
+    <string name="set_midline">Set midline (θ_ref)</string>
+    <string name="midline_set">Midline set at %1$.1f° by %2$s</string>
+    <string name="start_capture">Start 60 s capture</string>
+    <string name="capture_progress">Capturing… %1$d s</string>
+    <string name="capture_result">Mean %1$.1f° · MAD %2$.1f° · RMS %3$.1f° · drift %4$.2f °/min · valid %5$.0f %%</string>
+    <string name="baseline_locked_note">Once a session has run against this baseline it becomes immutable; corrections create a new baseline.</string>
+    <string name="save_baseline">Save baseline</string>
+
+    <!-- lookup -->
+    <string name="search_hint">Patient ID, name or MRN</string>
+    <string name="no_results">No patients found</string>
+    <string name="sessions_count">%1$d sessions</string>
+    <string name="last_session">Last session %1$s</string>
+    <string name="profile">Profile</string>
+    <string name="start_new_session">Start new session</string>
+    <string name="session_history">Session history</string>
+    <string name="progress">Progress</string>
+
+    <!-- protocol setup -->
+    <string name="protocol_setup">Protocol setup</string>
+    <string name="protocol">Protocol</string>
+    <string name="visual_mode">Visual mode</string>
+    <string name="mode_a">Mode A — vertical reference (default)</string>
+    <string name="mode_b">Mode B — compensated view (experimental)</string>
+    <string name="gain">Gain k</string>
+    <string name="gain_proposed">Schedule proposes k = %1$.2f</string>
+    <string name="override_reason">Therapist override / note (required for gate overrides and gain increases)</string>
+    <string name="preconditions_blocking">Cannot start:</string>
+    <string name="preconditions_overridden">Overrides recorded in the audit log:</string>
+    <string name="preconditions_warnings">Warnings:</string>
+    <string name="advanced_protocol">Advanced protocol (patient flag required)</string>
+
+    <!-- pre-check -->
+    <string name="pre_session_checklist">Pre-session checklist</string>
+    <string name="chk_supervision">A trained clinician will be within arm\'s reach for the whole session</string>
+    <string name="chk_harness">Gait belt / harness and parallel bars or plinth in place (standing and walking)</string>
+    <string name="chk_hygiene">Headset cleaned, new face liner fitted</string>
+    <string name="chk_identity">Identity confirmed with the patient: %1$s, %2$s</string>
+    <string name="chk_contraindications">Contraindications re-checked (all negative)</string>
+    <string name="contraindications">Contraindication screen</string>
+    <string name="ci_seizure">Uncontrolled seizure disorder or photosensitive epilepsy</string>
+    <string name="ci_visual">Severe visual impairment or diplopia the headset cannot accommodate</string>
+    <string name="ci_vestibular">Acute vestibular crisis with intractable vomiting</string>
+    <string name="ci_cardiovascular">Unstable cardiovascular status</string>
+    <string name="ci_facial">Open facial wound or infection</string>
+    <string name="ci_agitation">Severe agitation or inability to follow instruction</string>
+    <string name="ci_consciousness">Reduced consciousness (GCS below site threshold)</string>
+    <string name="ci_ocular_surgery">Recent ocular surgery</string>
+    <string name="ssq_pre">SSQ before session</string>
+    <string name="ssq_post">SSQ after session</string>
+    <string name="ssq_result">SSQ total %1$.1f (N %2$.0f · O %3$.0f · D %4$.0f)%5$s</string>
+    <string name="ssq_flagged"> — FLAGGED</string>
+    <string name="present">Present</string>
+    <string name="absent">Absent</string>
+    <string name="device_status">Device: %1$s</string>
+    <string name="begin_calibration">Begin calibration</string>
+
+    <!-- live session -->
+    <string name="live_session">Live session</string>
+    <string name="calibrating">Calibrating… hold the headset still (%1$d %%)</string>
+    <string name="confirm_midline">Re-check midline: patient at clinical upright, then confirm</string>
+    <string name="confirm_midline_button">Confirm midline</string>
+    <string name="insert_phone">Insert the phone into the headset, then start the HMD view.</string>
+    <string name="start_hmd">Start HMD view</string>
+    <string name="start_session">Start session</string>
+    <string name="block_progress">Block %1$d/%2$d · %3$s · %4$d s left</string>
+    <string name="resting">Rest · %1$d s left</string>
+    <string name="rest_complete">Rest complete — next block when ready</string>
+    <string name="next_block">Next block</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="stop">Stop</string>
+    <string name="abort">ABORT</string>
+    <string name="mark">Mark</string>
+    <string name="balance_loss">Balance loss</string>
+    <string name="episodes_live">Episodes: %1$d</string>
+    <string name="in_band">In band</string>
+    <string name="out_of_band">Out of band</string>
+    <string name="tracking_lost">TRACKING LOST</string>
+    <string name="mount_shift">HEADSET MOVED — re-seat and confirm midline</string>
+    <string name="pitch_guard">Looking too far up/down</string>
+    <string name="perf_degraded">Frame timing degraded — passthrough set to neutral</string>
+    <string name="camera_stall">Camera stalled</string>
+    <string name="stop_rules_title">Stop rules — any one → stop the block</string>
+    <string name="stop_rule_prompt">Nausea · dizziness · pallor/sweating · headache · balance loss · patient asks · therapist judgement</string>
+    <string name="aborted_reason">Aborted: %1$s</string>
+    <string name="mirror_hint">Cast to a second screen for the therapist mirror view; otherwise review after the session.</string>
+
+    <!-- summary -->
+    <string name="session_summary">Session summary</string>
+    <string name="metric_mad">MAD</string>
+    <string name="metric_rms">RMS</string>
+    <string name="metric_tib5">Time in ±5°</string>
+    <string name="metric_tib10">Time in ±10°</string>
+    <string name="metric_episodes">Episodes</string>
+    <string name="metric_recovery">Mean recovery</string>
+    <string name="metric_valid">Valid samples</string>
+    <string name="improvement">Improvement vs baseline: %1$.0f %% (Δ %2$.1f°)</string>
+    <string name="within_mdc">within measurement noise (MDC %1$.1f°)</string>
+    <string name="low_confidence">LOW CONFIDENCE — under 60 s of valid data</string>
+    <string name="comparison_refused">Baseline comparison refused: %1$s</string>
+    <string name="internal_metric_note">Internal progress metric — not a validated clinical outcome. Read with gain k and assistance level.</string>
+    <string name="therapist_notes">Therapist observations</string>
+    <string name="assistance_after">Assistance level after session</string>
+    <string name="confirm_save">Confirm and save</string>
+    <string name="saved">Saved</string>
+    <string name="generate_pdf">Session report (PDF)</string>
+
+    <!-- reports -->
+    <string name="patient_search">Patient search</string>
+    <string name="export_csv">Export CSV</string>
+    <string name="export_json">Export JSON</string>
+    <string name="export_deidentified">De-identified (default)</string>
+    <string name="export_identified_warning">Identified export includes diagnosis and notes. It is audited. Confirm again to proceed.</string>
+    <string name="progress_report_pdf">Progress report (PDF)</string>
+    <string name="status_completed">completed</string>
+    <string name="status_aborted">aborted</string>
+    <string name="status_low_confidence">low confidence</string>
+    <string name="status_crash_recovered">crash-recovered</string>
+    <string name="erase_patient">Erase patient</string>
+    <string name="erase_warning">Removes name, MRN, contact and media. Keep de-identified time series for research (as consented)?</string>
+    <string name="erase_keep">Erase, keep de-identified data</string>
+    <string name="erase_all">Erase everything</string>
+    <string name="audit_log">Audit log</string>
+
+    <!-- settings -->
+    <string name="site_name">Site name</string>
+    <string name="device_profile">Device profile</string>
+    <string name="headset_profile">Headset profile</string>
+    <string name="ipd">IPD (mm)</string>
+    <string name="research_mode">Research mode (allows unqualified devices, flags every report)</string>
+    <string name="auto_lock">Auto-lock after (s)</string>
+    <string name="calibration">Roll calibration (sign and mount)</string>
+    <string name="sensor_debug">Sensor debug</string>
+    <string name="lens_calibration">Lens / IPD calibration (HMD)</string>
+    <string name="retention_check">Run retention check</string>
+    <string name="retention_pending">%1$d media file(s) past retention — confirm deletion</string>
+    <string name="about">About</string>
+    <string name="about_versions">App %1$s · metrics %2$s · protocol %3$s · fusion %4$s</string>
+    <string name="calib_step1">Step 1 — hold the device exactly as mounted in the headset, head upright, then capture neutral.</string>
+    <string name="calib_step2">Step 2 — tilt the top of the device clearly toward the PATIENT\'S RIGHT (at least 10°), then capture.</string>
+    <string name="capture_neutral">Capture neutral</string>
+    <string name="capture_tilt">Capture tilt</string>
+    <string name="calib_result">Result: sign %1$d, mount %2$.1f° — %3$s</string>
+    <string name="calib_apply">Apply field calibration (unqualified)</string>
+    <string name="theta_raw">θ_raw %1$.1f°</string>
+    <string name="theta_head">θ_head %1$.1f°</string>
+    <string name="imu_rate">IMU %1$.0f Hz · pose %2$.0f Hz</string>
+    <string name="drift">drift %1$.2f °/min</string>
+    <string name="bias">bias %1$s</string>
+
+    <!-- instructions (audio/text prompts per block) -->
+    <string name="instr_baseline_hold">Look straight ahead and hold.</string>
+    <string name="instr_midline_training">Bring the line upright and keep it there.</string>
+    <string name="instr_sitting_hold">Sit tall. Keep the line in the green.</string>
+    <string name="instr_standing_hold">Stand tall in the bars. Keep the line in the green.</string>
+    <string name="instr_weight_shift">Lean slowly to the target, then come back to the middle.</string>
+    <string name="instr_reach">Reach for the target without leaning away.</string>
+    <string name="instr_walking">Walk to the target. Keep the line upright.</string>
+</resources>

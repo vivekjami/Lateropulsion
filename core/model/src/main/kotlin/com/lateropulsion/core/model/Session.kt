@@ -71,6 +71,7 @@ public data class BlockResult(
  * Session-level summary. [improvementPct] is an internal progress metric on a proxy signal and is
  * always presented alongside [gainUsed] and [withinMdc] (README §7, ARCHITECTURE §7.3).
  */
+@kotlinx.serialization.Serializable
 public data class SessionSummary(
     val sessionId: SessionId,
     val baselineId: BaselineId?,
