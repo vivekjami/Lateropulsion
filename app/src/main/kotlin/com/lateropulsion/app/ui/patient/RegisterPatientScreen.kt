@@ -61,18 +61,24 @@ class RegisterPatientViewModel @Inject constructor(private val patients: Patient
         val f = form.value
         val age = f.age.toIntOrNull() ?: return@launch
         if (f.name.trim().length < 2) return@launch
-        update { it.copy(duplicates = patients.findPossibleDuplicates(PatientIdentity(Ids.patient(), f.name, f.mrn.ifBlank { null }, null), age)) }
+        val dups = patients.findPossibleDuplicates(PatientIdentity(Ids.patient(), f.name, f.mrn.ifBlank { null }, null), age)
+        update { it.copy(duplicates = dups) }
     }
 
     fun create() = viewModelScope.launch {
         val f = form.value
         val age = f.age.toIntOrNull() ?: run { update { it.copy(error = "Age required") }; return@launch }
-        val onset = f.onset.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() ?: run { update { it.copy(error = "Onset date must be YYYY-MM-DD") }; return@launch } }
+        var onset: LocalDate? = null
+        if (f.onset.isNotBlank()) {
+            onset = runCatching { LocalDate.parse(f.onset) }.getOrNull()
+            if (onset == null) { update { it.copy(error = "Onset date must be YYYY-MM-DD") }; return@launch }
+        }
         val now = clock.nowUtcMillis()
         val year = LocalDate.now(ZoneId.systemDefault()).year
         val id = Ids.patient()
+        val displayId = patients.allocateDisplayId(year)
         val patient = Patient(
-            id = id, displayId = patients.allocateDisplayId(year), age = age, sex = f.sex, diagnosis = f.diagnosis.trim(), lesionSide = f.lesionSide,
+            id = id, displayId = displayId, age = age, sex = f.sex, diagnosis = f.diagnosis.trim(), lesionSide = f.lesionSide,
             affectedSide = f.affectedSide, lateropulsionDirection = f.direction, onsetDate = onset, consentMedia = f.consentMedia, consentResearch = f.consentResearch,
             consentRecordedAt = now, notes = f.notes, createdAt = now, updatedAt = now,
         )

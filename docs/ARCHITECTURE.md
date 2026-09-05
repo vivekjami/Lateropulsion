@@ -139,7 +139,8 @@ Strict dependency direction: **outer depends on inner, never the reverse.**
 | `feature:assessment` | Scales, baseline capture flow, SVV test | `ScaleDefinition`, `BaselineCapture` | model, database |
 | `feature:protocol` | Exercise definitions, block sequencing, progression gates, gain fading | `ProtocolEngine`, `BlockState`, `ProgressionGate` | model, metrics |
 | `feature:metrics` | Streaming and batch metric computation, episode detection | `MetricsAccumulator`, `EpisodeDetector`, `SessionSummarizer` | model |
-| `feature:report` | PDF/CSV/JSON generation, charts, baseline comparison | `SessionReportBuilder`, `ProgressReportBuilder` | model, database |
+| `feature:report` | PDF/CSV/JSON generation, charts, baseline comparison | `SessionReportBuilder`, `ProgressReportBuilder`, `CanvasChartPainter` | model, metrics, timeseries |
+| `core:timeseries` | `.lpx` append-only log: writer, reader, crash recovery (ADR-014) | `LpxWriter`, `LpxReader`, `LpxRecovery` | model, common |
 | `app` | Screens, navigation, DI wiring, permissions, lifecycle | — | all |
 
 ---
@@ -653,7 +654,7 @@ Header (fixed 256 B)
   magic "LPX1" | version | session_uuid | sample_rate_hz
   | t0_utc_ms | t0_mono_ns | device_profile_id | flags
 
-Record (packed, 20 B, 50 Hz)
+Record (packed, 22 B, 50 Hz — see ADR-014)
   t_delta_ms   uint32
   theta_raw    int16   (0.01° units, ±327°)
   theta_filt   int16
@@ -823,3 +824,4 @@ Additional: certificate pinning on the sync flavour, no third-party analytics or
 | 008 | Magnetometer excluded from fusion | Indoor ferrous interference; yaw is irrelevant here | Yaw drifts, which is acceptable |
 | 009 | Aborted sessions are saved | Discarding bad sessions biases the trend | Reports must display abort reasons |
 | 010 | Head IMU only in v1, trunk IMU designed-for | Ships sooner; the data model already supports multi-stream | Head-as-proxy limitation must be stated in every report |
+| 011–016 | See `docs/adr/README.md` | Parquet off-device, Kotlin-only fusion/render (no NDK), no game engine, 22-byte record, empirical per-device signs, Android 10+/GLES 3.0 compatibility floor | — |

@@ -59,8 +59,8 @@ Anomaly review: before each release gate, check each runtime component's issue t
 | `androidx.test.ext:junit` | 1.2.1 | AndroidJUnit4 runner (tests only) | test | no | pending (Phase 7) |
 | `androidx.test:runner` | 1.6.2 | Instrumented test runner (tests only) | test | no | pending (Phase 7) |
 | `androidx.test.espresso:espresso-core` | 3.6.1 | UI tests (tests only) | test | no | pending (Phase 7) |
-| `com.android.application` | 8.13.0 | Android Gradle plugin (build-time only) | build | no | pending (Phase 7) |
-| `com.android.library` | 8.13.0 | Android Gradle plugin (build-time only) | build | no | pending (Phase 7) |
+| `com.android.application` | 8.11.0 | Android Gradle plugin (build-time only) | build | no | pending (Phase 7) |
+| `com.android.library` | 8.11.0 | Android Gradle plugin (build-time only) | build | no | pending (Phase 7) |
 | `org.jetbrains.kotlin.android` | 2.2.10 | Kotlin compiler plugin (build-time only) | build | no | pending (Phase 7) |
 | `org.jetbrains.kotlin.jvm` | 2.2.10 | Kotlin compiler plugin (build-time only) | build | no | pending (Phase 7) |
 | `org.jetbrains.kotlin.plugin.compose` | 2.2.10 | Compose compiler plugin (build-time only) | build | no | pending (Phase 7) |

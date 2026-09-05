@@ -19,6 +19,7 @@ class LateropulsionApp : Application(), Configuration.Provider {
         LpLog.minLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.INFO
         LpLog.strictPhiGuard = true
         LpLog.i("App", "start", "version" to BuildConfig.VERSION_NAME, "flavor" to BuildConfig.FLAVOR)
+        com.lateropulsion.app.work.RetentionWorker.schedule(this)
     }
 
     override val workManagerConfiguration: Configuration

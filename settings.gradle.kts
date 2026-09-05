@@ -22,15 +22,16 @@ dependencyResolutionManagement {
 
 rootProject.name = "lateropulsion"
 
+include(":app")
 include(":core:common")
 include(":core:model")
 include(":core:timeseries")
-include(":feature:metrics")
-include(":feature:protocol")
-include(":feature:assessment")
-include(":engine:sensor")
-include(":core:datastore")
 include(":core:database")
+include(":core:datastore")
+include(":engine:sensor")
 include(":engine:vision")
 include(":engine:render")
+include(":feature:assessment")
+include(":feature:protocol")
+include(":feature:metrics")
 include(":feature:report")

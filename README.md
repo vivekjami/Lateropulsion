@@ -19,7 +19,7 @@
 
 The clinician provides the diagnosis and the baseline severity grading. The application **measures orientation, delivers a visual intervention, and quantifies change**. It never outputs a diagnosis.
 
-The full clinical architecture is:
+The full clinical architecture is (see [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)):
 
 ```
 Clinical Input → Sensor Input → Deviation Estimation → Visual Compensation
@@ -250,7 +250,7 @@ improvement_% = (baseline_MAD − session_MAD) / baseline_MAD × 100
 ```
 Reported with confidence bounds and explicitly labelled **"internal progress metric — not a validated clinical outcome."** Clinical outcome remains SCP / BLS / FAC, entered by the clinician.
 
-Exact formulas, filter design and edge cases: see [`ARCHITECTURE.md` §7](./ARCHITECTURE.md).
+Exact formulas, filter design and edge cases: see [`ARCHITECTURE.md` §8](./docs/ARCHITECTURE.md).
 
 ---
 
@@ -262,7 +262,7 @@ Entered by the clinician, stored alongside sensor data so device metrics can be 
 |---|---|---|
 | **SCP** — Scale for Contraversive Pushing | Gold-standard pusher-behaviour grading (posture, extension, resistance) | 0–6 |
 | **BLS** — Burke Lateropulsion Scale | Graded across supine, sitting, standing, transfer, walking | 0–17 |
-| **4PPT / 4-point Pusher Score** | Rapid screening | 0–4 |
+| **4PPS — Four-Point Pusher Score** | Rapid screening | 0–3 (four levels) |
 | **FAC** — Functional Ambulation Categories | Walking assistance | 0–5 |
 | **TCT** — Trunk Control Test | Trunk function | 0–100 |
 | **Berg Balance Scale** | Balance | 0–56 |
@@ -286,7 +286,7 @@ Scale definitions live in `/config/scales/*.json` and are versioned; a session r
 | Persistence | **Room + SQLCipher** (AES-256), file store for media | Offline-first, encrypted at rest |
 | Reports | Custom PDF renderer (`PdfDocument`) + MPAndroidChart/Compose canvas | No network dependency |
 | Time series | Append-only binary log (`.lpx`) + Parquet/CSV export | Efficient at 50 Hz × long sessions |
-| Backend *(optional, Phase 8)* | Kotlin/Ktor or FastAPI + PostgreSQL + S3-compatible object store, HL7 FHIR mapping | Multi-site studies, EMR interoperability |
+| Backend *(optional, Phase 9)* | Kotlin/Ktor or FastAPI + PostgreSQL + S3-compatible object store, HL7 FHIR mapping | Multi-site studies, EMR interoperability |
 | DI / arch | Hilt, Clean Architecture, Kotlin Coroutines + Flow | Testability, IEC 62304 traceability |
 | Testing | JUnit5, Turbine, Robolectric, Espresso, MockK; hardware-in-the-loop rotary jig | Verification evidence |
 | CI | GitHub Actions → lint, unit, instrumented (Firebase Test Lab), SBOM, signed build | Release traceability |
@@ -334,6 +334,7 @@ lateropulsion/
 │       └── di/
 ├── core/
 │   ├── model/                    # Pure Kotlin domain entities (no Android deps)
+│   ├── timeseries/               # .lpx append-only session log, crash recovery
 │   ├── database/                 # Room + SQLCipher, DAOs, migrations
 │   ├── datastore/                # Encrypted preferences, app settings
 │   └── common/                   # Result types, dispatchers, clock, logging
@@ -354,13 +355,15 @@ lateropulsion/
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── IMPLEMENTATION.md
+│   ├── STATUS.md                 # What is built, verified, and still open
+│   ├── adr/                      # Decisions taken during implementation
 │   ├── risk/                     # ISO 14971 hazard analysis, FMEA
 │   ├── clinical/                 # Protocol, IRB/EC pack, ICF, CRF
 │   └── traceability/             # Requirement ↔ test matrix (IEC 62304)
 ├── tools/
 │   ├── jig/                      # Rotary-jig capture + accuracy analysis scripts
 │   └── analysis/                 # Python notebooks for session data
-└── backend/                      # Optional Phase 8 sync service
+└── backend/                      # Optional Phase 9 sync service (not yet present)
 ```
 
 ---
@@ -385,7 +388,7 @@ cp local.properties.example local.properties   # set sdk.dir / ndk.dir
 ```bash
 ./gradlew test                       # unit: metrics, fusion math, protocol engine
 ./gradlew connectedAndroidTest       # instrumented: DB, camera, render smoke tests
-./gradlew :engine:sensor:jigVerify   # hardware-in-the-loop accuracy (jig connected)
+python3 tools/jig/analyse.py jig/<model>/   # hardware-in-the-loop accuracy from a jig capture
 ```
 
 ### First run
@@ -500,7 +503,7 @@ The SOUP (software of unknown provenance) list — every third-party library wit
 
 ## 17. Roadmap
 
-See **[`IMPLEMENTATION.md`](./IMPLEMENTATION.md)** for the full phase-by-phase plan. Summary:
+See **[`docs/IMPLEMENTATION.md`](./docs/IMPLEMENTATION.md)** for the full phase-by-phase plan and **[`docs/STATUS.md`](./docs/STATUS.md)** for what is implemented today. Summary:
 
 | Phase | Theme | Duration |
 |---|---|---|
@@ -556,4 +559,4 @@ Background reading to be captured formally in `docs/clinical/literature.md`. Cor
 
 Choose a licence deliberately: a permissive licence (Apache-2.0) accelerates academic collaboration, while a copyleft or proprietary licence may be needed for a regulated commercial route. Until decided, treat the repository as **all rights reserved**.
 
-Contribution rules, code review requirements and the definition of done are in [`IMPLEMENTATION.md`](./IMPLEMENTATION.md).
+Contribution rules, code review requirements and the definition of done are in [`docs/IMPLEMENTATION.md`](./docs/IMPLEMENTATION.md).

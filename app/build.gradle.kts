@@ -69,7 +69,7 @@ kotlin {
     compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }
 }
 
-/** Copies the repository's `config/` tree into the APK as `assets/config/**` so protocols and scales ship as data (ADR-007). */
+/** Copies the repository config tree into the APK under assets/config so protocols and scales ship as data (ADR-007). */
 abstract class ConfigAssetsTask : DefaultTask() {
     @get:InputDirectory abstract val configDir: DirectoryProperty
     @get:OutputDirectory abstract val outputDir: DirectoryProperty
@@ -113,6 +113,10 @@ androidComponents {
 }
 
 dependencies {
+    // Hilt's plugin verifies its dependency through the hiltCompileOnly* configurations it creates per variant.
+    configurations.matching { it.name.startsWith("hiltCompileOnly") }.configureEach {
+        dependencies.add(project.dependencies.create("com.google.dagger:hilt-android:${libs.versions.hilt.get()}"))
+    }
     implementation(project(":core:common"))
     implementation(project(":core:model"))
     implementation(project(":core:timeseries"))
@@ -144,7 +148,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
     implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.hilt.android)
+    implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.kotlinx.coroutines.android)

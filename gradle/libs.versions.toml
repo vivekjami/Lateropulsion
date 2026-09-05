@@ -1,6 +1,6 @@
 # Every entry here must have a matching row in docs/traceability/soup.md (checked by tools/ci/soup_check.py).
 [versions]
-agp = "8.13.0"
+agp = "8.11.0"
 kotlin = "2.2.10"
 ksp = "2.2.10-2.0.2"
 hilt = "2.57.1"

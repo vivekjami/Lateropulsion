@@ -49,8 +49,9 @@ class SessionRuntime @Inject constructor(
         val profiles = config.deviceProfiles()
         var dev = s.deviceProfileId?.let { id -> profiles.firstOrNull { it.id == id } } ?: config.deviceProfileFor(Build.MODEL)
             ?: DeviceProfile(AssetConfigRepository.GENERIC_ID, "any", Build.MODEL, ".*", 0, 0.0)
-        if (!dev.signResolved && s.fieldCalibratedSign != 0 && s.fieldCalibratedMountDeg != null) {
-            dev = dev.copy(rollSign = s.fieldCalibratedSign, thetaMountDeg = s.fieldCalibratedMountDeg, notes = dev.notes + " [field-calibrated ${s.fieldCalibratedAt}]")
+        val fieldMount = s.fieldCalibratedMountDeg
+        if (!dev.signResolved && s.fieldCalibratedSign != 0 && fieldMount != null) {
+            dev = dev.copy(rollSign = s.fieldCalibratedSign, thetaMountDeg = fieldMount, notes = dev.notes + " [field-calibrated ${s.fieldCalibratedAt}]")
         }
         val hs = (s.headsetProfileId?.let { id -> config.headsetProfiles().firstOrNull { it.id == id } } ?: config.headsetProfiles().firstOrNull() ?: HeadsetProfile("default", "Default"))
             .let { h -> s.ipdMm?.let { h.copy(ipdMm = it) } ?: h }
