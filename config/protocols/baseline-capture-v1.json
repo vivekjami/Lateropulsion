@@ -1,0 +1,23 @@
+{
+  "protocol_id": "baseline-capture-v1",
+  "version": 1,
+  "name": "Baseline measurement (60 s, correction off)",
+  "description": "Seated, supported. 'Look straight ahead and hold.' Records the immutable reference for all future sessions.",
+  "position_required": "SUPPORTED_SITTING",
+  "visual_mode": "VERTICAL_REFERENCE",
+  "gain_schedule": { "type": "MANUAL" },
+  "gain_initial": 0.0,
+  "blocks": [
+    {
+      "block_id": "capture",
+      "exercise": "BASELINE_CAPTURE",
+      "duration_s": 60,
+      "target_deg": 0.0,
+      "tolerance_deg": 5.0,
+      "cues": [],
+      "checkpoints_s": [15, 30, 45, 60],
+      "instruction_key": "instr_baseline_hold"
+    }
+  ],
+  "tags": ["assessment"]
+}

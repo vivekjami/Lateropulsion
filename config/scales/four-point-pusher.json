@@ -1,0 +1,30 @@
+{
+  "code": "4PPS",
+  "version": "2006.1",
+  "name": "Four-Point Pusher Score",
+  "description": "Rapid screening grade of pushing behaviour on four levels (0–3).",
+  "range_min": 0,
+  "range_max": 3,
+  "higher_is_worse": true,
+  "scoring": "SUM",
+  "license_note": "Published screening score (Lagerqvist & Skargren 2006). Confirm redistribution permission before clinical deployment.",
+  "reference": "Lagerqvist J, Skargren E. Pusher syndrome: reliability, validity and sensitivity to change of a classification instrument. Adv Physiother 2006;8:154–160.",
+  "sections": [
+    {
+      "id": "items",
+      "title": "Screening",
+      "items": [
+        {
+          "id": "grade",
+          "label": "Pushing behaviour",
+          "options": [
+            { "label": "0 – No pushing", "score": 0 },
+            { "label": "1 – Mild pushing", "score": 1 },
+            { "label": "2 – Moderate pushing", "score": 2 },
+            { "label": "3 – Severe pushing", "score": 3 }
+          ]
+        }
+      ]
+    }
+  ]
+}

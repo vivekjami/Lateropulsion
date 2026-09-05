@@ -1,0 +1,28 @@
+{
+  "code": "TCT",
+  "version": "1990.1",
+  "name": "Trunk Control Test",
+  "description": "Four trunk tasks scored 0 / 12 / 25; total 0–100.",
+  "range_min": 0,
+  "range_max": 100,
+  "higher_is_worse": false,
+  "scoring": "SUM",
+  "license_note": "Widely reproduced (Collin & Wade 1990); no licence fee known. Verify before commercial distribution.",
+  "reference": "Collin C, Wade D. Assessing motor impairment after stroke: a pilot reliability study. J Neurol Neurosurg Psychiatry 1990;53:576–579.",
+  "sections": [
+    {
+      "id": "items",
+      "title": "Tasks",
+      "items": [
+        { "id": "roll_weak", "label": "Rolling to the weak side", "options": [
+          { "label": "0 – Unable", "score": 0 }, { "label": "12 – Able with non-muscular help (pulls on bedclothes, uses arms)", "score": 12 }, { "label": "25 – Normal", "score": 25 } ] },
+        { "id": "roll_strong", "label": "Rolling to the strong side", "options": [
+          { "label": "0 – Unable", "score": 0 }, { "label": "12 – Able with non-muscular help", "score": 12 }, { "label": "25 – Normal", "score": 25 } ] },
+        { "id": "sit_balance", "label": "Sitting balance (30 s, edge of bed, feet off floor)", "options": [
+          { "label": "0 – Unable", "score": 0 }, { "label": "12 – Able with support", "score": 12 }, { "label": "25 – Normal", "score": 25 } ] },
+        { "id": "sit_up", "label": "Sitting up from lying", "options": [
+          { "label": "0 – Unable", "score": 0 }, { "label": "12 – Able with non-muscular help", "score": 12 }, { "label": "25 – Normal", "score": 25 } ] }
+      ]
+    }
+  ]
+}

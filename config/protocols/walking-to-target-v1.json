@@ -1,0 +1,49 @@
+{
+  "protocol_id": "walking-to-target-v1",
+  "version": 1,
+  "name": "Supervised straight-line walking to target",
+  "description": "Locked until the standing gate passes. Gait belt, therapist within arm's reach, clear corridor. Progression is therapist judgement.",
+  "position_required": "WALKING",
+  "visual_mode": "VERTICAL_REFERENCE",
+  "gain_schedule": { "type": "MANUAL" },
+  "gain_initial": 0.0,
+  "requires_gate_from": "std-standing-v3",
+  "blocks": [
+    {
+      "block_id": "stand-settle",
+      "exercise": "STANDING_HOLD",
+      "duration_s": 45,
+      "target_deg": 0.0,
+      "tolerance_deg": 10.0,
+      "cues": ["PLUMB_LINE", "TOLERANCE_BAND"],
+      "checkpoints_s": [45],
+      "rest_after_s": 30,
+      "position": "STANDING",
+      "instruction_key": "instr_standing_hold"
+    },
+    {
+      "block_id": "walk-1",
+      "exercise": "WALKING_TO_TARGET",
+      "duration_s": 60,
+      "target_deg": 0.0,
+      "tolerance_deg": 10.0,
+      "cues": ["PLUMB_LINE", "TARGET", "AUDIO_PAN"],
+      "checkpoints_s": [20, 40, 60],
+      "rest_after_s": 90,
+      "abort_if": { "metric": "episodes", "gt": 6 },
+      "instruction_key": "instr_walking"
+    },
+    {
+      "block_id": "walk-2",
+      "exercise": "WALKING_TO_TARGET",
+      "duration_s": 60,
+      "target_deg": 0.0,
+      "tolerance_deg": 10.0,
+      "cues": ["PLUMB_LINE", "TARGET", "HAPTIC"],
+      "checkpoints_s": [20, 40, 60],
+      "abort_if": { "metric": "episodes", "gt": 6 },
+      "instruction_key": "instr_walking"
+    }
+  ],
+  "tags": ["walking", "functional"]
+}

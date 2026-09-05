@@ -1,0 +1,49 @@
+{
+  "protocol_id": "compensated-sitting-research-v1",
+  "version": 1,
+  "name": "Mode B seated introduction (research)",
+  "description": "Experimental compensated view. Seated only, k <= 0.4 on first exposures, short blocks, SSQ before and after. Gain fades by performance and cannot be run without a fading schedule.",
+  "position_required": "SITTING_UNSUPPORTED",
+  "visual_mode": "COMPENSATED_VIEW",
+  "gain_schedule": { "type": "PERFORMANCE_DRIVEN", "step": 0.1, "gate_tib5": 60.0, "consecutive_sessions": 2, "floor": 0.0 },
+  "gain_initial": 0.4,
+  "max_session_s": 600,
+  "blocks": [
+    {
+      "block_id": "mode-a-settle",
+      "exercise": "MIDLINE_TRAINING",
+      "duration_s": 60,
+      "target_deg": 0.0,
+      "tolerance_deg": 10.0,
+      "cues": ["PLUMB_LINE", "TOLERANCE_BAND"],
+      "checkpoints_s": [30, 60],
+      "rest_after_s": 30,
+      "gain": 0.0,
+      "instruction_key": "instr_midline_training"
+    },
+    {
+      "block_id": "compensated-1",
+      "exercise": "SITTING_HOLD",
+      "duration_s": 120,
+      "target_deg": 0.0,
+      "tolerance_deg": 5.0,
+      "cues": ["PLUMB_LINE", "HAPTIC"],
+      "checkpoints_s": [40, 80, 120],
+      "rest_after_s": 90,
+      "abort_if": { "metric": "episodes", "gt": 10 },
+      "instruction_key": "instr_sitting_hold"
+    },
+    {
+      "block_id": "compensated-2",
+      "exercise": "SITTING_HOLD",
+      "duration_s": 120,
+      "target_deg": 0.0,
+      "tolerance_deg": 5.0,
+      "cues": ["PLUMB_LINE", "PROGRESS_RING"],
+      "checkpoints_s": [40, 80, 120],
+      "abort_if": { "metric": "episodes", "gt": 10 },
+      "instruction_key": "instr_sitting_hold"
+    }
+  ],
+  "tags": ["sitting", "mode-b", "research"]
+}

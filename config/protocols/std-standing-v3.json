@@ -1,0 +1,56 @@
+{
+  "protocol_id": "std-standing-v3",
+  "version": 3,
+  "name": "Standing hold in parallel bars",
+  "description": "Locked until the sitting gate passes. Gait belt and parallel bars mandatory; a second person present.",
+  "position_required": "STANDING",
+  "visual_mode": "VERTICAL_REFERENCE",
+  "gain_schedule": { "type": "PERFORMANCE_DRIVEN", "step": 0.1, "gate_tib5": 60.0, "consecutive_sessions": 2 },
+  "gain_initial": 0.0,
+  "requires_gate_from": "std-sitting-v3",
+  "blocks": [
+    {
+      "block_id": "seated-settle",
+      "exercise": "MIDLINE_TRAINING",
+      "duration_s": 60,
+      "target_deg": 0.0,
+      "tolerance_deg": 10.0,
+      "cues": ["PLUMB_LINE", "TOLERANCE_BAND"],
+      "checkpoints_s": [30, 60],
+      "rest_after_s": 30,
+      "position": "SITTING_UNSUPPORTED",
+      "instruction_key": "instr_midline_training"
+    },
+    {
+      "block_id": "stand-1",
+      "exercise": "STANDING_HOLD",
+      "duration_s": 90,
+      "target_deg": 0.0,
+      "tolerance_deg": 10.0,
+      "cues": ["PLUMB_LINE", "HORIZON", "TOLERANCE_BAND", "HAPTIC"],
+      "checkpoints_s": [30, 60, 90],
+      "rest_after_s": 90,
+      "abort_if": { "metric": "episodes", "gt": 8 },
+      "instruction_key": "instr_standing_hold"
+    },
+    {
+      "block_id": "stand-2",
+      "exercise": "STANDING_HOLD",
+      "duration_s": 90,
+      "target_deg": 0.0,
+      "tolerance_deg": 10.0,
+      "cues": ["PLUMB_LINE", "HORIZON", "TOLERANCE_BAND", "PROGRESS_RING"],
+      "checkpoints_s": [30, 60, 90],
+      "abort_if": { "metric": "episodes", "gt": 8 },
+      "instruction_key": "instr_standing_hold"
+    }
+  ],
+  "progression_gate": {
+    "unlocks": "walking-to-target-v1",
+    "requires": [
+      { "metric": "TIB_10", "gte": 80.0, "consecutive_sessions": 2 },
+      { "metric": "balance_loss_events", "eq": 0 }
+    ]
+  },
+  "tags": ["standing", "core"]
+}

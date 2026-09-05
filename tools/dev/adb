@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# adb shim for WSL2: USB devices are owned by Windows, so forward to the Windows adb.exe
+# when it exists; fall back to the Linux adb otherwise. Paths passed to `install` are
+# translated to UNC form so adb.exe can read files living in the WSL filesystem.
+set -euo pipefail
+WIN_ADB="${LP_WIN_ADB:-}"
+if [[ -z "$WIN_ADB" ]]; then
+  for c in /mnt/c/Users/*/platform-tools/adb.exe /mnt/c/Users/*/AppData/Local/Android/Sdk/platform-tools/adb.exe; do
+    [[ -x "$c" ]] && WIN_ADB="$c" && break
+  done
+fi
+if [[ -n "$WIN_ADB" && -x "$WIN_ADB" ]] && grep -qi microsoft /proc/version 2>/dev/null; then
+  args=()
+  for a in "$@"; do
+    if [[ -e "$a" && "$a" == /* ]]; then
+      args+=("$(wslpath -w "$a")")
+    else
+      args+=("$a")
+    fi
+  done
+  exec "$WIN_ADB" "${args[@]}"
+else
+  exec adb "$@"
+fi

@@ -1,0 +1,55 @@
+{
+  "protocol_id": "std-sitting-v3",
+  "version": 3,
+  "name": "Standard sitting progression",
+  "description": "Midline training followed by unsupported sitting holds. Entry protocol for every new patient.",
+  "position_required": "SITTING_UNSUPPORTED",
+  "visual_mode": "VERTICAL_REFERENCE",
+  "gain_schedule": { "type": "PERFORMANCE_DRIVEN", "step": 0.1, "gate_tib5": 60.0, "consecutive_sessions": 2 },
+  "gain_initial": 0.0,
+  "blocks": [
+    {
+      "block_id": "warmup",
+      "exercise": "MIDLINE_TRAINING",
+      "duration_s": 120,
+      "target_deg": 0.0,
+      "tolerance_deg": 10.0,
+      "cues": ["PLUMB_LINE", "TOLERANCE_BAND", "AUDIO_PAN"],
+      "checkpoints_s": [30, 60, 90, 120],
+      "rest_after_s": 60,
+      "position": "SUPPORTED_SITTING",
+      "instruction_key": "instr_midline_training"
+    },
+    {
+      "block_id": "hold-1",
+      "exercise": "SITTING_HOLD",
+      "duration_s": 180,
+      "target_deg": 0.0,
+      "tolerance_deg": 5.0,
+      "cues": ["PLUMB_LINE", "HORIZON", "HAPTIC"],
+      "checkpoints_s": [60, 120, 180],
+      "rest_after_s": 60,
+      "abort_if": { "metric": "episodes", "gt": 12 },
+      "instruction_key": "instr_sitting_hold"
+    },
+    {
+      "block_id": "hold-2",
+      "exercise": "SITTING_HOLD",
+      "duration_s": 180,
+      "target_deg": 0.0,
+      "tolerance_deg": 5.0,
+      "cues": ["PLUMB_LINE", "TOLERANCE_BAND", "PROGRESS_RING"],
+      "checkpoints_s": [60, 120, 180],
+      "abort_if": { "metric": "episodes", "gt": 12 },
+      "instruction_key": "instr_sitting_hold"
+    }
+  ],
+  "progression_gate": {
+    "unlocks": "std-standing-v3",
+    "requires": [
+      { "metric": "TIB_5", "gte": 60.0, "consecutive_sessions": 2 },
+      { "metric": "balance_loss_events", "eq": 0 }
+    ]
+  },
+  "tags": ["sitting", "core"]
+}

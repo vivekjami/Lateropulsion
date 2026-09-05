@@ -1,0 +1,35 @@
+{
+  "protocol_id": "reach-to-target-v1",
+  "version": 1,
+  "name": "Reach to target without pushing",
+  "description": "Functional reach toward a visual target while keeping the trunk near midline. Peak deviation during reach is the primary metric.",
+  "position_required": "SITTING_UNSUPPORTED",
+  "visual_mode": "VERTICAL_REFERENCE",
+  "gain_schedule": { "type": "LINEAR", "step": 0.1, "floor": 0.0 },
+  "gain_initial": 0.0,
+  "blocks": [
+    {
+      "block_id": "reach-front",
+      "exercise": "REACH_TO_TARGET",
+      "duration_s": 120,
+      "target_deg": 0.0,
+      "tolerance_deg": 8.0,
+      "cues": ["PLUMB_LINE", "TARGET", "DEVIATION_READOUT"],
+      "checkpoints_s": [40, 80, 120],
+      "rest_after_s": 60,
+      "instruction_key": "instr_reach"
+    },
+    {
+      "block_id": "reach-paretic-side",
+      "exercise": "REACH_TO_TARGET",
+      "duration_s": 120,
+      "target_deg": 0.0,
+      "tolerance_deg": 8.0,
+      "amplitude_deg": 8.0,
+      "cues": ["PLUMB_LINE", "TARGET", "AUDIO_PAN"],
+      "checkpoints_s": [40, 80, 120],
+      "instruction_key": "instr_reach"
+    }
+  ],
+  "tags": ["sitting", "functional"]
+}

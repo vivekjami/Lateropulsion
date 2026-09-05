@@ -1,0 +1,66 @@
+{
+  "session": {
+    "max_duration_min": 20,
+    "default_block_duration_s": 120,
+    "mandatory_rest_every_s": 300,
+    "mandatory_rest_s": 60,
+    "auto_stop_on_ssq_flag": true,
+    "ssq_flag_threshold_total": 20.0,
+    "ssq_flags_to_lock_mode_a": 2,
+    "min_valid_seconds_for_confidence": 60.0
+  },
+  "visual": {
+    "default_mode": "VERTICAL_REFERENCE",
+    "gain_initial": 0.6,
+    "gain_min": 0.0,
+    "gain_fade_rule": "PERFORMANCE_DRIVEN",
+    "gain_fade_step": 0.1,
+    "gain_fade_gate_tib5": 60.0,
+    "allow_error_augmentation": false,
+    "slew_limit_deg_per_s": 30.0,
+    "overscan": 1.2,
+    "prediction_clamp_ms": 50.0
+  },
+  "metrics": {
+    "sample_rate_hz": 100,
+    "store_rate_hz": 50,
+    "lowpass_cutoff_hz": 5.0,
+    "band_primary_deg": 5.0,
+    "band_secondary_deg": 10.0,
+    "episode_enter_deg": 10.0,
+    "episode_exit_deg": 7.0,
+    "episode_min_duration_s": 1.0,
+    "recovery_hold_s": 0.5,
+    "pitch_guard_gz": 0.85,
+    "mdc_deg": 2.0
+  },
+  "safety": {
+    "require_supervision_attestation": true,
+    "require_harness_for_standing": true,
+    "walking_unlock_requires_standing_pass": true,
+    "motion_to_photon_abort_ms": 60,
+    "watchdog_frames": 3,
+    "min_battery_pct": 20,
+    "min_free_storage_mb": 500,
+    "mount_shift_step_deg": 8.0,
+    "mount_shift_window_ms": 100,
+    "imu_dropout_ms": 100,
+    "camera_stall_ms": 200,
+    "drift_recalibrate_deg_per_min": 0.5,
+    "fusion_disagreement_deg": 3.0,
+    "mode_b_first_exposure_max_gain": 0.4,
+    "mode_b_first_exposure_max_block_s": 180
+  },
+  "privacy": {
+    "media_capture_default": "off",
+    "retention_days": 1825,
+    "media_retention_days": 365,
+    "export_deidentified_by_default": true
+  },
+  "security": {
+    "auto_lock_seconds": 120,
+    "pin_min_length": 6,
+    "max_failed_attempts": 5,
+    "lockout_seconds": 300
+  }
+}

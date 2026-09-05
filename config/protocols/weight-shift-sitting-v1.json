@@ -1,0 +1,54 @@
+{
+  "protocol_id": "weight-shift-sitting-v1",
+  "version": 1,
+  "name": "Seated weight shift and return",
+  "description": "Controlled lateral excursion toward the visual target and active return to midline. Trains recovery, not just holding.",
+  "position_required": "SITTING_UNSUPPORTED",
+  "visual_mode": "VERTICAL_REFERENCE",
+  "gain_schedule": { "type": "PERFORMANCE_DRIVEN", "step": 0.1, "gate_tib5": 60.0, "consecutive_sessions": 2 },
+  "gain_initial": 0.0,
+  "blocks": [
+    {
+      "block_id": "settle",
+      "exercise": "MIDLINE_TRAINING",
+      "duration_s": 60,
+      "target_deg": 0.0,
+      "tolerance_deg": 10.0,
+      "cues": ["PLUMB_LINE", "TOLERANCE_BAND"],
+      "checkpoints_s": [30, 60],
+      "rest_after_s": 30,
+      "instruction_key": "instr_midline_training"
+    },
+    {
+      "block_id": "shift-right",
+      "exercise": "WEIGHT_SHIFT",
+      "duration_s": 120,
+      "target_deg": 0.0,
+      "tolerance_deg": 5.0,
+      "amplitude_deg": 10.0,
+      "cues": ["PLUMB_LINE", "TARGET", "AUDIO_PAN"],
+      "checkpoints_s": [40, 80, 120],
+      "rest_after_s": 60,
+      "instruction_key": "instr_weight_shift"
+    },
+    {
+      "block_id": "shift-left",
+      "exercise": "WEIGHT_SHIFT",
+      "duration_s": 120,
+      "target_deg": 0.0,
+      "tolerance_deg": 5.0,
+      "amplitude_deg": -10.0,
+      "cues": ["PLUMB_LINE", "TARGET", "AUDIO_PAN"],
+      "checkpoints_s": [40, 80, 120],
+      "instruction_key": "instr_weight_shift"
+    }
+  ],
+  "progression_gate": {
+    "unlocks": "std-standing-v3",
+    "requires": [
+      { "metric": "recovery_mean_s", "lte": 3.0, "consecutive_sessions": 2 },
+      { "metric": "balance_loss_events", "eq": 0 }
+    ]
+  },
+  "tags": ["sitting", "dynamic"]
+}

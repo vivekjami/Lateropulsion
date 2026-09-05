@@ -1,0 +1,431 @@
+{
+  "code": "SSQ",
+  "version": "1993.1",
+  "name": "Simulator Sickness Questionnaire",
+  "description": "16 symptoms rated 0–3. Weighted subscales: Nausea ×9.54, Oculomotor ×7.58, Disorientation ×13.92; Total = (N+O+D raw sums) ×3.74.",
+  "range_min": 0,
+  "range_max": 235.62,
+  "higher_is_worse": true,
+  "scoring": "SSQ_WEIGHTED",
+  "license_note": "Kennedy, Lane, Berbaum & Lilienthal (1993); freely used in research. Verify for commercial distribution.",
+  "reference": "Kennedy RS, Lane NE, Berbaum KS, Lilienthal MG. Simulator Sickness Questionnaire: an enhanced method for quantifying simulator sickness. Int J Aviat Psychol 1993;3:203–220.",
+  "subscale_weights": {
+    "N": 9.54,
+    "O": 7.58,
+    "D": 13.92
+  },
+  "total_weight": 3.74,
+  "sections": [
+    {
+      "id": "symptoms",
+      "title": "Symptoms right now",
+      "items": [
+        {
+          "id": "general_discomfort",
+          "label": "General discomfort",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "N",
+            "O"
+          ]
+        },
+        {
+          "id": "fatigue",
+          "label": "Fatigue",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "O"
+          ]
+        },
+        {
+          "id": "headache",
+          "label": "Headache",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "O"
+          ]
+        },
+        {
+          "id": "eye_strain",
+          "label": "Eye strain",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "O"
+          ]
+        },
+        {
+          "id": "difficulty_focusing",
+          "label": "Difficulty focusing",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "O",
+            "D"
+          ]
+        },
+        {
+          "id": "increased_salivation",
+          "label": "Increased salivation",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "N"
+          ]
+        },
+        {
+          "id": "sweating",
+          "label": "Sweating",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "N"
+          ]
+        },
+        {
+          "id": "nausea",
+          "label": "Nausea",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "N",
+            "D"
+          ]
+        },
+        {
+          "id": "difficulty_concentrating",
+          "label": "Difficulty concentrating",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "N",
+            "O"
+          ]
+        },
+        {
+          "id": "fullness_of_head",
+          "label": "Fullness of head",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "D"
+          ]
+        },
+        {
+          "id": "blurred_vision",
+          "label": "Blurred vision",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "O",
+            "D"
+          ]
+        },
+        {
+          "id": "dizzy_eyes_open",
+          "label": "Dizzy (eyes open)",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "D"
+          ]
+        },
+        {
+          "id": "dizzy_eyes_closed",
+          "label": "Dizzy (eyes closed)",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "D"
+          ]
+        },
+        {
+          "id": "vertigo",
+          "label": "Vertigo",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "D"
+          ]
+        },
+        {
+          "id": "stomach_awareness",
+          "label": "Stomach awareness",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "N"
+          ]
+        },
+        {
+          "id": "burping",
+          "label": "Burping",
+          "options": [
+            {
+              "label": "0 – None",
+              "score": 0
+            },
+            {
+              "label": "1 – Slight",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe",
+              "score": 3
+            }
+          ],
+          "subscales": [
+            "N"
+          ]
+        }
+      ]
+    }
+  ]
+}

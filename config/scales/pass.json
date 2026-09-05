@@ -1,0 +1,38 @@
+{
+  "code": "PASS",
+  "version": "1999.1",
+  "name": "Postural Assessment Scale for Stroke Patients",
+  "description": "12 items (5 maintaining posture, 7 changing posture) scored 0–3; total 0–36.",
+  "range_min": 0,
+  "range_max": 36,
+  "higher_is_worse": false,
+  "scoring": "SUM",
+  "license_note": "Published instrument (Benaim et al. 1999). Grade descriptors abbreviated; confirm redistribution permission before clinical deployment.",
+  "reference": "Benaim C, Pérennou DA, Villy J, Rousseaux M, Pelissier JY. Validation of a standardized assessment of postural control in stroke patients: the PASS. Stroke 1999;30:1862–1868.",
+  "sections": [
+    {
+      "id": "maintain",
+      "title": "Maintaining a posture (0 = cannot … 3 = without support / for the required time)",
+      "items": [
+        { "id": "m1", "label": "Sitting without support", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "m2", "label": "Standing with support", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "m3", "label": "Standing without support", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "m4", "label": "Standing on non-paretic leg", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "m5", "label": "Standing on paretic leg", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] }
+      ]
+    },
+    {
+      "id": "change",
+      "title": "Changing posture (0 = cannot … 3 = without help)",
+      "items": [
+        { "id": "c1", "label": "Supine to affected side lateral", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "c2", "label": "Supine to non-affected side lateral", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "c3", "label": "Supine to sitting up on the edge of the bed", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "c4", "label": "Sitting on the edge of the bed to supine", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "c5", "label": "Sitting to standing", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "c6", "label": "Standing to sitting", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] },
+        { "id": "c7", "label": "Standing, picking up a pencil from the floor", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 } ] }
+      ]
+    }
+  ]
+}

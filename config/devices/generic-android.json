@@ -1,0 +1,11 @@
+{
+  "id": "generic-android",
+  "manufacturer": "any",
+  "model": "Unqualified Android phone (fallback profile)",
+  "model_pattern": ".*",
+  "roll_sign": 0,
+  "theta_mount_deg": 0.0,
+  "scale_error": 1.0,
+  "qualified": false,
+  "notes": "Fallback for phones without a jig-derived profile. The in-app field calibration resolves roll_sign and theta_mount on the device itself so the app runs on any Android 10+ phone with a gyroscope; clinical sessions on this profile are flagged UNQUALIFIED DEVICE on every report until a jig report qualifies the model (REQ-SAF-020)."
+}

@@ -1,0 +1,34 @@
+{
+  "code": "BERG",
+  "version": "1989.1",
+  "name": "Berg Balance Scale",
+  "description": "14 balance tasks scored 0–4; total 0–56.",
+  "range_min": 0,
+  "range_max": 56,
+  "higher_is_worse": false,
+  "scoring": "SUM",
+  "license_note": "Freely reproduced in clinical practice (Berg et al. 1989). Item-level grade descriptors are in the published manual; only task names are embedded here.",
+  "reference": "Berg K, Wood-Dauphinee S, Williams JI, Gayton D. Measuring balance in the elderly: preliminary development of an instrument. Physiother Can 1989;41:304–311.",
+  "sections": [
+    {
+      "id": "items",
+      "title": "Tasks (score 0 = unable … 4 = independent, per manual)",
+      "items": [
+        { "id": "b01", "label": "1. Sitting to standing", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b02", "label": "2. Standing unsupported", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b03", "label": "3. Sitting unsupported", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b04", "label": "4. Standing to sitting", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b05", "label": "5. Transfers", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b06", "label": "6. Standing with eyes closed", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b07", "label": "7. Standing with feet together", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b08", "label": "8. Reaching forward with outstretched arm", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b09", "label": "9. Retrieving object from floor", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b10", "label": "10. Turning to look behind", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b11", "label": "11. Turning 360 degrees", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b12", "label": "12. Placing alternate foot on stool", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b13", "label": "13. Standing with one foot in front", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] },
+        { "id": "b14", "label": "14. Standing on one foot", "options": [ { "label": "0", "score": 0 }, { "label": "1", "score": 1 }, { "label": "2", "score": 2 }, { "label": "3", "score": 3 }, { "label": "4", "score": 4 } ] }
+      ]
+    }
+  ]
+}

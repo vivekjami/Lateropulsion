@@ -1,0 +1,18 @@
+{
+  "id": "generic-open-bottom-v1",
+  "name": "Generic phone HMD, adjustable IPD, open bottom",
+  "ipd_mm": 63.0,
+  "ipd_min_mm": 56.0,
+  "ipd_max_mm": 72.0,
+  "lens_separation_mm": 63.0,
+  "screen_to_lens_mm": 40.0,
+  "distortion_k1": 0.22,
+  "distortion_k2": 0.24,
+  "chromatic_red_scale": 0.996,
+  "chromatic_blue_scale": 1.004,
+  "fov_deg": 90.0,
+  "overscan": 1.2,
+  "eye_center_offset_y": 0.0,
+  "open_bottom": true,
+  "notes": "Conservative Cardboard-class coefficients as a starting point. Tune per headset unit with the in-app lens calibration; a slightly imperfect distortion is far better than a delayed prototype (IMPLEMENTATION Phase 3 risks)."
+}

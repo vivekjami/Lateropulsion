@@ -1,0 +1,14 @@
+{
+  "id": "redmi-note-10s",
+  "manufacturer": "Xiaomi",
+  "model": "Redmi Note 10S (M2101K7BI)",
+  "model_pattern": "^M2101K7B[IG]$|^Redmi Note 10S$",
+  "roll_sign": 0,
+  "theta_mount_deg": 0.0,
+  "scale_error": 1.0,
+  "imu_rate_hz": 200.0,
+  "camera_max_fps": 30,
+  "display_hz": 60,
+  "qualified": false,
+  "notes": "Probed 2026-09-05 via adb: Android 13, MediaTek Helio G95, BMI220 accel+gyro at 200 Hz, Mali-G76 GLES 3.2, 1080x2400 @ 60 Hz. Back camera hardware level 3 but normal capture sessions cap at 30 fps (high-speed 120 fps only at 720p in constrained mode). Expect camera exposure+readout ~33 ms, so the 45 ms motion-to-photon target is at risk on this phone; measure before qualification. roll_sign and theta_mount_deg must come from the jig sweep (tools/jig/analyse.py)."
+}

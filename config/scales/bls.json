@@ -1,0 +1,138 @@
+{
+  "code": "BLS",
+  "version": "2004.1",
+  "name": "Burke Lateropulsion Scale",
+  "description": "Resistance to passive correction / pushing graded across supine rolling, sitting, standing, transferring and walking. Range 0–17.",
+  "range_min": 0,
+  "range_max": 17,
+  "higher_is_worse": true,
+  "scoring": "SUM",
+  "license_note": "Published instrument (D'Aquila et al. 2004). Grade descriptors abbreviated; score per the published manual. Confirm redistribution permission before clinical deployment.",
+  "reference": "D'Aquila MA, Smith T, Organ D, Lichtman S, Reding M. Validation of a lateropulsion scale for patients recovering from stroke. Clin Rehabil 2004;18:102–109.",
+  "sections": [
+    {
+      "id": "items",
+      "title": "Items",
+      "items": [
+        {
+          "id": "supine",
+          "label": "Supine (rolling)",
+          "options": [
+            {
+              "label": "0 – No resistance",
+              "score": 0
+            },
+            {
+              "label": "1 – Mild resistance",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate resistance",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe resistance",
+              "score": 3
+            }
+          ]
+        },
+        {
+          "id": "sitting",
+          "label": "Sitting",
+          "options": [
+            {
+              "label": "0 – No resistance / pushing",
+              "score": 0
+            },
+            {
+              "label": "1 – Resistance only far from vertical",
+              "score": 1
+            },
+            {
+              "label": "2 – Resistance closer to vertical",
+              "score": 2
+            },
+            {
+              "label": "3 – Resistance at or near vertical",
+              "score": 3
+            }
+          ]
+        },
+        {
+          "id": "standing",
+          "label": "Standing",
+          "options": [
+            {
+              "label": "0 – No resistance / pushing",
+              "score": 0
+            },
+            {
+              "label": "1 – Resistance only far from vertical",
+              "score": 1
+            },
+            {
+              "label": "2 – Resistance closer to vertical",
+              "score": 2
+            },
+            {
+              "label": "3 – Resistance at or near vertical",
+              "score": 3
+            },
+            {
+              "label": "4 – Unable to stand / pushes over",
+              "score": 4
+            }
+          ]
+        },
+        {
+          "id": "transfer",
+          "label": "Transferring",
+          "options": [
+            {
+              "label": "0 – No pushing",
+              "score": 0
+            },
+            {
+              "label": "1 – Mild pushing",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate pushing",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe pushing / two persons",
+              "score": 3
+            }
+          ]
+        },
+        {
+          "id": "walking",
+          "label": "Walking",
+          "options": [
+            {
+              "label": "0 – No pushing",
+              "score": 0
+            },
+            {
+              "label": "1 – Mild pushing",
+              "score": 1
+            },
+            {
+              "label": "2 – Moderate pushing",
+              "score": 2
+            },
+            {
+              "label": "3 – Severe pushing",
+              "score": 3
+            },
+            {
+              "label": "4 – Unable to walk / pushes over",
+              "score": 4
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

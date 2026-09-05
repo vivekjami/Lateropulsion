@@ -1,0 +1,32 @@
+{
+  "code": "FAC",
+  "version": "1984.1",
+  "name": "Functional Ambulation Categories",
+  "description": "Six-level classification of walking assistance (0–5).",
+  "range_min": 0,
+  "range_max": 5,
+  "higher_is_worse": false,
+  "scoring": "SUM",
+  "license_note": "Widely reproduced classification (Holden et al. 1984); no licence fee known. Verify before commercial distribution.",
+  "reference": "Holden MK, Gill KM, Magliozzi MR, Nathan J, Piehl-Baker L. Clinical gait assessment in the neurologically impaired. Phys Ther 1984;64:35–40.",
+  "sections": [
+    {
+      "id": "items",
+      "title": "Category",
+      "items": [
+        {
+          "id": "category",
+          "label": "Functional ambulation category",
+          "options": [
+            { "label": "0 – Non-functional ambulation", "score": 0 },
+            { "label": "1 – Dependent, physical assistance level II (continuous)", "score": 1 },
+            { "label": "2 – Dependent, physical assistance level I (intermittent)", "score": 2 },
+            { "label": "3 – Dependent on supervision", "score": 3 },
+            { "label": "4 – Independent on level surfaces only", "score": 4 },
+            { "label": "5 – Independent", "score": 5 }
+          ]
+        }
+      ]
+    }
+  ]
+}

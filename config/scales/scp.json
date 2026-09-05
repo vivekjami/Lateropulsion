@@ -1,0 +1,86 @@
+{
+  "code": "SCP",
+  "version": "1996.1",
+  "name": "Scale for Contraversive Pushing",
+  "description": "Three components (spontaneous posture, abduction/extension of non-paretic limbs, resistance to passive correction), each scored sitting and standing. Range 0–6.",
+  "range_min": 0,
+  "range_max": 6,
+  "higher_is_worse": true,
+  "scoring": "SUM",
+  "license_note": "Published instrument (Karnath, Ferber, Dichgans 1996). Item wording abbreviated; confirm redistribution permission with the copyright holder before clinical deployment (IMPLEMENTATION Phase 0).",
+  "reference": "Karnath HO, Ferber S, Dichgans J. The origin of contraversive pushing: evidence for a second graviceptive system in humans. Neurology 1996;47:1235–1238.",
+  "sections": [
+    {
+      "id": "A",
+      "title": "A. Symmetry of spontaneous body posture",
+      "items": [
+        {
+          "id": "A_sit",
+          "label": "Sitting",
+          "options": [
+            { "label": "0 – No tilt", "score": 0 },
+            { "label": "0.25 – Mild contraversive tilt without falling", "score": 0.25 },
+            { "label": "0.75 – Severe contraversive tilt without falling", "score": 0.75 },
+            { "label": "1 – Severe contraversive tilt with falling", "score": 1 }
+          ]
+        },
+        {
+          "id": "A_stand",
+          "label": "Standing",
+          "options": [
+            { "label": "0 – No tilt", "score": 0 },
+            { "label": "0.25 – Mild contraversive tilt without falling", "score": 0.25 },
+            { "label": "0.75 – Severe contraversive tilt without falling", "score": 0.75 },
+            { "label": "1 – Severe contraversive tilt with falling", "score": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "B. Use of non-paretic extremities (abduction and extension)",
+      "items": [
+        {
+          "id": "B_sit",
+          "label": "Sitting",
+          "options": [
+            { "label": "0 – Not performed spontaneously", "score": 0 },
+            { "label": "0.5 – Performed only when changing position", "score": 0.5 },
+            { "label": "1 – Performed spontaneously already at rest", "score": 1 }
+          ]
+        },
+        {
+          "id": "B_stand",
+          "label": "Standing",
+          "options": [
+            { "label": "0 – Not performed spontaneously", "score": 0 },
+            { "label": "0.5 – Performed only when changing position", "score": 0.5 },
+            { "label": "1 – Performed spontaneously already at rest", "score": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "C. Resistance to passive correction of tilted posture",
+      "items": [
+        {
+          "id": "C_sit",
+          "label": "Sitting",
+          "options": [
+            { "label": "0 – No resistance", "score": 0 },
+            { "label": "1 – Resistance occurs", "score": 1 }
+          ]
+        },
+        {
+          "id": "C_stand",
+          "label": "Standing",
+          "options": [
+            { "label": "0 – No resistance", "score": 0 },
+            { "label": "1 – Resistance occurs", "score": 1 }
+          ]
+        }
+      ]
+    }
+  ]
+}
