@@ -71,12 +71,17 @@ fun SettingsScreen(nav: NavHostController, vm: SettingsViewModel = hiltViewModel
     LpScreen(stringResource(R.string.settings), onBack = { nav.popBackStack() }) { mod ->
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             LpTextField(s.siteName, { v -> vm.update { it.copy(siteName = v) } }, stringResource(R.string.site_name))
-            Selector(stringResource(R.string.device_profile), ui.devices, ui.devices.firstOrNull { it.id == s.deviceProfileId } ?: ui.devices.firstOrNull { it.id == AssetConfigRepository.GENERIC_ID }, { "${it.model} ${if (it.qualified) "✓" else "(unqualified)"}" }, { v -> vm.update { it.copy(deviceProfileId = v.id) } })
+            Selector(stringResource(R.string.device_profile), ui.devices,
+                ui.devices.firstOrNull { it.id == s.deviceProfileId } ?: ui.devices.firstOrNull { it.id == AssetConfigRepository.GENERIC_ID },
+                { "${it.model} ${if (it.qualified) "✓" else "(unqualified)"}" }, { v -> vm.update { it.copy(deviceProfileId = v.id) } })
             Selector(stringResource(R.string.headset_profile), ui.headsets, ui.headsets.firstOrNull { it.id == s.headsetProfileId } ?: ui.headsets.firstOrNull(), { it.name }, { v -> vm.update { it.copy(headsetProfileId = v.id) } })
             LpTextField(s.ipdMm?.toString() ?: "", { v -> vm.update { it.copy(ipdMm = v.toDoubleOrNull()) } }, stringResource(R.string.ipd), number = true)
             CheckRow(s.researchMode, { v -> vm.update { it.copy(researchMode = v) } }, stringResource(R.string.research_mode))
             LpTextField(s.autoLockSeconds.toString(), { v -> v.toIntOrNull()?.let { n -> vm.update { it.copy(autoLockSeconds = n.coerceIn(30, 900)) } } }, stringResource(R.string.auto_lock), number = true)
-            if (s.fieldCalibratedSign != 0) Text("Field calibration: sign ${s.fieldCalibratedSign}, mount ${"%.1f".format(s.fieldCalibratedMountDeg ?: 0.0)}° (${s.fieldCalibratedAt?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) } ?: ""})")
+            if (s.fieldCalibratedSign != 0) {
+                val at = s.fieldCalibratedAt?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) } ?: ""
+                Text("Field calibration: sign ${s.fieldCalibratedSign}, mount ${"%.1f".format(s.fieldCalibratedMountDeg ?: 0.0)}° ($at)")
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BigButton(stringResource(R.string.calibration), { nav.navigate(Routes.CALIBRATION) }, Modifier.weight(1f), secondary = true)
                 BigButton(stringResource(R.string.sensor_debug), { nav.navigate(Routes.SENSOR_DEBUG) }, Modifier.weight(1f), secondary = true)
@@ -93,7 +98,8 @@ fun SettingsScreen(nav: NavHostController, vm: SettingsViewModel = hiltViewModel
                 Text(stringResource(R.string.not_certified), style = MaterialTheme.typography.bodyMedium)
             }
             InfoCard(stringResource(R.string.audit_log)) {
-                ui.audit.take(30).forEach { e -> Text("${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(e.at))} · ${e.action} ${e.targetType} ${e.targetId.take(8)} ${e.detail}", style = MaterialTheme.typography.bodyMedium) }
+                ui.audit.take(30).forEach { e -> Text("${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(e.at))} · ${e.action} ${e.targetType} ${e.targetId.take(8)} ${e.detail}",
+                    style = MaterialTheme.typography.bodyMedium) }
             }
         }
     }

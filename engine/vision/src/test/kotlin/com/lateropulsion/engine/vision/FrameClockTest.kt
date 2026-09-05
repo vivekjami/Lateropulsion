@@ -10,7 +10,7 @@ class FrameClockTest {
     fun `fps jitter and drop estimate`() {
         val c = FrameClock(30.0)
         var t = 0L
-        for (i in 0 until 60) { c.onFrame(t); t += 33_333_333L }
+        repeat(60) { c.onFrame(t); t += 33_333_333L }
         assertEquals(30.0, c.fps, 0.01)
         assertTrue(c.jitterMs < 0.01)
         assertEquals(0L, c.droppedEstimate)

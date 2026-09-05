@@ -85,8 +85,11 @@ public data class SessionBundle(
 )
 
 @Serializable public data class PatientExport(val studyCode: String, val age: Int, val sex: String, val lesionSide: String, val affectedSide: String, val lateropulsionDirection: String, val diagnosis: String?)
-@Serializable public data class SessionExport(val sessionId: String, val sessionNumber: Int, val startedAtUtc: Long, val endedAtUtc: Long?, val protocolId: String, val protocolVersion: Int, val visualMode: String, val gainUsed: Double, val thetaRefDeg: Double, val position: String, val endReason: String?, val abortReason: String?, val deviceProfileId: String, val appVersion: String, val crashRecovered: Boolean)
-@Serializable public data class BlockExport(val blockId: String, val orderIndex: Int, val exercise: String, val position: String, val durationS: Double, val gain: Double, val metrics: com.lateropulsion.core.model.DeviationMetrics, val episodes: com.lateropulsion.core.model.EpisodeStats, val checkpoints: List<com.lateropulsion.core.model.Checkpoint>, val endReason: String)
+@Serializable public data class SessionExport(val sessionId: String, val sessionNumber: Int, val startedAtUtc: Long, val endedAtUtc: Long?, val protocolId: String, val protocolVersion: Int,
+    val visualMode: String, val gainUsed: Double, val thetaRefDeg: Double, val position: String, val endReason: String?, val abortReason: String?, val deviceProfileId: String,
+    val appVersion: String, val crashRecovered: Boolean)
+@Serializable public data class BlockExport(val blockId: String, val orderIndex: Int, val exercise: String, val position: String, val durationS: Double, val gain: Double,
+    val metrics: com.lateropulsion.core.model.DeviationMetrics, val episodes: com.lateropulsion.core.model.EpisodeStats, val checkpoints: List<com.lateropulsion.core.model.Checkpoint>, val endReason: String)
 @Serializable public data class EventExport(val tNs: Long, val type: String, val payload: String)
 
 public object JsonExporter {
@@ -102,7 +105,8 @@ public object JsonExporter {
             studyCode = studyCode,
             deidentified = deidentified,
             patient = PatientExport(studyCode, p.age, p.sex.name, p.lesionSide.name, p.affectedSide.name, p.lateropulsionDirection.name, if (deidentified) null else p.diagnosis),
-            session = SessionExport(s.id.value, s.sessionNumber, s.startedAtUtc, s.endedAtUtc, s.protocolId, s.protocolVersion, s.visualMode.name, s.gainUsed, s.thetaRefDeg, s.position.name, s.endReason?.name, s.abortReason, s.deviceProfileId, s.appVersion, s.crashRecovered),
+            session = SessionExport(s.id.value, s.sessionNumber, s.startedAtUtc, s.endedAtUtc, s.protocolId, s.protocolVersion, s.visualMode.name, s.gainUsed, s.thetaRefDeg, s.position.name,
+                s.endReason?.name, s.abortReason, s.deviceProfileId, s.appVersion, s.crashRecovered),
             summary = data.summary,
             blocks = data.blocks.map { BlockExport(it.blockId, it.orderIndex, it.exercise.name, it.position.name, it.durationS, it.gain, it.metrics, it.episodes, it.checkpoints, it.endReason.name) },
             events = data.events.map { EventExport(it.tNanos, it.type.name, it.payloadJson) },

@@ -46,7 +46,8 @@ import java.text.DateFormat
 import java.util.Date
 import javax.inject.Inject
 
-data class ProfileState(val patient: Patient? = null, val name: String = "", val baseline: Baseline? = null, val sessions: List<Session> = emptyList(), val summaries: Map<String, SessionSummary> = emptyMap(), val assessments: List<Assessment> = emptyList())
+data class ProfileState(val patient: Patient? = null, val name: String = "", val baseline: Baseline? = null, val sessions: List<Session> = emptyList(), val summaries: Map<String,
+    SessionSummary> = emptyMap(), val assessments: List<Assessment> = emptyList())
 
 @HiltViewModel
 class PatientProfileViewModel @Inject constructor(
@@ -67,7 +68,8 @@ class PatientProfileViewModel @Inject constructor(
 fun PatientProfileScreen(nav: NavHostController, patientId: String, vm: PatientProfileViewModel = hiltViewModel()) {
     val st by vm.state.collectAsState()
     val p = st.patient
-    LpScreen(stringResource(R.string.profile), onBack = { nav.popBackStack() }, banner = { p?.let { PatientBanner(it.displayId, st.name, "${it.age} y · ${it.sex.name.lowercase()} · lesion ${it.lesionSide.name.lowercase()} · pushes ${it.lateropulsionDirection.name.lowercase()}") } }) { mod ->
+    LpScreen(stringResource(R.string.profile), onBack = { nav.popBackStack() }, banner = { p?.let { PatientBanner(it.displayId, st.name,
+        "${it.age} y · ${it.sex.name.lowercase()} · lesion ${it.lesionSide.name.lowercase()} · pushes ${it.lateropulsionDirection.name.lowercase()}") } }) { mod ->
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (p == null) return@Column
             val b = st.baseline
@@ -76,7 +78,8 @@ fun PatientProfileScreen(nav: NavHostController, patientId: String, vm: PatientP
                 else {
                     Text("Severity ${b.severity.name.lowercase().replace('_', ' ')} · head ${b.headDeviationDeg}° · trunk ${b.trunkDeviationDeg}° · assistance ${b.assistanceLevel.level} · fall risk ${b.fallRisk.name.lowercase()}")
                     b.measured?.let { m -> Text("Measured: MAD ${"%.1f".format(m.madDeg)}° · RMS ${"%.1f".format(m.rmsDeg)}° · TIB5 ${"%.0f".format(m.tib5Pct)} % · θ_ref ${"%.1f".format(b.thetaRefDeg ?: 0.0)}°") }
-                        ?: run { WarningText("Headset baseline measurement missing."); BigButton(stringResource(R.string.baseline_measurement), { nav.navigate(Routes.baselineCapture(patientId)) }, Modifier.fillMaxWidth(), secondary = true) }
+                        ?: run { WarningText("Headset baseline measurement missing."); BigButton(stringResource(R.string.baseline_measurement),
+                            { nav.navigate(Routes.baselineCapture(patientId)) }, Modifier.fillMaxWidth(), secondary = true) }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         StatusChip(if (b.locked) "locked" else "editable", null)
                         BigButton("Edit / supersede", { nav.navigate(Routes.baselineForm(patientId)) }, Modifier.weight(1f), secondary = true)
@@ -95,10 +98,19 @@ fun PatientProfileScreen(nav: NavHostController, patientId: String, vm: PatientP
                     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column {
                             Text("#${s.sessionNumber} · ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(s.startedAtUtc))}", style = MaterialTheme.typography.bodyLarge)
-                            Text("${s.protocolId} · ${if (s.visualMode.name.startsWith("VERT")) "Mode A" else "Mode B k=${s.gainUsed}"}" + (m?.let { " · MAD ${"%.1f".format(it.madDeg)}° · TIB5 ${"%.0f".format(it.tib5Pct)} %" } ?: ""), style = MaterialTheme.typography.bodyMedium)
+                            Text("${s.protocolId} · ${if (s.visualMode.name.startsWith("VERT")) "Mode A" else "Mode B k=${s.gainUsed}"}" + (m?.let { " · MAD ${"%.1f".format(it.madDeg)}° · TIB5 ${"%.0f".format(it.tib5Pct)} %" } ?: ""),
+                                style = MaterialTheme.typography.bodyMedium)
                         }
                         Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
-                            StatusChip(when (s.endReason) { EndReason.COMPLETED -> stringResource(R.string.status_completed); EndReason.ABORTED -> stringResource(R.string.status_aborted); EndReason.CRASH_RECOVERED -> stringResource(R.string.status_crash_recovered); EndReason.ERROR -> "error"; null -> "in progress" }, s.endReason == EndReason.COMPLETED)
+                            val status = when (s.endReason) {
+                                EndReason.COMPLETED -> stringResource(R.string.status_completed)
+                                EndReason.ABORTED -> stringResource(R.string.status_aborted)
+                                EndReason.CRASH_RECOVERED -> stringResource(R.string.status_crash_recovered)
+                                EndReason.ERROR -> "error"
+                                null -> "in progress"
+                            }
+                            StatusChip(status,
+                                s.endReason == EndReason.COMPLETED)
                             if (m?.lowConfidence == true) StatusChip(stringResource(R.string.status_low_confidence), false)
                         }
                     }

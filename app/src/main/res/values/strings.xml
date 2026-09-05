@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/instr_*">
     <string name="app_name">Lateropulsion</string>
     <string name="not_certified">Pre-clinical research prototype. Not a certified medical device. Clinician supervision required.</string>
 
@@ -14,9 +14,6 @@
     <string name="select_clinician">Select clinician</string>
     <string name="unlock">Unlock</string>
     <string name="use_biometric">Use biometric</string>
-    <string name="wrong_pin">Wrong PIN (%1$d of %2$d attempts)</string>
-    <string name="locked_out">Too many attempts. Try again in %1$d s.</string>
-    <string name="locked_auto">Locked after inactivity</string>
     <string name="sign_out">Lock</string>
 
     <!-- dashboard -->
@@ -42,7 +39,6 @@
     <string name="new_patient">New patient</string>
     <string name="existing_patient">Existing patient</string>
     <string name="registration">Registration</string>
-    <string name="patient_id">Patient ID</string>
     <string name="name">Name</string>
     <string name="age">Age</string>
     <string name="sex">Sex</string>
@@ -103,7 +99,6 @@
     <!-- protocol setup -->
     <string name="protocol_setup">Protocol setup</string>
     <string name="protocol">Protocol</string>
-    <string name="visual_mode">Visual mode</string>
     <string name="mode_a">Mode A — vertical reference (default)</string>
     <string name="mode_b">Mode B — compensated view (experimental)</string>
     <string name="gain">Gain k</string>
@@ -120,7 +115,6 @@
     <string name="chk_harness">Gait belt / harness and parallel bars or plinth in place (standing and walking)</string>
     <string name="chk_hygiene">Headset cleaned, new face liner fitted</string>
     <string name="chk_identity">Identity confirmed with the patient: %1$s, %2$s</string>
-    <string name="chk_contraindications">Contraindications re-checked (all negative)</string>
     <string name="contraindications">Contraindication screen</string>
     <string name="ci_seizure">Uncontrolled seizure disorder or photosensitive epilepsy</string>
     <string name="ci_visual">Severe visual impairment or diplopia the headset cannot accommodate</string>
@@ -187,7 +181,6 @@
     <string name="therapist_notes">Therapist observations</string>
     <string name="assistance_after">Assistance level after session</string>
     <string name="confirm_save">Confirm and save</string>
-    <string name="saved">Saved</string>
     <string name="generate_pdf">Session report (PDF)</string>
 
     <!-- reports -->

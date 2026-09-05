@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.SurfaceTexture
 import android.hardware.display.DisplayManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -12,12 +13,14 @@ import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.lateropulsion.app.session.SessionController
 import com.lateropulsion.app.session.SessionRuntime
@@ -73,6 +76,9 @@ class HmdActivity : ComponentActivity(), RenderListener {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or WindowManager.LayoutParams.FLAG_SECURE)
         window.attributes = window.attributes.apply { screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL }
         hideSystemBars()
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() { doAbort("back"); finish() }
+        })
         surfaceView = SurfaceView(this)
         setContentView(surfaceView)
         surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
@@ -107,7 +113,7 @@ class HmdActivity : ComponentActivity(), RenderListener {
         val dev = runtime.device.value ?: return
         val hs = runtime.headset.value ?: return
         val renderer = StereoRenderer(hs, dev, runtime.appConfig.visual)
-        val refresh = display?.refreshRate?.toDouble()?.takeIf { it > 10 } ?: 60.0
+        val refresh = currentDisplayRefreshRate()
         val t = RenderThread(holder.surface, renderer, poses, renderStates, abort, this, vsyncHz = refresh, abortMs = runtime.appConfig.safety.motionToPhotonAbortMs.toDouble(),
             watchdogFrames = runtime.appConfig.safety.watchdogFrames, cameraStallMs = runtime.appConfig.safety.cameraStallMs.toDouble())
         renderThread = t
@@ -164,9 +170,6 @@ class HmdActivity : ComponentActivity(), RenderListener {
         }
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() { doAbort("back"); finish() }
-
     private fun doAbort(source: String) {
         abort.abort(source) // neutral passthrough on the next frame, before anything else
         controller.abort(if (source == "clicker") AbortSource.CLICKER else AbortSource.THERAPIST_CONTROL, source)
@@ -179,13 +182,16 @@ class HmdActivity : ComponentActivity(), RenderListener {
     }
 
     private fun hideSystemBars() {
-        window.setDecorFitsSystemWindows(false)
-        window.insetsController?.let {
-            it.hide(WindowInsets.Type.systemBars())
-            it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
-        @Suppress("DEPRECATION")
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+    }
+
+    private fun currentDisplayRefreshRate(): Double {
+        val d = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display else @Suppress("DEPRECATION") windowManager.defaultDisplay
+        return d?.refreshRate?.toDouble()?.takeIf { it > 10 } ?: 60.0
     }
 
     override fun onPause() {

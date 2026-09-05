@@ -16,7 +16,7 @@ class RenderMathTest {
         val a1 = c.update(gain = 1.0, thetaPredDeg = 20.0, dtS = 1.0 / 60)
         assertEquals(-0.5, a1, 1e-9) // 30°/s × 16.7 ms
         var a = a1
-        for (i in 0 until 200) a = c.update(1.0, 20.0, 1.0 / 60)
+        repeat(200) { a = c.update(1.0, 20.0, 1.0 / 60) }
         assertEquals(-20.0, a, 1e-9)
         assertEquals(10.0 + 100.0 * 0.05, c.predictTheta(10.0, 100.0, 0.5), 1e-9) // clamped to 50 ms
         assertEquals(10.5, c.predictTheta(10.0, 50.0, 0.01), 1e-9)

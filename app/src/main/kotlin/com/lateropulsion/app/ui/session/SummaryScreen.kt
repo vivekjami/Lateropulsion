@@ -43,7 +43,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class SummaryUi(val notes: String = "", val assistance: AssistanceLevel? = null, val ssqDef: ScaleDefinition? = null, val ssqAnswers: Map<String, Int> = emptyMap(), val ssq: SsqScore? = null, val saving: Boolean = false, val error: String? = null, val savedSessionId: String? = null)
+data class SummaryUi(val notes: String = "", val assistance: AssistanceLevel? = null, val ssqDef: ScaleDefinition? = null, val ssqAnswers: Map<String, Int> = emptyMap(),
+    val ssq: SsqScore? = null, val saving: Boolean = false, val error: String? = null, val savedSessionId: String? = null)
 
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
@@ -88,7 +89,11 @@ fun SummaryScreen(nav: NavHostController, vm: SummaryViewModel = hiltViewModel()
                         Column { Text(stringResource(R.string.metric_tib5)); Text("${"%.0f".format(m.metrics.tib5Pct)} %", style = MaterialTheme.typography.headlineMedium) }
                         Column { Text(stringResource(R.string.metric_episodes)); Text("${m.episodes.count}", style = MaterialTheme.typography.headlineMedium) }
                     }
-                    Text("${stringResource(R.string.metric_tib10)} ${"%.0f".format(m.metrics.tib10Pct)} % · ${stringResource(R.string.metric_recovery)} ${if (m.episodes.recoveryMeanS.isNaN()) "—" else "%.1f s".format(m.episodes.recoveryMeanS)} · ${stringResource(R.string.metric_valid)} ${"%.0f".format(m.metrics.validSamplePct)} %")
+                    val recovery = if (m.episodes.recoveryMeanS.isNaN()) "—" else "%.1f s".format(m.episodes.recoveryMeanS)
+                    Text(
+                        "${stringResource(R.string.metric_tib10)} ${"%.0f".format(m.metrics.tib10Pct)} % · ${stringResource(R.string.metric_recovery)} $recovery · " +
+                            "${stringResource(R.string.metric_valid)} ${"%.0f".format(m.metrics.validSamplePct)} %",
+                    )
                     when {
                         m.comparisonRefusedReason != null -> WarningText(stringResource(R.string.comparison_refused, m.comparisonRefusedReason!!))
                         m.improvementPct != null -> {

@@ -391,6 +391,15 @@ cp local.properties.example local.properties   # set sdk.dir / ndk.dir
 python3 tools/jig/analyse.py jig/<model>/   # hardware-in-the-loop accuracy from a jig capture
 ```
 
+
+### Developing from WSL2 (Ubuntu on Windows)
+USB devices belong to Windows, so the Linux `adb` sees nothing. Either:
+- use the Windows platform-tools through the shim `tools/dev/adb` (it finds `adb.exe` and translates WSL paths), e.g. `tools/dev/adb install -r app/build/outputs/apk/clinical/debug/app-clinical-debug.apk`, or
+- attach the phone to WSL with [usbipd-win](https://github.com/dorssel/usbipd-win): `usbipd list`, `usbipd bind --busid <id>`, `usbipd attach --wsl --busid <id>`, then the Linux `adb` works directly, or
+- enable Wireless debugging on the phone and `adb pair` / `adb connect <ip>:<port>` from WSL.
+
+Gradle's `installDebug` uses the Linux adb; from WSL prefer `./gradlew :app:assembleClinicalDebug` followed by the shim install.
+
 ### First run
 1. Create a clinician account (local, PIN + optional biometric).
 2. **Settings → Device Profile → Calibrate**: run the lens/IPD calibration and the roll-sign calibration (see [`ARCHITECTURE.md` §6](./ARCHITECTURE.md)).

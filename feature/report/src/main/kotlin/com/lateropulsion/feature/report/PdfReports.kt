@@ -134,7 +134,8 @@ public class SessionReportBuilder(private val painter: CanvasChartPainter = Canv
                 m.comparisonRefusedReason != null -> wrapped("Comparison with baseline refused: ${m.comparisonRefusedReason}", warn)
                 m.improvementPct != null -> {
                     val within = if (m.withinMdc == true) " — within measurement noise (MDC ${Fmt.deg(m.mdcDeg)})" else ""
-                    line("Improvement vs baseline: ${Fmt.num(m.improvementPct, 1)} % (Δ MAD ${Fmt.deg(m.deltaDeg)})$within${if (m.lowConfidence) "  · LOW CONFIDENCE (< 60 s valid data)" else ""}", if (m.withinMdc == true || m.lowConfidence) warn else body)
+                    line("Improvement vs baseline: ${Fmt.num(m.improvementPct, 1)} % (Δ MAD ${Fmt.deg(m.deltaDeg)})$within${if (m.lowConfidence) "  · LOW CONFIDENCE (< 60 s valid data)" else ""}",
+                        if (m.withinMdc == true || m.lowConfidence) warn else body)
                 }
                 else -> line("No baseline measurement available for comparison.", small)
             }
@@ -201,7 +202,8 @@ public class SessionReportBuilder(private val painter: CanvasChartPainter = Canv
 
     private fun drawTrace(canvas: Canvas, rect: Rect, data: SessionReportData) {
         val pts = ChartModel.downsample(data.trace.filter { it.valid }.map { Pt(it.tS, it.thetaDeg) }, 1500)
-        val episodes = data.blocks.flatMap { b -> b.episodeList.map { e -> Shade(b.startedMonoNs.let { (it - data.session.startedMonoNs) / 1e9 } + e.startS, b.startedMonoNs.let { (it - data.session.startedMonoNs) / 1e9 } + (e.endS ?: (e.startS + 1.0)), 3) } }
+        val episodes = data.blocks.flatMap { b -> b.episodeList.map { e -> Shade(b.startedMonoNs.let { (it - data.session.startedMonoNs) / 1e9 } + e.startS,
+            b.startedMonoNs.let { (it - data.session.startedMonoNs) / 1e9 } + (e.endS ?: (e.startS + 1.0)), 3) } }
         val cps = data.blocks.flatMap { b -> b.checkpoints.map { c -> ((b.startedMonoNs - data.session.startedMonoNs) / 1e9 + c.atS) to "cp" } }
         val tol = data.blocks.firstOrNull()?.toleranceDeg ?: 5.0
         val spec = ChartSpec(
@@ -254,7 +256,11 @@ public class ProgressReportBuilder(private val painter: CanvasChartPainter = Can
             val p = data.patient
             title("Lateropulsion progress report")
             line("${p.displayId}  ·  ${p.age} y, ${p.sex.name.lowercase()}  ·  lesion ${p.lesionSide.name.lowercase()}, pushes ${p.lateropulsionDirection.name.lowercase()}  ·  ${data.sessions.size} sessions  ·  ${data.siteName}", small)
-            data.baseline?.let { b -> line("Baseline ${Fmt.dateTime(b.recordedAt, "UTC")}: severity ${b.severity.name.lowercase().replace('_', ' ')}, MAD ${Fmt.deg(b.measured?.madDeg)}, TIB5 ${Fmt.pct(b.measured?.tib5Pct)}, assistance ${Fmt.assistance(b.assistanceLevel)}", small) }
+            data.baseline?.let { b ->
+                line(
+                    "Baseline ${Fmt.dateTime(b.recordedAt, "UTC")}: severity ${b.severity.name.lowercase().replace('_', ' ')}, " +
+                        "MAD ${Fmt.deg(b.measured?.madDeg)}, TIB5 ${Fmt.pct(b.measured?.tib5Pct)}, assistance ${Fmt.assistance(b.assistanceLevel)}",
+                small) }
             rule()
             val spec = trendSpec(data)
             val rect = Rect(Page.MARGIN.toDouble(), y + 24.0, (Page.WIDTH - Page.MARGIN).toDouble(), y + 250.0)
@@ -275,7 +281,8 @@ public class ProgressReportBuilder(private val painter: CanvasChartPainter = Can
             line("* within MDC (measurement noise). Aborted sessions are included (ADR-009).", small)
             heading("Clinical scales")
             if (data.assessments.isEmpty()) line("No clinical scale entries.", small)
-            else table(listOf("Date", "Scale", "Version", "Score"), data.assessments.sortedBy { it.recordedAt }.takeLast(12).map { listOf(Fmt.dateTime(it.recordedAt, "UTC").take(10), it.scaleCode, it.scaleVersion, Fmt.num(it.totalScore, 1)) }, listOf(80f, 80f, 80f, 60f))
+            else table(listOf("Date", "Scale", "Version", "Score"), data.assessments.sortedBy { it.recordedAt }.takeLast(12).map { listOf(Fmt.dateTime(it.recordedAt, "UTC").take(10),
+                it.scaleCode, it.scaleVersion, Fmt.num(it.totalScore, 1)) }, listOf(80f, 80f, 80f, 60f))
             wrapped(ReportText.NOT_A_DIAGNOSIS, small)
             finish()
         }

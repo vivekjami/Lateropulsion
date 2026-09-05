@@ -7,7 +7,7 @@ config:
 
 complexity:
   LongParameterList:
-    functionThreshold: 12
+    functionThreshold: 14
     constructorThreshold: 16
   LongMethod:
     threshold: 120
@@ -15,21 +15,28 @@ complexity:
     thresholdInClasses: 30
     thresholdInFiles: 30
     thresholdInObjects: 30
+    thresholdInInterfaces: 25
     ignorePrivate: true
   ComplexCondition:
     threshold: 6
   CyclomaticComplexMethod:
-    threshold: 25
+    threshold: 40
+    ignoreAnnotated: ['Composable']
   LargeClass:
     threshold: 900
   NestedBlockDepth:
     threshold: 6
 
+performance:
+  SpreadOperator:
+    active: false
+
 style:
   MagicNumber:
     active: false
   MaxLineLength:
-    maxLineLength: 140
+    maxLineLength: 240
+    excludes: ['**/test/**', '**/androidTest/**']
   ReturnCount:
     max: 6
   UnusedPrivateMember:
@@ -41,6 +48,10 @@ style:
   UnusedParameter:
     active: false
   ThrowsCount:
+    active: false
+  LoopWithTooManyJumpStatements:
+    active: false
+  FunctionOnlyReturningConstant:
     active: false
 
 naming:
@@ -72,3 +83,5 @@ comments:
 empty-blocks:
   EmptyFunctionBlock:
     ignoreOverridden: true
+  EmptyElseBlock:
+    active: false

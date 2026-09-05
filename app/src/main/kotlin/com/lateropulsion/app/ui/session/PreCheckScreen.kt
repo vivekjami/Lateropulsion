@@ -84,7 +84,8 @@ class PreCheckViewModel @Inject constructor(
                 storageOk = free >= appConfig.safety.minFreeStorageMb,
                 deviceQualified = dev.qualified || research || draft.simulated,
             )
-            state.value = state.value.copy(checklist = auto, ssqDef = config.scale("SSQ"), deviceInfo = "${dev.id} · camera ${cam?.hardwareLevelName ?: "n/a"} ${cam?.maxFps ?: 0} fps · IMU ${"%.0f".format(runtime.imuCapabilities.gyroMaxRateHz)} Hz${if (draft.simulated) " · SIMULATED PATIENT" else ""}")
+            state.value = state.value.copy(checklist = auto, ssqDef = config.scale("SSQ"),
+                deviceInfo = "${dev.id} · camera ${cam?.hardwareLevelName ?: "n/a"} ${cam?.maxFps ?: 0} fps · IMU ${"%.0f".format(runtime.imuCapabilities.gyroMaxRateHz)} Hz${if (draft.simulated) " · SIMULATED PATIENT" else ""}")
             evaluate()
         }
     }
@@ -131,7 +132,8 @@ fun PreCheckScreen(nav: NavHostController, vm: PreCheckViewModel = hiltViewModel
     val spec by vm.draft.spec.collectAsState()
     if (st.started) { nav.navigate(Routes.SESSION_LIVE) { popUpTo(Routes.SESSION_PRECHECK) { inclusive = true } }; return }
     val sp = spec ?: run { nav.popBackStack(); return }
-    LpScreen(stringResource(R.string.pre_session_checklist), onBack = { nav.popBackStack() }, banner = { PatientBanner(sp.patientDisplayId, vm.draft.patientName, "${sp.protocol.name} · ${if (sp.visualMode.name.startsWith("VERT")) "Mode A" else "Mode B k=${sp.gain}"}") }) { mod ->
+    LpScreen(stringResource(R.string.pre_session_checklist), onBack = { nav.popBackStack() }, banner = { PatientBanner(sp.patientDisplayId, vm.draft.patientName,
+        "${sp.protocol.name} · ${if (sp.visualMode.name.startsWith("VERT")) "Mode A" else "Mode B k=${sp.gain}"}") }) { mod ->
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(stringResource(R.string.device_status, st.deviceInfo), style = MaterialTheme.typography.bodyMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

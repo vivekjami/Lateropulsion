@@ -74,7 +74,8 @@ class BaselineFormViewModel @Inject constructor(
             val name = patients.identity(patientId)?.name ?: ""
             val existing = baselines.current(patientId)
             form.value = form.value.copy(patient = p, name = name, existing = existing, scales = config.scales().map { it.code }.filter { it != "SSQ" }).let { f ->
-                existing?.let { b -> f.copy(severity = b.severity, head = b.headDeviationDeg.toString(), trunk = b.trunkDeviationDeg.toString(), sitting = b.sittingBalance, standing = b.standingBalance, walking = b.walkingAbility, assistance = b.assistanceLevel, midline = b.midlineAwareness, correction = b.correctionAbility, fall = b.fallRisk, notes = b.notes) } ?: f
+                existing?.let { b -> f.copy(severity = b.severity, head = b.headDeviationDeg.toString(), trunk = b.trunkDeviationDeg.toString(), sitting = b.sittingBalance,
+                    standing = b.standingBalance, walking = b.walkingAbility, assistance = b.assistanceLevel, midline = b.midlineAwareness, correction = b.correctionAbility, fall = b.fallRisk, notes = b.notes) } ?: f
             }
         }
     }

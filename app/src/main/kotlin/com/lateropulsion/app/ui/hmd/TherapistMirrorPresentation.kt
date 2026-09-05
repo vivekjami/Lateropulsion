@@ -39,6 +39,7 @@ class TherapistMirrorPresentation(ctx: Context, display: Display, private val co
         private val text = Paint().apply { color = Color.WHITE; textSize = 36f; isAntiAlias = true }
         private val line = Paint().apply { style = Paint.Style.STROKE; strokeWidth = 6f; isAntiAlias = true; strokeCap = Paint.Cap.ROUND }
         private val fill = Paint().apply { style = Paint.Style.FILL; isAntiAlias = true }
+        private val path = android.graphics.Path()
 
         override fun onDraw(canvas: Canvas) {
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bg)
@@ -48,13 +49,18 @@ class TherapistMirrorPresentation(ctx: Context, display: Display, private val co
             for (p in OverlayGeometry.build(OverlayInput(st.thetaHeadDeg, st.thetaDeg, rs, !st.trackingLost))) {
                 when (p) {
                     is Primitive.Line -> { line.color = argb(p.color); line.strokeWidth = (p.width * scale).coerceAtLeast(3f); canvas.drawLine(cx + p.x1 * scale, cy - p.y1 * scale, cx + p.x2 * scale, cy - p.y2 * scale, line) }
-                    is Primitive.Wedge -> { fill.color = argb(p.color); val path = android.graphics.Path(); path.moveTo(cx + p.cx * scale, cy - p.cy * scale); var a = p.a0; while (a <= p.a1) { path.lineTo(cx + (p.cx + p.radius * cos(a)) * scale, cy - (p.cy + p.radius * sin(a)) * scale); a += 0.05f }; path.close(); canvas.drawPath(path, fill) }
-                    is Primitive.Ring -> { line.color = argb(p.color); line.strokeWidth = (p.rOuter - p.rInner) * scale; val r = (p.rInner + p.rOuter) / 2 * scale; canvas.drawArc(cx + p.cx * scale - r, cy - p.cy * scale - r, cx + p.cx * scale + r, cy - p.cy * scale + r, -Math.toDegrees(p.a0.toDouble()).toFloat(), -Math.toDegrees((p.a1 - p.a0).toDouble()).toFloat(), false, line) }
+                    is Primitive.Wedge -> { fill.color = argb(p.color); path.reset(); path.moveTo(cx + p.cx * scale,
+                        cy - p.cy * scale); var a = p.a0; while (a <= p.a1) { path.lineTo(cx + (p.cx + p.radius * cos(a)) * scale,
+                        cy - (p.cy + p.radius * sin(a)) * scale); a += 0.05f }; path.close(); canvas.drawPath(path, fill) }
+                    is Primitive.Ring -> { line.color = argb(p.color); line.strokeWidth = (p.rOuter - p.rInner) * scale; val r = (p.rInner + p.rOuter) / 2 * scale; canvas.drawArc(cx + p.cx * scale - r,
+                        cy - p.cy * scale - r, cx + p.cx * scale + r, cy - p.cy * scale + r, -Math.toDegrees(p.a0.toDouble()).toFloat(), -Math.toDegrees((p.a1 - p.a0).toDouble()).toFloat(), false, line) }
                     is Primitive.Marker -> { fill.color = argb(p.color); canvas.drawCircle(cx + p.x * scale, cy - p.y * scale, p.size * scale, fill) }
                 }
             }
-            canvas.drawText(String.format(java.util.Locale.ROOT, "θ %+.1f°  %s  episodes %d  block %d/%d %ds", st.thetaDeg, if (st.inBand) "IN BAND" else "OUT", st.episodes, st.blockIndex + 1, st.blockCount, st.blockRemainingS), 24f, 48f, text)
-            telemetry?.let { canvas.drawText(String.format(java.util.Locale.ROOT, "frame %.1f ms  pose age %.1f ms  m2p est %.0f ms  rot %+.1f°%s", it.frameTimeMs, it.poseAgeMs, it.motionToPhotonEstMs, it.appliedRotationDeg, if (it.neutral) "  NEUTRAL" else ""), 24f, height - 24f, text) }
+            canvas.drawText(String.format(java.util.Locale.ROOT, "θ %+.1f°  %s  episodes %d  block %d/%d %ds", st.thetaDeg, if (st.inBand) "IN BAND" else "OUT", st.episodes,
+                st.blockIndex + 1, st.blockCount, st.blockRemainingS), 24f, 48f, text)
+            telemetry?.let { canvas.drawText(String.format(java.util.Locale.ROOT, "frame %.1f ms  pose age %.1f ms  m2p est %.0f ms  rot %+.1f°%s", it.frameTimeMs, it.poseAgeMs,
+                it.motionToPhotonEstMs, it.appliedRotationDeg, if (it.neutral) "  NEUTRAL" else ""), 24f, height - 24f, text) }
             if (st.trackingLost) canvas.drawText("TRACKING LOST", 24f, 96f, text.apply { color = Color.RED })
             text.color = Color.WHITE
         }

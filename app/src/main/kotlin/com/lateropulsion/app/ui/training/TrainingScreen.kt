@@ -65,7 +65,8 @@ class TrainingViewModel @Inject constructor(private val patients: PatientReposit
             val existing = patients.findByDisplayId(TRAINING_ID)
             val id = existing?.id ?: run {
                 val now = clock.nowUtcMillis()
-                val p = Patient(Ids.patient(), TRAINING_ID, 65, Sex.UNSPECIFIED, "TRAINING — simulated patient, not a real person", LesionSide.RIGHT, Side.LEFT, Side.LEFT, null, false, false, null, notes = "training", createdAt = now, updatedAt = now)
+                val p = Patient(Ids.patient(), TRAINING_ID, 65, Sex.UNSPECIFIED, "TRAINING — simulated patient, not a real person", LesionSide.RIGHT, Side.LEFT, Side.LEFT, null, false,
+                    false, null, notes = "training", createdAt = now, updatedAt = now)
                 patients.create(p, PatientIdentity(p.id, "Training Patient", null, null)).getOrThrow().id
             }
             if (baselines.current(id) == null) {

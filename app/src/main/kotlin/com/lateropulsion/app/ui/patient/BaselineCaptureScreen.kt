@@ -128,7 +128,8 @@ class BaselineCaptureViewModel @Inject constructor(
     fun save() = viewModelScope.launch {
         val s = state.value; val b = s.baseline ?: return@launch; val m = s.measured ?: return@launch; val ref = s.thetaRef ?: return@launch
         val me = auth.current?.id ?: return@launch
-        val updated = if (b.locked) b.copy(id = com.lateropulsion.core.model.Ids.baseline(), supersedes = b.id, locked = false, measured = m, thetaRefDeg = ref, thetaRefSetBy = me, thetaRefSetAt = clock.nowUtcMillis(), recordedAt = clock.nowUtcMillis(), recordedBy = me)
+        val updated = if (b.locked) b.copy(id = com.lateropulsion.core.model.Ids.baseline(), supersedes = b.id, locked = false, measured = m, thetaRefDeg = ref, thetaRefSetBy = me,
+            thetaRefSetAt = clock.nowUtcMillis(), recordedAt = clock.nowUtcMillis(), recordedBy = me)
         else b.copy(measured = m, thetaRefDeg = ref, thetaRefSetBy = me, thetaRefSetAt = clock.nowUtcMillis())
         baselines.save(updated).fold({ state.value = s.copy(saved = true) }, { e -> state.value = s.copy(error = e.message) })
     }

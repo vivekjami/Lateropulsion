@@ -102,7 +102,9 @@ private fun Unlock(vm: AuthViewModel, s: AuthState.Locked, error: String?) {
             val prompt = BiometricPrompt(activity, ContextCompat.getMainExecutor(ctx), object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) { vm.biometric(clinician) }
             })
-            prompt.authenticate(BiometricPrompt.PromptInfo.Builder().setTitle("Unlock Lateropulsion").setSubtitle(clinician.displayName).setNegativeButtonText("Use PIN").setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG).build())
+            val info = BiometricPrompt.PromptInfo.Builder().setTitle("Unlock Lateropulsion").setSubtitle(clinician.displayName)
+                .setNegativeButtonText("Use PIN").setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG).build()
+            prompt.authenticate(info)
         }, Modifier.fillMaxWidth(), secondary = true)
     }
 }

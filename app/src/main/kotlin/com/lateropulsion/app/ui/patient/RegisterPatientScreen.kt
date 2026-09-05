@@ -19,7 +19,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.lateropulsion.app.R
-import com.lateropulsion.app.auth.AuthManager
 import com.lateropulsion.app.ui.components.BigButton
 import com.lateropulsion.app.ui.components.CheckRow
 import com.lateropulsion.app.ui.components.LpScreen
@@ -52,7 +51,7 @@ data class RegisterForm(
 )
 
 @HiltViewModel
-class RegisterPatientViewModel @Inject constructor(private val patients: PatientRepository, private val clock: Clock, private val auth: AuthManager) : ViewModel() {
+class RegisterPatientViewModel @Inject constructor(private val patients: PatientRepository, private val clock: Clock) : ViewModel() {
     val form = MutableStateFlow(RegisterForm())
 
     fun update(f: (RegisterForm) -> RegisterForm) { form.value = f(form.value) }

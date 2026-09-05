@@ -62,7 +62,8 @@ class CrashRecovery @Inject constructor(
         if (file.exists()) {
             LpxRecovery.recover(file)
             val lpx = LpxReader.read(file)
-            ts = TimeseriesFile(s.id, file.absolutePath, lpx.header.sampleRateHz, lpx.records.size.toLong(), lpx.trailer?.sha256?.let { Hashing.toHex(it) } ?: "", FilterParams.summary(lpx.header.sampleRateHz.toDouble()), crashRecovered = true)
+            ts = TimeseriesFile(s.id, file.absolutePath, lpx.header.sampleRateHz, lpx.records.size.toLong(), lpx.trailer?.sha256?.let { Hashing.toHex(it) } ?: "",
+                FilterParams.summary(lpx.header.sampleRateHz.toDouble()), crashRecovered = true)
             // Block boundaries from BLOCK_START / BLOCK_END events (ns since t0).
             val starts = events.filter { it.type == SessionEventType.BLOCK_START }
             for (st in starts) {

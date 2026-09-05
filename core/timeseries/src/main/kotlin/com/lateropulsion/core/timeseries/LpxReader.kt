@@ -47,7 +47,7 @@ public object LpxReader {
             raf.readFully(body)
             val buf = ByteBuffer.wrap(body).order(ByteOrder.LITTLE_ENDIAN)
             val records = ArrayList<LpxRecord>(whole)
-            for (i in 0 until whole) records += LpxRecord.decodeFrom(buf)
+            repeat(whole) { records += LpxRecord.decodeFrom(buf) }
 
             val status = when {
                 trailer == null -> TrailerStatus.MISSING

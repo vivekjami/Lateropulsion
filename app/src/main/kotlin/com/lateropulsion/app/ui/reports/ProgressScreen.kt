@@ -63,7 +63,8 @@ import java.text.DateFormat
 import java.util.Date
 import javax.inject.Inject
 
-data class ProgressState(val patient: Patient? = null, val name: String = "", val baseline: Baseline? = null, val rows: List<Pair<Session, SessionSummary>> = emptyList(), val assessments: List<Assessment> = emptyList(), val erased: Boolean = false, val message: String? = null)
+data class ProgressState(val patient: Patient? = null, val name: String = "", val baseline: Baseline? = null, val rows: List<Pair<Session, SessionSummary>> = emptyList(),
+    val assessments: List<Assessment> = emptyList(), val erased: Boolean = false, val message: String? = null)
 
 @HiltViewModel
 class ProgressViewModel @Inject constructor(
@@ -123,7 +124,9 @@ fun ProgressScreen(nav: NavHostController, patientId: String, vm: ProgressViewMo
                     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column(Modifier.weight(1f)) {
                             Text("#${s.sessionNumber} · ${DateFormat.getDateInstance(DateFormat.SHORT).format(Date(s.startedAtUtc))} · ${s.protocolId}", style = MaterialTheme.typography.bodyLarge)
-                            Text("MAD ${"%.1f".format(m.madDeg)}° · TIB5 ${"%.0f".format(m.tib5Pct)} % · k ${s.gainUsed} · assist ${m.assistanceLevel?.level ?: "—"}" + (m.improvementPct?.let { " · ${"%.0f".format(it)} %${if (m.withinMdc == true) "*" else ""}" } ?: ""), style = MaterialTheme.typography.bodyMedium)
+                            val improvement = m.improvementPct?.let { " · ${"%.0f".format(it)} %${if (m.withinMdc == true) "*" else ""}" } ?: ""
+                            Text("MAD ${"%.1f".format(m.madDeg)}° · TIB5 ${"%.0f".format(m.tib5Pct)} % · k ${s.gainUsed} · assist ${m.assistanceLevel?.level ?: "—"}$improvement",
+                                style = MaterialTheme.typography.bodyMedium)
                         }
                         Column {
                             StatusChip(when (s.endReason) { EndReason.COMPLETED -> "completed"; EndReason.ABORTED -> "aborted"; EndReason.CRASH_RECOVERED -> "crash-recovered"; else -> "error" }, s.endReason == EndReason.COMPLETED)
@@ -133,7 +136,7 @@ fun ProgressScreen(nav: NavHostController, patientId: String, vm: ProgressViewMo
                     BigButton("Open session #${s.sessionNumber}", { nav.navigate(Routes.sessionDetail(s.id.value)) }, Modifier.fillMaxWidth(), secondary = true)
                 }
             }
-            Text("* within MDC (${appConfigMdc()}°)", style = MaterialTheme.typography.bodyMedium)
+            Text("* within MDC (measurement noise, see report)", style = MaterialTheme.typography.bodyMedium)
             InfoCard("Export") {
                 CheckRow(!identified, { identified = !it }, stringResource(R.string.export_deidentified))
                 if (identified) WarningText(stringResource(R.string.export_identified_warning))
@@ -153,4 +156,3 @@ fun ProgressScreen(nav: NavHostController, patientId: String, vm: ProgressViewMo
     }
 }
 
-@Composable private fun appConfigMdc(): String = "2.0"

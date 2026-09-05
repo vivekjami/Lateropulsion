@@ -107,8 +107,8 @@ fun BigButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, 
 }
 
 @Composable
-fun LpTextField(value: String, onChange: (String) -> Unit, label: String, modifier: Modifier = Modifier.fillMaxWidth(), number: Boolean = false, password: Boolean = false, singleLine: Boolean = true, error: String? = null) {
-    Column(modifier) {
+fun LpTextField(value: String, onChange: (String) -> Unit, label: String, modifier: Modifier = Modifier, number: Boolean = false, password: Boolean = false, singleLine: Boolean = true, error: String? = null) {
+    Column(modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = value, onValueChange = onChange, label = { Text(label) }, singleLine = singleLine, isError = error != null,
             keyboardOptions = KeyboardOptions(keyboardType = when { password -> KeyboardType.NumberPassword; number -> KeyboardType.Number; else -> KeyboardType.Text }),
@@ -120,9 +120,9 @@ fun LpTextField(value: String, onChange: (String) -> Unit, label: String, modifi
 }
 
 @Composable
-fun <T> Selector(label: String, options: List<T>, selected: T?, display: (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier.fillMaxWidth()) {
+fun <T> Selector(label: String, options: List<T>, selected: T?, display: (T) -> String, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
     var open by remember { mutableStateOf(false) }
-    Box(modifier) {
+    Box(modifier.fillMaxWidth()) {
         OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text("$label: ${selected?.let(display) ?: "—"}", style = MaterialTheme.typography.bodyLarge)
         }
@@ -166,9 +166,9 @@ fun WarningText(text: String) {
 
 /** Angle dial: needle at the current roll, coloured band for tolerance; the therapist's at-a-glance view. */
 @Composable
-fun AngleDial(thetaDeg: Double, toleranceDeg: Double, inBand: Boolean, valid: Boolean, modifier: Modifier = Modifier.size(220.dp), rangeDeg: Double = 45.0) {
+fun AngleDial(thetaDeg: Double, toleranceDeg: Double, inBand: Boolean, valid: Boolean, modifier: Modifier = Modifier, rangeDeg: Double = 45.0) {
     val bandColor = when { !valid -> Color.Gray; inBand -> Color(0xFF2E7D32) else -> Color(0xFFB3261E) }
-    Canvas(modifier) {
+    Canvas(modifier.size(220.dp)) {
         val c = Offset(size.width / 2, size.height * 0.62f)
         val r = size.minDimension * 0.45f
         // arc from -range to +range, 0 at top
@@ -187,10 +187,10 @@ fun AngleDial(thetaDeg: Double, toleranceDeg: Double, inBand: Boolean, valid: Bo
 
 /** Compose host for the shared chart code path (ARCHITECTURE §12.2). */
 @Composable
-fun ChartCanvas(spec: ChartSpec, modifier: Modifier = Modifier.fillMaxWidth().height(260.dp)) {
+fun ChartCanvas(spec: ChartSpec, modifier: Modifier = Modifier) {
     val density = LocalDensity.current.density
     val painter = remember(density) { CanvasChartPainter(density) }
-    Canvas(modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)).padding(4.dp)) {
+    Canvas(modifier.fillMaxWidth().height(260.dp).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)).padding(4.dp)) {
         val layout: ChartLayout = ChartModel.layout(spec, size.width.toDouble(), size.height.toDouble(), 48.0 * density, 44.0 * density, 28.0 * density, 40.0 * density)
         drawContext.canvas.nativeCanvas.let { painter.draw(it, layout.copy(plot = Rect(48.0 * density, 28.0 * density, size.width - 44.0 * density, size.height - 40.0 * density))) }
     }

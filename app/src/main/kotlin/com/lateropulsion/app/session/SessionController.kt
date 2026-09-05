@@ -345,8 +345,10 @@ class SessionController @Inject constructor(
         val s = eng.state
         var st = _state.value.copy(phase = s, blockCount = sp.protocol.blocks.size, sessionElapsedS = if (eng.sessionStartNs > 0) ((now - eng.sessionStartNs) / 1e9).toInt() else 0)
         st = when (s) {
-            is SessionState.BlockRunning -> { val b = sp.protocol.blocks[s.blockIndex]; st.copy(blockIndex = s.blockIndex, blockName = b.blockId, blockRemainingS = (b.durationS - (now - s.blockStartNs - s.pausedNs) / 1e9).toInt().coerceAtLeast(0), restRemainingS = 0, restComplete = false) }
-            is SessionState.Paused -> { val b = sp.protocol.blocks[s.block.blockIndex]; st.copy(blockIndex = s.block.blockIndex, blockName = b.blockId, blockRemainingS = (b.durationS - (s.pausedAtNs - s.block.blockStartNs - s.block.pausedNs) / 1e9).toInt().coerceAtLeast(0)) }
+            is SessionState.BlockRunning -> { val b = sp.protocol.blocks[s.blockIndex]; st.copy(blockIndex = s.blockIndex, blockName = b.blockId,
+                blockRemainingS = (b.durationS - (now - s.blockStartNs - s.pausedNs) / 1e9).toInt().coerceAtLeast(0), restRemainingS = 0, restComplete = false) }
+            is SessionState.Paused -> { val b = sp.protocol.blocks[s.block.blockIndex]; st.copy(blockIndex = s.block.blockIndex, blockName = b.blockId,
+                blockRemainingS = (b.durationS - (s.pausedAtNs - s.block.blockStartNs - s.block.pausedNs) / 1e9).toInt().coerceAtLeast(0)) }
             is SessionState.Resting -> st.copy(blockIndex = s.completedBlockIndex, restRemainingS = ((s.restDurationNs - (now - s.restStartNs)) / 1e9).toInt().coerceAtLeast(0), restComplete = now - s.restStartNs >= s.restDurationNs)
             else -> st
         }
@@ -377,10 +379,13 @@ class SessionController @Inject constructor(
             val path = lpxPath
             if (w != null && path != null) {
                 val parsed = com.lateropulsion.core.timeseries.LpxReader.read(File(path))
-                TimeseriesFile(sp.sessionId, path, sp.config.metrics.storeRateHz, parsed.records.size.toLong(), parsed.trailer?.sha256?.let { com.lateropulsion.core.common.Hashing.toHex(it) } ?: "", blockResults.firstOrNull()?.filterParams ?: com.lateropulsion.core.model.FilterParams.summary(sp.config.metrics.storeRateHz.toDouble()), false)
+                TimeseriesFile(sp.sessionId, path, sp.config.metrics.storeRateHz, parsed.records.size.toLong(),
+                    parsed.trailer?.sha256?.let { com.lateropulsion.core.common.Hashing.toHex(it) } ?: "",
+                    blockResults.firstOrNull()?.filterParams ?: com.lateropulsion.core.model.FilterParams.summary(sp.config.metrics.storeRateHz.toDouble()), false)
             } else null
         }
-        val summary = _state.value.summary ?: SessionSummarizer.summarize(sp.sessionId, blockResults, baseline, blockResults.flatMap { it.episodeList }, sp.gain, sp.visualMode, eng.endReason, eng.balanceLossEvents, assistanceAfter ?: assistanceBefore, sp.config.metrics.mdcDeg, sp.config.session.minValidSecondsForConfidence, clock.nowUtcMillis())
+        val summary = _state.value.summary ?: SessionSummarizer.summarize(sp.sessionId, blockResults, baseline, blockResults.flatMap { it.episodeList }, sp.gain, sp.visualMode,
+            eng.endReason, eng.balanceLossEvents, assistanceAfter ?: assistanceBefore, sp.config.metrics.mdcDeg, sp.config.session.minValidSecondsForConfidence, clock.nowUtcMillis())
         val finalSummary = summary.copy(assistanceLevel = assistanceAfter ?: summary.assistanceLevel)
         val done = sess.copy(
             endedAtUtc = clock.nowUtcMillis(), endReason = eng.endReason, abortReason = eng.abortReason?.toString(), notes = notes,

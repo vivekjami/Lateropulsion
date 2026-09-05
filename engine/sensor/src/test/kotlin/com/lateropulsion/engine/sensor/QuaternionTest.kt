@@ -43,7 +43,7 @@ class QuaternionTest {
         val q = DoubleArray(4).also { QuatMath.identity(it) }
         val t1 = DoubleArray(4); val t2 = DoubleArray(4)
         val steps = 1000
-        for (i in 0 until steps) QuatMath.integrateBodyRate(q, 0.0, 0.0, 0.7, 1.0 / steps, t1, t2)
+        repeat(steps) { QuatMath.integrateBodyRate(q, 0.0, 0.0, 0.7, 1.0 / steps, t1, t2) }
         val expected = Quaternion.fromAxisAngle(Vec3(0.0, 0.0, 1.0), 0.7)
         assertEquals(0.0, Quaternion(q[0], q[1], q[2], q[3]).angleTo(expected), 1e-9)
     }

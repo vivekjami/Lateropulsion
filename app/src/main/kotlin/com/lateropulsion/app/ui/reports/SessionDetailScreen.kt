@@ -86,7 +86,8 @@ class SessionDetailViewModel @Inject constructor(
                 val protocolName = config.protocol(s.protocolId)?.name ?: s.protocolId
                 val dev = config.deviceProfiles().firstOrNull { it.id == s.deviceProfileId }
                 val clinicianName = auth.current?.takeIf { it.id == s.clinicianId }?.displayName ?: "clinician ${s.clinicianId.value.take(8)}"
-                SessionReportData(p, clinicianName, s, blocks, summary, baseline, events, ChartModel.downsample(trace.map { Pt(it.tS, it.thetaDeg) }, 3000).let { ds -> ds.map { TracePoint(it.x, it.y, true) } }, protocolName, dev?.qualified == true, BuildConfig.VERSION_NAME, settings.current().siteName, clock.nowUtcMillis())
+                SessionReportData(p, clinicianName, s, blocks, summary, baseline, events, ChartModel.downsample(trace.map { Pt(it.tS, it.thetaDeg) },
+                    3000).let { ds -> ds.map { TracePoint(it.x, it.y, true) } }, protocolName, dev?.qualified == true, BuildConfig.VERSION_NAME, settings.current().siteName, clock.nowUtcMillis())
             }.onSuccess { state.value = DetailState(it) }.onFailure { state.value = DetailState(error = it.message) }
         }
     }
@@ -104,16 +105,19 @@ class SessionDetailViewModel @Inject constructor(
 
     fun exportPdf() = viewModelScope.launch {
         val d = state.value.data ?: return@launch
-        exports.share("${d.patient.displayId}_session${d.session.sessionNumber}.pdf", "application/pdf", "session-pdf", "session", d.session.id.value, true, auth.current?.id) { f -> f.outputStream().use { SessionReportBuilder().build(d, it) } }
+        exports.share("${d.patient.displayId}_session${d.session.sessionNumber}.pdf", "application/pdf", "session-pdf", "session", d.session.id.value, true,
+            auth.current?.id) { f -> f.outputStream().use { SessionReportBuilder().build(d, it) } }
     }
     fun exportJson(deidentified: Boolean) = viewModelScope.launch {
         val d = state.value.data ?: return@launch
-        exports.share("${d.patient.displayId}_session${d.session.sessionNumber}.json", "application/json", "session-json", "session", d.session.id.value, deidentified, auth.current?.id) { it.writeText(JsonExporter.sessionBundle(d, deidentified)) }
+        exports.share("${d.patient.displayId}_session${d.session.sessionNumber}.json", "application/json", "session-json", "session", d.session.id.value, deidentified,
+            auth.current?.id) { it.writeText(JsonExporter.sessionBundle(d, deidentified)) }
     }
     fun exportTraceCsv() = viewModelScope.launch {
         val d = state.value.data ?: return@launch
         val ts = sessions.timeseries(d.session.id) ?: return@launch
-        exports.share("${d.patient.displayId}_session${d.session.sessionNumber}_trace.csv", "text/csv", "trace-csv", "session", d.session.id.value, true, auth.current?.id) { f -> f.writeText(CsvExporter.traceCsv(LpxReader.read(File(ts.path)))) }
+        exports.share("${d.patient.displayId}_session${d.session.sessionNumber}_trace.csv", "text/csv", "trace-csv", "session", d.session.id.value, true,
+            auth.current?.id) { f -> f.writeText(CsvExporter.traceCsv(LpxReader.read(File(ts.path)))) }
     }
 }
 
@@ -129,20 +133,32 @@ fun SessionDetailScreen(nav: NavHostController, sessionId: String, vm: SessionDe
             if (s.endReason?.name == "ABORTED") WarningText("Aborted: ${s.abortReason}. ${ReportText.ABORTED_NOTE}")
             if (s.crashRecovered) WarningText(ReportText.CRASH_RECOVERED_NOTE)
             if (!d.deviceQualified) WarningText(ReportText.UNQUALIFIED_DEVICE)
-            Text("${if (s.visualMode.name.startsWith("VERT")) "Mode A" else "Mode B"} · k ${s.gainUsed} · θ_ref ${"%.1f".format(s.thetaRefDeg)}° · ${s.position.name.lowercase().replace('_', ' ')} · valid ${"%.0f".format(m.metrics.validSamplePct)} %")
+            val modeLabel = if (s.visualMode.name.startsWith("VERT")) "Mode A" else "Mode B"
+            Text("$modeLabel · k ${s.gainUsed} · θ_ref ${"%.1f".format(s.thetaRefDeg)}° · ${s.position.name.lowercase().replace('_', ' ')} · valid ${"%.0f".format(m.metrics.validSamplePct)} %")
             if (d.trace.isNotEmpty()) ChartCanvas(vm.chartSpec(d))
             InfoCard("Summary") {
                 Text("MAD ${"%.1f".format(m.metrics.madDeg)}° (baseline ${m.baselineMadDeg?.let { "%.1f°".format(it) } ?: "—"}) · RMS ${"%.1f".format(m.metrics.rmsDeg)}° · max ${"%.1f".format(m.metrics.maxDeg)}°")
-                Text("TIB5 ${"%.0f".format(m.metrics.tib5Pct)} % · TIB10 ${"%.0f".format(m.metrics.tib10Pct)} % · episodes ${m.episodes.count} (${m.episodes.partialCount} partial) · recovery ${if (m.episodes.recoveryMeanS.isNaN()) "—" else "%.1f s".format(m.episodes.recoveryMeanS)}")
+                val recovery = if (m.episodes.recoveryMeanS.isNaN()) "—" else "%.1f s".format(m.episodes.recoveryMeanS)
+                Text("TIB5 ${"%.0f".format(m.metrics.tib5Pct)} % · TIB10 ${"%.0f".format(m.metrics.tib10Pct)} % · episodes ${m.episodes.count} (${m.episodes.partialCount} partial) · recovery $recovery")
                 when {
                     m.comparisonRefusedReason != null -> WarningText(stringResource(R.string.comparison_refused, m.comparisonRefusedReason!!))
-                    m.improvementPct != null -> Text(stringResource(R.string.improvement, m.improvementPct!!, m.deltaDeg ?: 0.0) + if (m.withinMdc == true) " — " + stringResource(R.string.within_mdc, m.mdcDeg ?: 0.0) else "", style = MaterialTheme.typography.titleMedium)
+                    m.improvementPct != null -> Text(stringResource(R.string.improvement, m.improvementPct!!,
+                        m.deltaDeg ?: 0.0) + if (m.withinMdc == true) " — " + stringResource(R.string.within_mdc, m.mdcDeg ?: 0.0) else "", style = MaterialTheme.typography.titleMedium)
                 }
                 if (m.lowConfidence) WarningText(stringResource(R.string.low_confidence))
                 Text(stringResource(R.string.internal_metric_note), style = MaterialTheme.typography.bodyMedium)
-                Text("Assistance before ${s.assistanceLevelBefore?.level ?: "—"} → after ${s.assistanceLevelAfter?.level ?: "—"} · balance losses ${m.balanceLossEvents} · SSQ pre ${s.ssqPre?.total?.let { "%.0f".format(it) } ?: "—"} post ${s.ssqPost?.total?.let { "%.0f".format(it) } ?: "—"}")
+                val ssqPre = s.ssqPre?.total?.let { "%.0f".format(it) } ?: "—"
+                val ssqPost = s.ssqPost?.total?.let { "%.0f".format(it) } ?: "—"
+                Text("Assistance before ${s.assistanceLevelBefore?.level ?: "—"} → after ${s.assistanceLevelAfter?.level ?: "—"} · balance losses ${m.balanceLossEvents} · SSQ pre $ssqPre post $ssqPost")
             }
-            InfoCard("Blocks") { d.blocks.forEach { b -> Text("${b.blockId} (${b.exercise.name.lowercase().replace('_', ' ')}, ${"%.0f".format(b.durationS)} s, k ${b.gain}): MAD ${"%.1f".format(b.metrics.madDeg)}° · TIB5 ${"%.0f".format(b.metrics.tib5Pct)} % · episodes ${b.episodes.count} · ${b.endReason.name.lowercase()}") } }
+            InfoCard("Blocks") {
+                d.blocks.forEach { b ->
+                    Text(
+                        "${b.blockId} (${b.exercise.name.lowercase().replace('_', ' ')}, ${"%.0f".format(b.durationS)} s, k ${b.gain}): " +
+                            "MAD ${"%.1f".format(b.metrics.madDeg)}° · TIB5 ${"%.0f".format(b.metrics.tib5Pct)} % · episodes ${b.episodes.count} · ${b.endReason.name.lowercase()}",
+                    )
+                }
+            }
             if (s.notes.isNotBlank()) InfoCard(stringResource(R.string.therapist_notes)) { Text(s.notes) }
             Text(ReportText.PROXY_LIMITATION, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
