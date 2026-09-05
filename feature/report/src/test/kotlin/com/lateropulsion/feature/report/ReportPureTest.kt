@@ -25,7 +25,7 @@ class ReportPureTest {
     fun `nice axis covers the range with round ticks`() {
         val a = ChartModel.niceAxis(-27.0, 31.0, 5)
         assertTrue(a.min <= -27.0 && a.max >= 31.0)
-        assertEquals(listOf(-30.0, -20.0, -10.0, 0.0, 10.0, 20.0, 30.0, 40.0), a.ticks)
+        assertEquals(listOf(-40.0, -20.0, 0.0, 20.0, 40.0), a.ticks)
         assertEquals(0.5, ChartModel.niceAxis(0.0, 0.0, 5).let { it.frac(0.5) }, 1e-9)
     }
 

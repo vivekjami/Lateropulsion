@@ -91,7 +91,8 @@ public data class SessionBundle(
 
 public object JsonExporter {
     @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
-    private val json = Json { prettyPrint = true; namingStrategy = JsonNamingStrategy.SnakeCase; encodeDefaults = true; explicitNulls = false }
+    // NaN is emitted as a bare NaN token (accepted by Python json and pandas); metrics that are undefined stay explicit rather than silently zero.
+    private val json = Json { prettyPrint = true; namingStrategy = JsonNamingStrategy.SnakeCase; encodeDefaults = true; explicitNulls = false; allowSpecialFloatingPointValues = true }
 
     /** [deidentified] exports strip the free-text diagnosis and notes as well; identifiers are never included in any case. */
     public fun sessionBundle(data: SessionReportData, deidentified: Boolean, studyCode: String = data.patient.displayId): String {

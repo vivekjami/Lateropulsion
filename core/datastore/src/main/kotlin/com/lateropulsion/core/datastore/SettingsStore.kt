@@ -29,6 +29,9 @@ public data class Settings(
     val lastRetentionCheckAt: Long = 0L,
     val trainingModeEnabled: Boolean = true,
     val language: String = "en",
+    /** 0 = use the device profile value; +1/-1 overrides the Mode B rotation direction after the lens check. */
+    val renderRotationSign: Int = 0,
+    val retentionPendingCount: Int = 0,
 )
 
 private val Context.lpDataStore: DataStore<Preferences> by preferencesDataStore(name = "lateropulsion_settings")
@@ -51,6 +54,8 @@ public class SettingsStore(context: Context) {
             lastRetentionCheckAt = p[RETENTION_AT] ?: 0L,
             trainingModeEnabled = p[TRAINING] ?: true,
             language = p[LANG] ?: "en",
+            renderRotationSign = p[ROT_SIGN] ?: 0,
+            retentionPendingCount = p[RETENTION_PENDING] ?: 0,
         )
     }
 
@@ -72,6 +77,8 @@ public class SettingsStore(context: Context) {
             p[RETENTION_AT] = next.lastRetentionCheckAt
             p[TRAINING] = next.trainingModeEnabled
             p[LANG] = next.language
+            p[ROT_SIGN] = next.renderRotationSign
+            p[RETENTION_PENDING] = next.retentionPendingCount
         }
     }
 
@@ -89,5 +96,7 @@ public class SettingsStore(context: Context) {
         val RETENTION_AT = longPreferencesKey("last_retention_check_at")
         val TRAINING = booleanPreferencesKey("training_mode_enabled")
         val LANG = stringPreferencesKey("language")
+        val ROT_SIGN = intPreferencesKey("render_rotation_sign")
+        val RETENTION_PENDING = intPreferencesKey("retention_pending")
     }
 }
