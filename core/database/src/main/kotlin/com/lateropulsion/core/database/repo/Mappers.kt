@@ -70,6 +70,9 @@ import java.time.LocalDate
 
 private val json = LpJson.lenient
 
+/** SQLite has no NaN: binding one stores NULL, which a NOT NULL column rejects. The listing columns are nullable for that reason (DB v4). */
+private fun Double.orNullIfUndefined(): Double? = takeUnless { it.isNaN() || it.isInfinite() }
+
 internal fun Patient.toEntity() = PatientEntity(
     id.value, displayId, age, sex.name, diagnosis, lesionSide.name, affectedSide.name, lateropulsionDirection.name,
     onsetDate?.toEpochDay(), consentMedia, consentResearch, consentRecordedAt, advancedProtocolAllowed, notes, createdAt, updatedAt, erasedAt,
@@ -134,7 +137,7 @@ internal fun BlockResult.toEntity() = BlockResultEntity(
     id.value, sessionId.value, blockId, orderIndex, exercise.name, position.name, startedMonoNs, durationS, targetDeg, toleranceDeg, gain,
     json.encodeToString(cueListSer, cues), json.encodeToString(DeviationMetrics.serializer(), metrics), json.encodeToString(EpisodeStats.serializer(), episodes),
     json.encodeToString(episodeListSer, episodeList), json.encodeToString(checkpointListSer, checkpoints), endReason.name,
-    json.encodeToString(FilterParams.serializer(), filterParams), metrics.madDeg, metrics.tib5Pct, metrics.validSamplePct,
+    json.encodeToString(FilterParams.serializer(), filterParams), metrics.madDeg.orNullIfUndefined(), metrics.tib5Pct.orNullIfUndefined(), metrics.validSamplePct.orNullIfUndefined(),
 )
 
 
@@ -148,7 +151,7 @@ internal fun BlockResultEntity.toDomain() = BlockResult(
 internal fun SessionSummary.toEntity() = SessionSummaryEntity(
     sessionId.value, baselineId?.value, baselineMadDeg, json.encodeToString(DeviationMetrics.serializer(), metrics), json.encodeToString(EpisodeStats.serializer(), episodes),
     deltaDeg, improvementPct, withinMdc, mdcDeg, lowConfidence, comparisonRefusedReason, balanceLossEvents, assistanceLevel?.level, gainUsed, visualMode.name,
-    endReason.name, generatedByVersion, generatedAt, metrics.madDeg, metrics.tib5Pct,
+    endReason.name, generatedByVersion, generatedAt, metrics.madDeg.orNullIfUndefined(), metrics.tib5Pct.orNullIfUndefined(),
 )
 
 internal fun SessionSummaryEntity.toDomain() = SessionSummary(

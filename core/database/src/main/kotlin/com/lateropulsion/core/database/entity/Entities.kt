@@ -175,9 +175,10 @@ data class BlockResultEntity(
     @ColumnInfo(name = "end_reason") val endReason: String,
     @ColumnInfo(name = "filter_params_json") val filterParamsJson: String,
     // Denormalised for queries and charts
-    @ColumnInfo(name = "mad_deg") val madDeg: Double,
-    @ColumnInfo(name = "tib5_pct") val tib5Pct: Double,
-    @ColumnInfo(name = "valid_sample_pct") val validSamplePct: Double,
+    /** Denormalised copies of the JSON metrics for listing; NULL when undefined (NaN has no SQLite value, DB v4). */
+    @ColumnInfo(name = "mad_deg") val madDeg: Double?,
+    @ColumnInfo(name = "tib5_pct") val tib5Pct: Double?,
+    @ColumnInfo(name = "valid_sample_pct") val validSamplePct: Double?,
 )
 
 @Entity(
@@ -203,8 +204,9 @@ data class SessionSummaryEntity(
     @ColumnInfo(name = "end_reason") val endReason: String,
     @ColumnInfo(name = "generated_by_version") val generatedByVersion: String,
     @ColumnInfo(name = "generated_at") val generatedAt: Long,
-    @ColumnInfo(name = "mad_deg") val madDeg: Double,
-    @ColumnInfo(name = "tib5_pct") val tib5Pct: Double,
+    /** Denormalised copies of the JSON metrics for listing; NULL when undefined (DB v4). */
+    @ColumnInfo(name = "mad_deg") val madDeg: Double?,
+    @ColumnInfo(name = "tib5_pct") val tib5Pct: Double?,
 )
 
 @Entity(

@@ -180,6 +180,35 @@ class DatabaseRoundTripTest {
         assertTrue(sessions.complete(CompletedSession(s, emptyList(), summary, emptyList(), null)).isFailure)
     }
 
+    /** A calm session has no episodes, so its means are NaN; it must still save and read back (found on hardware). */
+    @Test
+    fun `REQ-DAT-004 a session with no episodes and undefined metrics saves and reads back`() = runTest {
+        val patients = PatientRepositoryImpl(db, clock, auditor) { deleted += it }
+        val p = patient("LP-2026-0002"); patients.create(p, PatientIdentity(p.id, "Calm Person", null, null)).getOrThrow()
+        val sessions = SessionRepositoryImpl(db, auditor)
+        val s = Session(
+            Ids.session(), p.id, me, "std-sitting-v3", 3, 1, VisualMode.VERTICAL_REFERENCE, 0.0, 0.0, null, "redmi-note-10s", "phone-visor-mono-v1",
+            BodyPosition.SITTING_UNSUPPORTED, clock.nowUtcMillis(), 123L, "Asia/Kolkata", appVersion = "0.1.0",
+        )
+        sessions.start(s).getOrThrow()
+        val calm = DeviationMetrics.EMPTY.copy(totalSamples = 40)
+        val block = BlockResult(
+            Ids.blockResult(), s.id, "warmup", 0, ExerciseType.MIDLINE_TRAINING, BodyPosition.SITTING_UNSUPPORTED, 123L, 8.0, 0.0, 10.0, 0.0,
+            listOf(CueType.PLUMB_LINE), calm, EpisodeStats.NONE, emptyList(), emptyList(), BlockEndReason.ABORTED, FilterParams.summary(50.0),
+        )
+        val summary = SessionSummary(s.id, null, null, calm, EpisodeStats.NONE, null, null, null, 2.0, true, null, 0, null, 0.0,
+            VisualMode.VERTICAL_REFERENCE, EndReason.ABORTED, EngineVersions.METRICS_ENGINE, clock.nowUtcMillis())
+        val done = s.copy(endedAtUtc = clock.nowUtcMillis() + 60_000, endReason = EndReason.ABORTED, abortReason = "THERAPIST_CONTROL back")
+        sessions.complete(CompletedSession(done, listOf(block), summary, emptyList(), null)).getOrThrow()
+        val back = sessions.summary(s.id)!!
+        assertTrue(back.episodes.meanDurationS.isNaN())
+        assertTrue(back.metrics.madDeg.isNaN())
+        assertEquals(0, back.episodes.count)
+        assertEquals(summary, back)
+        assertEquals(listOf(block), sessions.blocks(s.id))
+        assertTrue(sessions.unfinished().isEmpty())
+    }
+
     @Test
     fun `REQ-SEC-010 erasure removes identifiers and media, optionally keeping de-identified data`() = runTest {
         val patients = PatientRepositoryImpl(db, clock, auditor) { deleted += it }

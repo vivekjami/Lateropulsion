@@ -84,4 +84,5 @@ IDs are referenced in test names (`REQ-MET-014_episode_hysteresis`) and in the r
 | REQ-SEC-010 | Patient erasure removes identifiers and media; de-identified series optionally retained | README §14 | I | `DatabaseRoundTripTest` |
 | REQ-SEC-011 | Clinical flavour has no INTERNET permission | ARCH §14 | I | Gradle `verifyNoInternetPermission` task |
 | REQ-DAT-003 | Every schema bump ships a migration verified against the exported schema history | IMPL Phase 1 | I | `MigrationTest` |
+| REQ-DAT-004 | Undefined metric values (NaN: no episodes, no SD, no valid samples) persist as JSON NaN and NULL listing columns, read back and export; a calm session saves (DB v4) | ARCH §11 | I | `EntityValidationTest`, `DatabaseRoundTripTest`, `MigrationTest` |
 | REQ-QMS-002 | Every third-party dependency has a SOUP entry | IEC 62304 | I | `tools/ci/soup_check.py` |

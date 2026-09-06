@@ -48,7 +48,7 @@ abstract class LpDatabase : RoomDatabase() {
     abstract fun clinicians(): ClinicianDao
 
     companion object {
-        const val VERSION = 3
+        const val VERSION = 4
         const val FILE_NAME = "lateropulsion.db"
 
         /** v1 → v2: consent form version on the patient record (DPDP consent traceability). */
@@ -65,7 +65,40 @@ abstract class LpDatabase : RoomDatabase() {
             }
         }
 
-        val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+        /**
+         * v4: the denormalised metric columns of block_result and session_summary become nullable. A calm block or session has
+         * undefined metrics (NaN), which SQLite stores as NULL, and the NOT NULL columns refused the whole save. SQLite cannot
+         * drop a NOT NULL constraint in place, so each table is rebuilt and its rows copied.
+         */
+        val MIGRATION_3_4: Migration = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `block_result_v4` (`id` TEXT NOT NULL, `session_id` TEXT NOT NULL, `block_id` TEXT NOT NULL, " +
+                        "`order_index` INTEGER NOT NULL, `exercise` TEXT NOT NULL, `position` TEXT NOT NULL, `started_mono_ns` INTEGER NOT NULL, " +
+                        "`duration_s` REAL NOT NULL, `target_deg` REAL NOT NULL, `tolerance_deg` REAL NOT NULL, `gain` REAL NOT NULL, " +
+                        "`cues_json` TEXT NOT NULL, `metrics_json` TEXT NOT NULL, `episode_stats_json` TEXT NOT NULL, `episodes_json` TEXT NOT NULL, " +
+                        "`checkpoints_json` TEXT NOT NULL, `end_reason` TEXT NOT NULL, `filter_params_json` TEXT NOT NULL, `mad_deg` REAL, `tib5_pct` REAL, " +
+                        "`valid_sample_pct` REAL, PRIMARY KEY(`id`), FOREIGN KEY(`session_id`) REFERENCES `session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL("INSERT INTO `block_result_v4` SELECT * FROM `block_result`")
+                db.execSQL("DROP TABLE `block_result`")
+                db.execSQL("ALTER TABLE `block_result_v4` RENAME TO `block_result`")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_block_result_session_id` ON `block_result` (`session_id`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `session_summary_v4` (`session_id` TEXT NOT NULL, `baseline_id` TEXT, `baseline_mad_deg` REAL, " +
+                        "`metrics_json` TEXT NOT NULL, `episodes_json` TEXT NOT NULL, `delta_deg` REAL, `improvement_pct` REAL, `within_mdc` INTEGER, " +
+                        "`mdc_deg` REAL, `low_confidence` INTEGER NOT NULL, `comparison_refused_reason` TEXT, `balance_loss_events` INTEGER NOT NULL, " +
+                        "`assistance_level` INTEGER, `gain_used` REAL NOT NULL, `visual_mode` TEXT NOT NULL, `end_reason` TEXT NOT NULL, " +
+                        "`generated_by_version` TEXT NOT NULL, `generated_at` INTEGER NOT NULL, `mad_deg` REAL, `tib5_pct` REAL, PRIMARY KEY(`session_id`), " +
+                        "FOREIGN KEY(`session_id`) REFERENCES `session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL("INSERT INTO `session_summary_v4` SELECT * FROM `session_summary`")
+                db.execSQL("DROP TABLE `session_summary`")
+                db.execSQL("ALTER TABLE `session_summary_v4` RENAME TO `session_summary`")
+            }
+        }
+
+        val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 
         /** Production: SQLCipher-encrypted file database. `factory` comes from [com.lateropulsion.core.database.security.EncryptedOpenHelperFactory]. */
         fun encrypted(context: Context, factory: SupportSQLiteOpenHelper.Factory): LpDatabase =

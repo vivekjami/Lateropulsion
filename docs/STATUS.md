@@ -40,6 +40,8 @@ Found on hardware (ADR-023): the Redmi's Camera2 preview stream reaches the Surf
 
 Found on hardware (ADR-024): both real sessions on the Redmi aborted at the moment the phone was picked up and turned, i.e. an incidental touch or edge swipe on the patient view; a brief touch and a single Back gesture are now ignored while a block runs, and a held press, Back twice, Volume Down or the clicker stop the session.
 
+Found on hardware (REQ-DAT-004): "Confirm and save" failed on every real session with no episodes, because the session summary's episode statistics carry NaN for undefined means and the JSON encoder used for the database rejected NaN; crash recovery of those sessions failed the same way, so they stayed "in progress" and never reached the records or a PDF. The shared JSON configuration now allows non-finite values, which the reports already print as "—"; the denormalised listing columns (mad_deg, tib5_pct, valid_sample_pct) became nullable in DB v4 because SQLite stores NaN as NULL and the NOT NULL columns refused a block with no valid samples.
+
 ## Implemented, compiles, needs device verification (Phases 3–4 exit criteria)
 
 - Three-step operator flow with defaults and hands-free session start from the patient view (ADR-020): register → baseline (auto-saved, stated in words) → session; countdown, Volume Up start, touch-restarts-countdown, view closes at the end. Needs a run with a person wearing the visor.

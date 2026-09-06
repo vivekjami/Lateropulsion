@@ -49,4 +49,32 @@ class MigrationTest {
         }
         db.close()
     }
+
+    @Test
+    fun `migrate 3 to 4 makes the listing metric columns nullable and keeps rows`() {
+        helper.createDatabase(name, 3).use { db ->
+            db.execSQL(
+                "INSERT INTO block_result (id, session_id, block_id, order_index, exercise, position, started_mono_ns, duration_s, target_deg, tolerance_deg, gain, " +
+                    "cues_json, metrics_json, episode_stats_json, episodes_json, checkpoints_json, end_reason, filter_params_json, mad_deg, tib5_pct, valid_sample_pct) " +
+                    "VALUES ('b1', 's1', 'hold-1', 0, 'SITTING_HOLD', 'SITTING_UNSUPPORTED', 1, 180.0, 0.0, 5.0, 0.0, '[]', '{}', '{}', '[]', '[]', 'COMPLETED', '{}', 4.0, 55.0, 90.0)",
+            )
+            db.execSQL(
+                "INSERT INTO session_summary (session_id, metrics_json, episodes_json, low_confidence, balance_loss_events, gain_used, visual_mode, end_reason, " +
+                    "generated_by_version, generated_at, mad_deg, tib5_pct) VALUES ('s1', '{}', '{}', 0, 0, 0.0, 'VERTICAL_REFERENCE', 'COMPLETED', '1', 1, 4.0, 55.0)",
+            )
+        }
+        val db = helper.runMigrationsAndValidate(name, 4, true, LpDatabase.MIGRATION_1_2, LpDatabase.MIGRATION_2_3, LpDatabase.MIGRATION_3_4)
+        db.query("SELECT mad_deg, tib5_pct, valid_sample_pct FROM block_result WHERE id = 'b1'").use { c ->
+            assertTrue(c.moveToFirst()); assertEquals(4.0, c.getDouble(0), 1e-9); assertEquals(90.0, c.getDouble(2), 1e-9)
+        }
+        db.query("SELECT mad_deg FROM session_summary WHERE session_id = 's1'").use { c -> assertTrue(c.moveToFirst()); assertEquals(4.0, c.getDouble(0), 1e-9) }
+        // a calm block: undefined metrics are stored as NULL instead of failing the save
+        db.execSQL(
+            "INSERT INTO block_result (id, session_id, block_id, order_index, exercise, position, started_mono_ns, duration_s, target_deg, tolerance_deg, gain, " +
+                "cues_json, metrics_json, episode_stats_json, episodes_json, checkpoints_json, end_reason, filter_params_json, mad_deg, tib5_pct, valid_sample_pct) " +
+                "VALUES ('b2', 's1', 'hold-2', 1, 'SITTING_HOLD', 'SITTING_UNSUPPORTED', 1, 8.0, 0.0, 5.0, 0.0, '[]', '{}', '{}', '[]', '[]', 'ABORTED', '{}', NULL, NULL, NULL)",
+        )
+        db.query("SELECT mad_deg FROM block_result WHERE id = 'b2'").use { c -> assertTrue(c.moveToFirst()); assertTrue(c.isNull(0)) }
+        db.close()
+    }
 }

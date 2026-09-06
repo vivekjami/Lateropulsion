@@ -1,0 +1,1410 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "e3fc53d64f398fada32e2fbfe8408677",
+    "entities": [
+      {
+        "tableName": "clinician",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `display_name` TEXT NOT NULL, `role` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `active` INTEGER NOT NULL, `pin_hash` TEXT NOT NULL, `salt` TEXT NOT NULL, `failed_attempts` INTEGER NOT NULL, `locked_until` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "display_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "active",
+            "columnName": "active",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pinHash",
+            "columnName": "pin_hash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "salt",
+            "columnName": "salt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "failedAttempts",
+            "columnName": "failed_attempts",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lockedUntil",
+            "columnName": "locked_until",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "patient",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `display_id` TEXT NOT NULL, `age` INTEGER NOT NULL, `sex` TEXT NOT NULL, `diagnosis` TEXT NOT NULL, `lesion_side` TEXT NOT NULL, `affected_side` TEXT NOT NULL, `lateropulsion_direction` TEXT NOT NULL, `onset_epoch_day` INTEGER, `consent_media` INTEGER NOT NULL, `consent_research` INTEGER NOT NULL, `consent_recorded_at` INTEGER, `advanced_protocol_allowed` INTEGER NOT NULL, `notes` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `erased_at` INTEGER, `consent_version` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayId",
+            "columnName": "display_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "age",
+            "columnName": "age",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sex",
+            "columnName": "sex",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "diagnosis",
+            "columnName": "diagnosis",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lesionSide",
+            "columnName": "lesion_side",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "affectedSide",
+            "columnName": "affected_side",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lateropulsionDirection",
+            "columnName": "lateropulsion_direction",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "onsetEpochDay",
+            "columnName": "onset_epoch_day",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "consentMedia",
+            "columnName": "consent_media",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "consentResearch",
+            "columnName": "consent_research",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "consentRecordedAt",
+            "columnName": "consent_recorded_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "advancedProtocolAllowed",
+            "columnName": "advanced_protocol_allowed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "erasedAt",
+            "columnName": "erased_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "consentVersion",
+            "columnName": "consent_version",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_patient_display_id",
+            "unique": true,
+            "columnNames": [
+              "display_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_patient_display_id` ON `${TABLE_NAME}` (`display_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "patient_identity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`patient_id` TEXT NOT NULL, `name` TEXT NOT NULL, `name_key` TEXT NOT NULL, `mrn` TEXT, `contact` TEXT, PRIMARY KEY(`patient_id`), FOREIGN KEY(`patient_id`) REFERENCES `patient`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "patientId",
+            "columnName": "patient_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nameKey",
+            "columnName": "name_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mrn",
+            "columnName": "mrn",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contact",
+            "columnName": "contact",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "patient_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_patient_identity_name_key",
+            "unique": false,
+            "columnNames": [
+              "name_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_patient_identity_name_key` ON `${TABLE_NAME}` (`name_key`)"
+          },
+          {
+            "name": "index_patient_identity_mrn",
+            "unique": false,
+            "columnNames": [
+              "mrn"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_patient_identity_mrn` ON `${TABLE_NAME}` (`mrn`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "patient",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "patient_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "baseline",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `patient_id` TEXT NOT NULL, `severity` TEXT NOT NULL, `head_deviation_deg` REAL NOT NULL, `trunk_deviation_deg` REAL NOT NULL, `sitting_balance` TEXT NOT NULL, `standing_balance` TEXT NOT NULL, `walking_ability` TEXT NOT NULL, `assistance_level` INTEGER NOT NULL, `midline_awareness` TEXT NOT NULL, `correction_ability` TEXT NOT NULL, `fall_risk` TEXT NOT NULL, `measured_json` TEXT, `theta_ref_deg` REAL, `theta_ref_set_by` TEXT, `theta_ref_set_at` INTEGER, `position` TEXT NOT NULL, `exercise` TEXT NOT NULL, `recorded_at` INTEGER NOT NULL, `recorded_by` TEXT NOT NULL, `locked` INTEGER NOT NULL, `supersedes` TEXT, `notes` TEXT NOT NULL, `is_current` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`patient_id`) REFERENCES `patient`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "patientId",
+            "columnName": "patient_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "severity",
+            "columnName": "severity",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "headDeviationDeg",
+            "columnName": "head_deviation_deg",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trunkDeviationDeg",
+            "columnName": "trunk_deviation_deg",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sittingBalance",
+            "columnName": "sitting_balance",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "standingBalance",
+            "columnName": "standing_balance",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "walkingAbility",
+            "columnName": "walking_ability",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assistanceLevel",
+            "columnName": "assistance_level",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "midlineAwareness",
+            "columnName": "midline_awareness",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "correctionAbility",
+            "columnName": "correction_ability",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fallRisk",
+            "columnName": "fall_risk",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "measuredJson",
+            "columnName": "measured_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "thetaRefDeg",
+            "columnName": "theta_ref_deg",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "thetaRefSetBy",
+            "columnName": "theta_ref_set_by",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "thetaRefSetAt",
+            "columnName": "theta_ref_set_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "exercise",
+            "columnName": "exercise",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordedAt",
+            "columnName": "recorded_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordedBy",
+            "columnName": "recorded_by",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "locked",
+            "columnName": "locked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "supersedes",
+            "columnName": "supersedes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCurrent",
+            "columnName": "is_current",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_baseline_patient_id",
+            "unique": false,
+            "columnNames": [
+              "patient_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_baseline_patient_id` ON `${TABLE_NAME}` (`patient_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "patient",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "patient_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "assessment",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `patient_id` TEXT NOT NULL, `scale_code` TEXT NOT NULL, `scale_version` TEXT NOT NULL, `items_json` TEXT NOT NULL, `total_score` REAL NOT NULL, `subscores_json` TEXT, `recorded_at` INTEGER NOT NULL, `recorded_by` TEXT NOT NULL, `session_id` TEXT, `notes` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`patient_id`) REFERENCES `patient`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "patientId",
+            "columnName": "patient_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scaleCode",
+            "columnName": "scale_code",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scaleVersion",
+            "columnName": "scale_version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "itemsJson",
+            "columnName": "items_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalScore",
+            "columnName": "total_score",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subscoresJson",
+            "columnName": "subscores_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "recordedAt",
+            "columnName": "recorded_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordedBy",
+            "columnName": "recorded_by",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_assessment_patient_id",
+            "unique": false,
+            "columnNames": [
+              "patient_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_assessment_patient_id` ON `${TABLE_NAME}` (`patient_id`)"
+          },
+          {
+            "name": "index_assessment_scale_code",
+            "unique": false,
+            "columnNames": [
+              "scale_code"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_assessment_scale_code` ON `${TABLE_NAME}` (`scale_code`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "patient",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "patient_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "session",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `patient_id` TEXT NOT NULL, `clinician_id` TEXT NOT NULL, `protocol_id` TEXT NOT NULL, `protocol_version` INTEGER NOT NULL, `session_number` INTEGER NOT NULL, `visual_mode` TEXT NOT NULL, `gain_used` REAL NOT NULL, `theta_ref_deg` REAL NOT NULL, `baseline_id` TEXT, `device_profile_id` TEXT NOT NULL, `headset_profile_id` TEXT NOT NULL, `position` TEXT NOT NULL, `started_at_utc` INTEGER NOT NULL, `started_mono_ns` INTEGER NOT NULL, `device_timezone` TEXT NOT NULL, `ended_at_utc` INTEGER, `end_reason` TEXT, `abort_reason` TEXT, `ssq_pre_json` TEXT, `ssq_post_json` TEXT, `notes` TEXT NOT NULL, `assistance_before` INTEGER, `assistance_after` INTEGER, `gyro_bias_json` TEXT, `drift_deg_per_min` REAL, `app_version` TEXT NOT NULL, `crash_recovered` INTEGER NOT NULL, `override_reason` TEXT, `applied_tilt_deg` REAL NOT NULL DEFAULT 0, PRIMARY KEY(`id`), FOREIGN KEY(`patient_id`) REFERENCES `patient`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "patientId",
+            "columnName": "patient_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clinicianId",
+            "columnName": "clinician_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protocolId",
+            "columnName": "protocol_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protocolVersion",
+            "columnName": "protocol_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionNumber",
+            "columnName": "session_number",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "visualMode",
+            "columnName": "visual_mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gainUsed",
+            "columnName": "gain_used",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "thetaRefDeg",
+            "columnName": "theta_ref_deg",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineId",
+            "columnName": "baseline_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "deviceProfileId",
+            "columnName": "device_profile_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "headsetProfileId",
+            "columnName": "headset_profile_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAtUtc",
+            "columnName": "started_at_utc",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedMonoNs",
+            "columnName": "started_mono_ns",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceTimezone",
+            "columnName": "device_timezone",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endedAtUtc",
+            "columnName": "ended_at_utc",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "endReason",
+            "columnName": "end_reason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "abortReason",
+            "columnName": "abort_reason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ssqPreJson",
+            "columnName": "ssq_pre_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ssqPostJson",
+            "columnName": "ssq_post_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assistanceBefore",
+            "columnName": "assistance_before",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "assistanceAfter",
+            "columnName": "assistance_after",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "gyroBiasJson",
+            "columnName": "gyro_bias_json",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "driftDegPerMin",
+            "columnName": "drift_deg_per_min",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "appVersion",
+            "columnName": "app_version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "crashRecovered",
+            "columnName": "crash_recovered",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "overrideReason",
+            "columnName": "override_reason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "appliedTiltDeg",
+            "columnName": "applied_tilt_deg",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_session_patient_id",
+            "unique": false,
+            "columnNames": [
+              "patient_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_patient_id` ON `${TABLE_NAME}` (`patient_id`)"
+          },
+          {
+            "name": "index_session_started_at_utc",
+            "unique": false,
+            "columnNames": [
+              "started_at_utc"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_started_at_utc` ON `${TABLE_NAME}` (`started_at_utc`)"
+          },
+          {
+            "name": "index_session_end_reason",
+            "unique": false,
+            "columnNames": [
+              "end_reason"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_end_reason` ON `${TABLE_NAME}` (`end_reason`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "patient",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "patient_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "block_result",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `session_id` TEXT NOT NULL, `block_id` TEXT NOT NULL, `order_index` INTEGER NOT NULL, `exercise` TEXT NOT NULL, `position` TEXT NOT NULL, `started_mono_ns` INTEGER NOT NULL, `duration_s` REAL NOT NULL, `target_deg` REAL NOT NULL, `tolerance_deg` REAL NOT NULL, `gain` REAL NOT NULL, `cues_json` TEXT NOT NULL, `metrics_json` TEXT NOT NULL, `episode_stats_json` TEXT NOT NULL, `episodes_json` TEXT NOT NULL, `checkpoints_json` TEXT NOT NULL, `end_reason` TEXT NOT NULL, `filter_params_json` TEXT NOT NULL, `mad_deg` REAL, `tib5_pct` REAL, `valid_sample_pct` REAL, PRIMARY KEY(`id`), FOREIGN KEY(`session_id`) REFERENCES `session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockId",
+            "columnName": "block_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orderIndex",
+            "columnName": "order_index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "exercise",
+            "columnName": "exercise",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedMonoNs",
+            "columnName": "started_mono_ns",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationS",
+            "columnName": "duration_s",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetDeg",
+            "columnName": "target_deg",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "toleranceDeg",
+            "columnName": "tolerance_deg",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gain",
+            "columnName": "gain",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cuesJson",
+            "columnName": "cues_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metricsJson",
+            "columnName": "metrics_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "episodeStatsJson",
+            "columnName": "episode_stats_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "episodesJson",
+            "columnName": "episodes_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "checkpointsJson",
+            "columnName": "checkpoints_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endReason",
+            "columnName": "end_reason",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filterParamsJson",
+            "columnName": "filter_params_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "madDeg",
+            "columnName": "mad_deg",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "tib5Pct",
+            "columnName": "tib5_pct",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "validSamplePct",
+            "columnName": "valid_sample_pct",
+            "affinity": "REAL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_block_result_session_id",
+            "unique": false,
+            "columnNames": [
+              "session_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_block_result_session_id` ON `${TABLE_NAME}` (`session_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "session",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "session_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "session_summary",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`session_id` TEXT NOT NULL, `baseline_id` TEXT, `baseline_mad_deg` REAL, `metrics_json` TEXT NOT NULL, `episodes_json` TEXT NOT NULL, `delta_deg` REAL, `improvement_pct` REAL, `within_mdc` INTEGER, `mdc_deg` REAL, `low_confidence` INTEGER NOT NULL, `comparison_refused_reason` TEXT, `balance_loss_events` INTEGER NOT NULL, `assistance_level` INTEGER, `gain_used` REAL NOT NULL, `visual_mode` TEXT NOT NULL, `end_reason` TEXT NOT NULL, `generated_by_version` TEXT NOT NULL, `generated_at` INTEGER NOT NULL, `mad_deg` REAL, `tib5_pct` REAL, PRIMARY KEY(`session_id`), FOREIGN KEY(`session_id`) REFERENCES `session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baselineId",
+            "columnName": "baseline_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "baselineMadDeg",
+            "columnName": "baseline_mad_deg",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "metricsJson",
+            "columnName": "metrics_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "episodesJson",
+            "columnName": "episodes_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deltaDeg",
+            "columnName": "delta_deg",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "improvementPct",
+            "columnName": "improvement_pct",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "withinMdc",
+            "columnName": "within_mdc",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "mdcDeg",
+            "columnName": "mdc_deg",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "lowConfidence",
+            "columnName": "low_confidence",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "comparisonRefusedReason",
+            "columnName": "comparison_refused_reason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "balanceLossEvents",
+            "columnName": "balance_loss_events",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assistanceLevel",
+            "columnName": "assistance_level",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "gainUsed",
+            "columnName": "gain_used",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "visualMode",
+            "columnName": "visual_mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endReason",
+            "columnName": "end_reason",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "generatedByVersion",
+            "columnName": "generated_by_version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "generatedAt",
+            "columnName": "generated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "madDeg",
+            "columnName": "mad_deg",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "tib5Pct",
+            "columnName": "tib5_pct",
+            "affinity": "REAL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "session_id"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "session",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "session_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "session_event",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `session_id` TEXT NOT NULL, `t_ns` INTEGER NOT NULL, `type` TEXT NOT NULL, `payload_json` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`session_id`) REFERENCES `session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tNanos",
+            "columnName": "t_ns",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payload_json",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_session_event_session_id",
+            "unique": false,
+            "columnNames": [
+              "session_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_event_session_id` ON `${TABLE_NAME}` (`session_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "session",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "session_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "timeseries_file",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`session_id` TEXT NOT NULL, `path` TEXT NOT NULL, `sample_rate_hz` INTEGER NOT NULL, `sample_count` INTEGER NOT NULL, `sha256` TEXT NOT NULL, `filter_params_json` TEXT NOT NULL, `crash_recovered` INTEGER NOT NULL, PRIMARY KEY(`session_id`), FOREIGN KEY(`session_id`) REFERENCES `session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "path",
+            "columnName": "path",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sampleRateHz",
+            "columnName": "sample_rate_hz",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sampleCount",
+            "columnName": "sample_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sha256",
+            "columnName": "sha256",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filterParamsJson",
+            "columnName": "filter_params_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "crashRecovered",
+            "columnName": "crash_recovered",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "session_id"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "session",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "session_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "media_asset",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `session_id` TEXT NOT NULL, `patient_id` TEXT NOT NULL, `type` TEXT NOT NULL, `path_encrypted` TEXT NOT NULL, `captured_at` INTEGER NOT NULL, `retention_until` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`session_id`) REFERENCES `session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "patientId",
+            "columnName": "patient_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pathEncrypted",
+            "columnName": "path_encrypted",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capturedAt",
+            "columnName": "captured_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "retentionUntil",
+            "columnName": "retention_until",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_media_asset_session_id",
+            "unique": false,
+            "columnNames": [
+              "session_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_media_asset_session_id` ON `${TABLE_NAME}` (`session_id`)"
+          },
+          {
+            "name": "index_media_asset_patient_id",
+            "unique": false,
+            "columnNames": [
+              "patient_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_media_asset_patient_id` ON `${TABLE_NAME}` (`patient_id`)"
+          },
+          {
+            "name": "index_media_asset_retention_until",
+            "unique": false,
+            "columnNames": [
+              "retention_until"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_media_asset_retention_until` ON `${TABLE_NAME}` (`retention_until`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "session",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "session_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "audit_event",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `clinician_id` TEXT, `at` INTEGER NOT NULL, `action` TEXT NOT NULL, `target_type` TEXT NOT NULL, `target_id` TEXT NOT NULL, `detail` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clinicianId",
+            "columnName": "clinician_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "at",
+            "columnName": "at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "action",
+            "columnName": "action",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetType",
+            "columnName": "target_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetId",
+            "columnName": "target_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "detail",
+            "columnName": "detail",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_audit_event_at",
+            "unique": false,
+            "columnNames": [
+              "at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_audit_event_at` ON `${TABLE_NAME}` (`at`)"
+          },
+          {
+            "name": "index_audit_event_target_type_target_id",
+            "unique": false,
+            "columnNames": [
+              "target_type",
+              "target_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_audit_event_target_type_target_id` ON `${TABLE_NAME}` (`target_type`, `target_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "id_sequence",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`year` INTEGER NOT NULL, `next_value` INTEGER NOT NULL, PRIMARY KEY(`year`))",
+        "fields": [
+          {
+            "fieldPath": "year",
+            "columnName": "year",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextValue",
+            "columnName": "next_value",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "year"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e3fc53d64f398fada32e2fbfe8408677')"
+    ]
+  }
+}

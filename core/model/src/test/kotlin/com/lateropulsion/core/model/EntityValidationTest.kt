@@ -101,4 +101,14 @@ class EntityValidationTest {
         assertTrue(AppConfig(session = SessionConfig(autoStartDelayS = 0)).validate().isEmpty())
         assertTrue(AppConfig(session = SessionConfig(baselineCaptureS = 10)).validate().any { "baseline_capture_s" in it })
     }
+
+    @Test
+    fun `REQ-DAT-004 metrics with undefined values (NaN) survive the JSON round trip`() {
+        val stats = LpJson.lenient.decodeFromString(EpisodeStats.serializer(), LpJson.lenient.encodeToString(EpisodeStats.serializer(), EpisodeStats.NONE))
+        assertEquals(0, stats.count)
+        assertTrue(stats.meanDurationS.isNaN() && stats.recoveryMeanS.isNaN())
+        val metrics = LpJson.strict.decodeFromString(DeviationMetrics.serializer(), LpJson.strict.encodeToString(DeviationMetrics.serializer(), DeviationMetrics.EMPTY))
+        assertTrue(metrics.madDeg.isNaN() && metrics.sdDeg.isNaN())
+        assertEquals(0L, metrics.validSamples)
+    }
 }
