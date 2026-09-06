@@ -308,4 +308,7 @@
     <string name="camera_auto">Auto</string>
     <string name="flip_180">Flip 180°</string>
     <string name="camera_orientation_hint">Camera picture orientation (automatic; use Flip only if the picture is upside down):</string>
+    <string name="delete_patient_title">Delete %1$s?</string>
+    <string name="delete_patient_text">%1$s and everything recorded for them will be removed: baseline, %2$d session(s), recordings and reports. This cannot be undone.</string>
+    <string name="delete">Delete</string>
 </resources>
