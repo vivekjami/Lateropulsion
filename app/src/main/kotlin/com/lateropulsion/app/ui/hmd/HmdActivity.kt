@@ -8,6 +8,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Looper
+import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
@@ -59,8 +61,9 @@ import javax.inject.Inject
  * and the next block starts by itself so the operator can mount the visor and step back; a touch during the countdown
  * restarts it instead of aborting; VOLUME_UP starts at once. The view closes itself when the session is over.
  *
- * Abort controls once a block is running: any touch, VOLUME_DOWN, the Bluetooth clicker's ENTER/DPAD_CENTER, or
- * Back — all reach [AbortController] first and the protocol engine second (REQ-SAF-004). VOLUME_UP marks a checkpoint.
+ * Stop controls once a block is running (ADR-024): a held press on the screen, Back pressed twice, VOLUME_DOWN, or the
+ * Bluetooth clicker's ENTER/DPAD_CENTER — all reach [AbortController] first and the protocol engine second (REQ-SAF-004).
+ * A brief touch or a single edge swipe is ignored, because a phone on a visor gets touched. VOLUME_UP marks a checkpoint.
  */
 @AndroidEntryPoint
 class HmdActivity : ComponentActivity(), RenderListener {
@@ -88,7 +91,12 @@ class HmdActivity : ComponentActivity(), RenderListener {
         window.attributes = window.attributes.apply { screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL }
         hideSystemBars()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() { doAbort("back"); finish() }
+            override fun handleOnBackPressed() {
+                // One edge swipe while a block runs is ignored; a second within BACK_TWICE_MS stops the session (ADR-024).
+                val now = SystemClock.uptimeMillis()
+                if (controller.state.value.phase is SessionState.BlockRunning && now - lastBackAt > BACK_TWICE_MS) { lastBackAt = now; return }
+                doAbort("back"); finish()
+            }
         })
         surfaceView = SurfaceView(this)
         setContentView(surfaceView)
@@ -235,10 +243,16 @@ class HmdActivity : ComponentActivity(), RenderListener {
     }
 
     // ---- controls ----
+    private val longPress = Handler(Looper.getMainLooper())
+    private val longPressAbort = Runnable { doAbort("long-press") }
+    private var lastBackAt = 0L
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            // Mounting the visor means touching the screen: before a block runs that only restarts the countdown.
-            if (inCountdownPhase) countdownRestart.value++ else doAbort("touch")
+        when (event.actionMasked) {
+            // Mounting the visor means touching the screen: before a block runs that only restarts the countdown; while a
+            // block runs a brief touch does nothing and only a press held for LONG_PRESS_MS stops the session (ADR-024).
+            MotionEvent.ACTION_DOWN -> if (inCountdownPhase) countdownRestart.value++ else longPress.postDelayed(longPressAbort, LONG_PRESS_MS)
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> longPress.removeCallbacks(longPressAbort)
         }
         return true
     }
@@ -293,6 +307,7 @@ class HmdActivity : ComponentActivity(), RenderListener {
     }
 
     override fun onDestroy() {
+        longPress.removeCallbacks(longPressAbort)
         stopRendering()
         thermal?.stop()
         audio?.stop()
@@ -300,5 +315,11 @@ class HmdActivity : ComponentActivity(), RenderListener {
         super.onDestroy()
     }
 
-    private companion object { const val TAG = "Hmd" }
+    private companion object {
+        const val TAG = "Hmd"
+        /** A press held this long on the patient view stops the session; anything shorter is an incidental touch. */
+        const val LONG_PRESS_MS = 1500L
+        /** Back twice within this window stops the session while a block runs. */
+        const val BACK_TWICE_MS = 2000L
+    }
 }

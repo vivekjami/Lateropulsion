@@ -38,6 +38,8 @@ Found and fixed on hardware: hand motion produced false mount-shift flags and sp
 
 Found on hardware (ADR-023): the Redmi's Camera2 preview stream reaches the SurfaceTexture already rotated to portrait-upright inside the transform matrix, so the old sensor-minus-display rule left the visor picture a quarter turn out, and a manual quarter turn came out squeezed because the aspect ignored the framework's rotation. The renderer now decodes that rotation from the matrix each frame (REQ-VIS-018).
 
+Found on hardware (ADR-024): both real sessions on the Redmi aborted at the moment the phone was picked up and turned, i.e. an incidental touch or edge swipe on the patient view; a brief touch and a single Back gesture are now ignored while a block runs, and a held press, Back twice, Volume Down or the clicker stop the session.
+
 ## Implemented, compiles, needs device verification (Phases 3–4 exit criteria)
 
 - Three-step operator flow with defaults and hands-free session start from the patient view (ADR-020): register → baseline (auto-saved, stated in words) → session; countdown, Volume Up start, touch-restarts-countdown, view closes at the end. Needs a run with a person wearing the visor.
