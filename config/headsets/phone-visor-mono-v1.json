@@ -2,6 +2,7 @@
   "id": "phone-visor-mono-v1",
   "name": "Phone on a visor bracket, no lenses (single full-screen view)",
   "display_mode": "MONO_VISOR",
+  "rotation_fit": "FIT",
   "ipd_mm": 63.0,
   "ipd_min_mm": 50.0,
   "ipd_max_mm": 80.0,
@@ -15,5 +16,5 @@
   "overscan": 1.0,
   "eye_center_offset_y": 0.0,
   "open_bottom": true,
-  "notes": "The phone is strapped on top of the head or to a cap/visor with the screen tilted toward the eyes; the back camera looks ahead and slightly down. The patient reads the screen like a normal display, so no stereo split and no barrel distortion. The camera image keeps its true aspect (cropped, never stretched), the plumb line and horizon are gravity-locked, and Mode B rotates the picture about the screen centre. overscan 1.0 keeps the whole field of view; raise it to hide the grey corners that appear during large Mode B rotations."
+  "notes": "The phone is strapped on top of the head or to a cap/visor with the screen tilted toward the eyes; the back camera looks ahead and slightly down. The patient reads the screen like a normal display, so no stereo split and no barrel distortion. The camera image keeps its true aspect and is never stretched; with rotation_fit FIT the whole camera frame stays visible while Mode B tilts it about the screen centre (the picture shrinks a little at large rolls instead of losing its corners). The plumb line and horizon are gravity-locked. Set rotation_fit to CROP to fill the screen and accept grey corners instead."
 }

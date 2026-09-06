@@ -7,6 +7,7 @@ import com.lateropulsion.core.model.CueType
 import com.lateropulsion.core.model.DeviceProfile
 import com.lateropulsion.core.model.HeadsetProfile
 import com.lateropulsion.core.model.MutablePose
+import com.lateropulsion.core.model.RotationFit
 import com.lateropulsion.core.model.VisualConfig
 import com.lateropulsion.core.model.VisualMode
 import java.nio.FloatBuffer
@@ -25,9 +26,10 @@ public class RenderTelemetry {
 /**
  * Camera passthrough renderer (ARCHITECTURE §7.1, ADR-019) with two display paths chosen by the headset profile:
  *
- * - **Visor (mono)**: the phone screen is looked at directly, so one aspect-preserving camera image fills the
- *   window, the gravity-locked overlays are drawn once on top, and Mode B rotates the picture about the screen
- *   centre. No offscreen pass, no distortion.
+ * - **Visor (mono)**: the phone screen is looked at directly, so one aspect-preserving camera image is drawn in
+ *   the window, the gravity-locked overlays go once on top, and Mode B rotates the picture about the screen
+ *   centre; with `rotation_fit = FIT` the whole camera frame stays visible while it tilts. No offscreen pass,
+ *   no distortion.
  * - **Stereo lens**: camera OES texture → per-eye correction pass into an offscreen framebuffer → overlays per
  *   eye → lens distortion pass to the window.
  *
@@ -44,8 +46,13 @@ public class PassthroughRenderer(
     public val correction: CorrectionTransform = CorrectionTransform(visual.slewLimitDegPerS, visual.predictionClampMs / 1000.0)
     public val telemetry: RenderTelemetry = RenderTelemetry()
     public val mono: Boolean = headset.isMono
-    /** The visor keeps the whole field; lenses need the margin the config asks for. */
-    private val overscan = if (mono) headset.overscan else headset.overscan.coerceAtLeast(visual.overscan)
+    private val fitWholeFrame = headset.rotationFit == RotationFit.FIT
+    /** FIT shows everything, so no over-scan; the visor keeps the whole field; lenses need the margin the config asks for. */
+    private val overscan = when {
+        fitWholeFrame -> 1.0
+        mono -> headset.overscan
+        else -> headset.overscan.coerceAtLeast(visual.overscan)
+    }
 
     /** Camera preview buffer width / height as delivered by Camera2, before the quarter turn. Set when the stream starts. */
     @Volatile public var cameraBufferAspect: Double = DEFAULT_CAMERA_ASPECT
@@ -240,7 +247,8 @@ public class PassthroughRenderer(
 
     private fun drawCamera(angleRad: Double, state: RenderState, eye: Int) {
         val turns = ((cameraQuarterTurns % 4) + 4) % 4
-        val cover = ViewMapping.cover(eyeAspect.toDouble(), ViewMapping.turnedAspect(cameraBufferAspect, turns))
+        val camAspect = ViewMapping.turnedAspect(cameraBufferAspect, turns)
+        val cover = if (fitWholeFrame) ViewMapping.fit(eyeAspect.toDouble(), camAspect, angleRad) else ViewMapping.cover(eyeAspect.toDouble(), camAspect)
         // Lenses: opposite shifts per eye act like a prism. Visor: one shift moves the whole scene.
         val shiftSign = if (mono || eye == 0) 1 else -1
         passthrough.use()

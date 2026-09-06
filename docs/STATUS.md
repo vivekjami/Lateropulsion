@@ -13,7 +13,7 @@ Honest inventory of what exists in this repository, what has been verified and h
 | `.lpx` log round trip, trailer hash, crash recovery, ring overflow accounting | `core:timeseries` | 5 tests |
 | IMU fusion: quaternion algebra, complementary filter convergence, roll extraction, bias/drift/mount-shift/disagreement monitors, jig fit, sign calibration, allocation-free loop, lock-free triple buffer, simulated patient | `engine:sensor` | 18 tests |
 | Camera frame clock, stall watchdog | `engine:vision` | 2 tests |
-| Correction transform and its validity gate, render watchdog, distortion mesh, cover mapping, visor profile, gravity-locked overlays, tessellator, band edges | `engine:render` | 10 tests |
+| Correction transform and its validity gate, render watchdog, distortion mesh, cover and fit mapping, visor profile, gravity-locked overlays, tessellator, band edges | `engine:render` | 11 tests |
 | Encrypted-DB schema, DAOs, audited repositories, erasure, v1→v2 migration | `core:database` | 5 Robolectric tests (plain SQLite; SQLCipher only on device) |
 | Config loading with generic device fallback | `core:datastore` | 3 tests |
 | Chart geometry, CSV/JSON exporters (de-identified) | `feature:report` | 6 tests |

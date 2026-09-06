@@ -271,7 +271,7 @@ Camera OES texture
    └─► [Overlay pass] gravity-locked cues drawn in world space, projected per eye
 ```
 
-In both modes the camera image is scaled uniformly until it covers the viewport and the overflow is cropped (`ViewMapping.cover`); it is never stretched, so a real-world angle is the same angle on screen and the plumb-line check stays meaningful.
+The camera image is never stretched, so a real-world angle is the same angle on screen and the plumb-line check stays meaningful. `HeadsetProfile.rotation_fit` decides the placement: `CROP` scales the picture to cover the viewport and loses the corners when it rotates (lens default); `FIT` scales the whole rotated frame to stay inside the viewport, so nothing is lost and the picture shrinks smoothly with the slew-limited angle (visor default; `ViewMapping.fit`).
 
 ### 7.2 Correction transform (Mode B)
 

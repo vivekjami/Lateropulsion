@@ -96,6 +96,15 @@ public enum class HeadsetDisplayMode {
     STEREO_LENS,
 }
 
+/** What happens to the camera picture when Mode B rotates it (ADR-019). */
+@Serializable
+public enum class RotationFit {
+    /** The picture keeps filling the viewport; whatever rotates past the edge is lost and the corners show neutral grey. */
+    CROP,
+    /** The whole camera frame stays visible: it is scaled down (smoothly, with the slew-limited angle) so the rotated rectangle fits inside the viewport. */
+    FIT,
+}
+
 /**
  * One headset or visor model (ARCHITECTURE §7.1). Distortion coefficients are in normalised eye radius units and
  * are ignored in [HeadsetDisplayMode.MONO_VISOR].
@@ -105,6 +114,7 @@ public data class HeadsetProfile(
     val id: String,
     val name: String,
     val displayMode: HeadsetDisplayMode = HeadsetDisplayMode.STEREO_LENS,
+    val rotationFit: RotationFit = RotationFit.CROP,
     val ipdMm: Double = 63.0,
     val ipdMinMm: Double = 56.0,
     val ipdMaxMm: Double = 72.0,

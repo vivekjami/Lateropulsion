@@ -178,4 +178,38 @@ class RenderMathTest {
         assertTrue(right.second > 0f, "right end of the horizon rises for a right roll, y=${right.second}")
         assertEquals(20.0, Math.toDegrees(Math.atan2(right.second.toDouble(), right.first.toDouble())), 1e-3)
     }
+
+    @Test
+    fun `REQ-VIS-013 FIT keeps the whole rotated camera frame inside the viewport at every angle`() {
+        val vp = 20.0 / 9; val cam = 16.0 / 9
+        // 0°: plain pillar-boxed fit, full height
+        val flat = ViewMapping.fit(vp, cam, 0.0)
+        assertEquals(1.0, flat.height, 1e-9); assertEquals(cam, flat.width, 1e-9)
+        var previousArea = Double.MAX_VALUE
+        for (deg in listOf(0.0, 5.0, 10.0, 20.0, 30.0, 45.0, -30.0, 90.0)) {
+            val a = Math.toRadians(deg)
+            val r = ViewMapping.fit(vp, cam, a)
+            assertEquals(cam, r.width / r.height, 1e-9) // never stretched
+            // every rotated corner stays inside the viewport ...
+            var maxX = 0.0; var maxY = 0.0
+            for (sx in listOf(-1, 1)) for (sy in listOf(-1, 1)) {
+                val x = sx * r.width / 2; val y = sy * r.height / 2
+                maxX = maxOf(maxX, abs(x * Math.cos(a) - y * Math.sin(a)))
+                maxY = maxOf(maxY, abs(x * Math.sin(a) + y * Math.cos(a)))
+            }
+            assertTrue(maxX <= vp / 2 + 1e-9 && maxY <= 0.5 + 1e-9, "corner outside at $deg°")
+            // ... and at least one touches an edge (largest possible picture)
+            assertTrue(abs(maxX - vp / 2) < 1e-9 || abs(maxY - 0.5) < 1e-9, "not maximal at $deg°")
+            if (deg in 0.0..45.0) { assertTrue(r.width * r.height <= previousArea + 1e-9); previousArea = r.width * r.height }
+        }
+        // CROP by contrast always fills the viewport
+        val crop = ViewMapping.cover(vp, cam)
+        assertTrue(crop.width >= vp - 1e-9 && crop.height >= 1.0 - 1e-9)
+        // profile default is CROP so lens headsets are unchanged; the visor asks for FIT
+        val visor = com.lateropulsion.core.model.LpJson.lenient.decodeFromString(com.lateropulsion.core.model.HeadsetProfile.serializer(),
+            """{"id":"v","name":"V","display_mode":"MONO_VISOR","rotation_fit":"FIT"}""")
+        assertEquals(com.lateropulsion.core.model.RotationFit.FIT, visor.rotationFit)
+        assertEquals(com.lateropulsion.core.model.RotationFit.CROP, visor.copy(rotationFit = com.lateropulsion.core.model.RotationFit.CROP).rotationFit)
+        assertEquals(com.lateropulsion.core.model.RotationFit.CROP, com.lateropulsion.core.model.HeadsetProfile("h", "H").rotationFit)
+    }
 }
