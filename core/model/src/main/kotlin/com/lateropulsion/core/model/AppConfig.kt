@@ -15,6 +15,8 @@ public data class AppConfig(
     public fun validate(): List<String> = buildList {
         if (session.maxDurationMin !in 1..60) add("session.max_duration_min must be 1..60")
         if (session.mandatoryRestEveryS < 60) add("session.mandatory_rest_every_s must be >= 60")
+        if (session.baselineCaptureS !in 20..180) add("session.baseline_capture_s must be 20..180")
+        if (session.autoStartDelayS !in 0..60) add("session.auto_start_delay_s must be 0..60")
         if (visual.gainInitial !in GainLimits.MIN_ERROR_AUGMENTATION..GainLimits.MAX) add("visual.gain_initial out of range")
         if (visual.gainMin < GainLimits.MIN_ERROR_AUGMENTATION) add("visual.gain_min below error-augmentation floor")
         if (visual.gainFadeStep <= 0.0) add("visual.gain_fade_step must be positive")
@@ -39,6 +41,14 @@ public data class SessionConfig(
     val ssqFlagThresholdTotal: Double = 20.0,
     val ssqFlagsToLockModeA: Int = 2,
     val minValidSecondsForConfidence: Double = 60.0,
+    /** Length of the baseline head-tilt capture. 60 s is the clinical spec; a site may shorten it for screening. */
+    val baselineCaptureS: Int = 60,
+    /**
+     * Single-phone operation (ADR-020): once the patient view is open and the session is ready, the first block
+     * (and each block after a completed rest) starts by itself after this countdown, so the operator can mount the
+     * visor and step back. 0 disables the countdown; Volume Up starts immediately.
+     */
+    val autoStartDelayS: Int = 15,
 )
 
 @Serializable

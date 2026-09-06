@@ -23,6 +23,8 @@ public data class RenderState(
     /** Cues hidden and correction off (rest, pause, pre-start). Passthrough stays truthful. */
     val idle: Boolean = true,
     val messageKey: String? = null,
+    /** Seconds left before the next block starts by itself (ADR-020); 0 = no countdown shown. Drawn even when idle. */
+    val countdownS: Int = 0,
 ) {
     public companion object {
         public val NEUTRAL: RenderState = RenderState()

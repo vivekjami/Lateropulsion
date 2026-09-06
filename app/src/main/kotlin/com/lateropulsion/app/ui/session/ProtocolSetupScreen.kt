@@ -2,10 +2,12 @@ package com.lateropulsion.app.ui.session
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -26,11 +28,14 @@ import com.lateropulsion.app.session.HistoryMapper
 import com.lateropulsion.app.session.SessionDraft
 import com.lateropulsion.app.session.SessionRuntime
 import com.lateropulsion.app.ui.components.BigButton
+import com.lateropulsion.app.ui.components.BigNumber
 import com.lateropulsion.app.ui.components.CheckRow
+import com.lateropulsion.app.ui.components.Expander
 import com.lateropulsion.app.ui.components.LpScreen
 import com.lateropulsion.app.ui.components.LpTextField
 import com.lateropulsion.app.ui.components.PatientBanner
 import com.lateropulsion.app.ui.components.Selector
+import com.lateropulsion.app.ui.components.StepHeader
 import com.lateropulsion.app.ui.components.WarningText
 import com.lateropulsion.app.ui.nav.Routes
 import com.lateropulsion.core.datastore.SettingsStore
@@ -47,6 +52,7 @@ import com.lateropulsion.core.model.ProtocolSpec
 import com.lateropulsion.core.model.SessionRepository
 import com.lateropulsion.core.model.SessionSpec
 import com.lateropulsion.core.model.VisualMode
+import com.lateropulsion.core.model.WalkingAbility
 import com.lateropulsion.feature.protocol.GainScheduler
 import com.lateropulsion.feature.protocol.PreconditionContext
 import com.lateropulsion.feature.protocol.PreconditionResult
@@ -61,9 +67,14 @@ data class SetupState(
     val patient: Patient? = null, val name: String = "", val baseline: Baseline? = null, val protocols: List<ProtocolSpec> = emptyList(),
     val protocol: ProtocolSpec? = null, val mode: VisualMode = VisualMode.VERTICAL_REFERENCE, val gain: Double = 0.0, val proposedGain: Double = 0.0,
     val override: String = "", val advanced: Boolean = false, val history: List<SessionHistoryEntry> = emptyList(),
-    val preview: PreconditionResult? = null, val ready: Boolean = false, val researchMode: Boolean = false,
+    val preview: PreconditionResult? = null, val ready: Boolean = false, val researchMode: Boolean = false, val sessionNumber: Int = 1,
 )
 
+/**
+ * Everything on this screen has a default (ADR-020): the protocol comes from the last session, otherwise from the
+ * patient's recorded walking ability; the mode from the protocol; the gain from the schedule. The operator sees one
+ * summary card and a Continue button; the controls sit under "Adjust".
+ */
 @HiltViewModel
 class ProtocolSetupViewModel @Inject constructor(
     handle: SavedStateHandle, private val patients: PatientRepository, private val baselines: BaselineRepository, private val sessions: SessionRepository,
@@ -79,11 +90,19 @@ class ProtocolSetupViewModel @Inject constructor(
             val b = baselines.current(patientId)
             val all = config.protocols().filter { "assessment" !in it.tags }
             val hist = HistoryMapper.entries(sessions.listForPatient(patientId), sessions.summariesForPatient(patientId))
-            val last = hist.lastOrNull()
-            val proto = all.firstOrNull { it.protocolId == last?.protocolId } ?: all.firstOrNull { it.protocolId == "std-sitting-v3" } ?: all.firstOrNull()
-            state.value = SetupState(p, name, b, all, proto, proto?.visualMode ?: VisualMode.VERTICAL_REFERENCE, history = hist, researchMode = settings.current().researchMode)
+            val proto = defaultProtocol(all, hist, b)
+            state.value = SetupState(p, name, b, all, proto, proto?.visualMode ?: VisualMode.VERTICAL_REFERENCE, history = hist, researchMode = settings.current().researchMode,
+                sessionNumber = sessions.nextSessionNumber(patientId))
             proto?.let { selectProtocol(it) }
         }
+    }
+
+    /** Last protocol used → the standing programme for patients recorded as able to stand → sitting. Gates still apply. */
+    private fun defaultProtocol(all: List<ProtocolSpec>, hist: List<SessionHistoryEntry>, b: Baseline?): ProtocolSpec? {
+        val last = hist.lastOrNull()
+        all.firstOrNull { it.protocolId == last?.protocolId }?.let { return it }
+        val canStand = b != null && b.walkingAbility != WalkingAbility.NON_AMBULANT
+        return (if (canStand) all.firstOrNull { it.protocolId == "std-standing-v3" } else null) ?: all.firstOrNull { it.protocolId == "std-sitting-v3" } ?: all.firstOrNull()
     }
 
     fun selectProtocol(p: ProtocolSpec) {
@@ -101,8 +120,8 @@ class ProtocolSetupViewModel @Inject constructor(
         val s = state.value; val p = s.protocol ?: return@launch; val patient = s.patient ?: return@launch
         val (dev, hs) = runtime.resolveProfiles()
         val spec = buildSpec(s, p, dev, hs) ?: return@launch
-        val full = PreSessionChecklist(true, true, true, true, true, true, true, true, dev.qualified || s.researchMode)
-        val result = SessionPreconditions.check(PreconditionContext(spec, patient, full, s.history, s.protocols.associateBy { it.protocolId }, s.researchMode))
+        val full = PreSessionChecklist(true, true, true, true, true, true, true, true, dev.allowsClinicalSession || s.researchMode || draft.simulated)
+        val result = SessionPreconditions.check(PreconditionContext(spec, patient, full, s.history, s.protocols.associateBy { it.protocolId }, s.researchMode || draft.simulated))
         state.value = state.value.copy(preview = result)
     }
 
@@ -132,26 +151,44 @@ fun ProtocolSetupScreen(nav: NavHostController, patientId: String, vm: ProtocolS
     val st by vm.state.collectAsState()
     if (st.ready) { nav.navigate(Routes.SESSION_PRECHECK); return }
     LpScreen(stringResource(R.string.protocol_setup), onBack = { nav.popBackStack() }, banner = { st.patient?.let { PatientBanner(it.displayId, st.name) } }) { mod ->
-        Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Selector(stringResource(R.string.protocol), st.protocols, st.protocol, { "${it.name} (${it.positionRequired.name.lowercase().replace('_', ' ')})" }, { vm.selectProtocol(it) })
-            st.protocol?.let { p ->
-                Text(p.description, style = MaterialTheme.typography.bodyMedium)
-                Text("Blocks: " + p.blocks.joinToString(" → ") { "${it.blockId} ${it.durationS}s" } + " · total ${p.totalPlannedS / 60} min", style = MaterialTheme.typography.bodyMedium)
-                Text(if (p.visualMode == VisualMode.VERTICAL_REFERENCE) stringResource(R.string.mode_a) else stringResource(R.string.mode_b), style = MaterialTheme.typography.titleMedium)
-                if (p.visualMode == VisualMode.COMPENSATED_VIEW) {
-                    Text(stringResource(R.string.gain_proposed, st.proposedGain))
-                    Text("${stringResource(R.string.gain)}: ${"%.2f".format(st.gain)}")
-                    Slider(value = st.gain.toFloat(), onValueChange = { vm.setGain(it.toDouble()) }, valueRange = 0f..1f, steps = 19)
-                    CheckRow(st.advanced, { vm.setAdvanced(it) }, stringResource(R.string.advanced_protocol))
+        Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            StepHeader(3, 3, stringResource(R.string.step_session_n, st.sessionNumber), stringResource(R.string.step_session_hint))
+            val p = st.protocol
+            if (p != null) {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(p.name, style = MaterialTheme.typography.titleLarge)
+                        Text(p.description, style = MaterialTheme.typography.bodyMedium)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                            BigNumber("${p.totalPlannedS / 60} min", stringResource(R.string.planned_duration), emphasis = false)
+                            BigNumber("${p.blocks.size}", stringResource(R.string.blocks_label), emphasis = false)
+                            BigNumber(if (p.visualMode == VisualMode.VERTICAL_REFERENCE) "A" else "B", stringResource(R.string.mode_label), emphasis = false)
+                        }
+                        Text(if (p.visualMode == VisualMode.VERTICAL_REFERENCE) stringResource(R.string.mode_a_explain) else stringResource(R.string.mode_b_explain, st.gain),
+                            style = MaterialTheme.typography.bodyMedium)
+                        st.baseline?.measured?.let { m -> Text(stringResource(R.string.session_vs_baseline, Baseline.describeTilt(m.meanDeg)), style = MaterialTheme.typography.bodyMedium) }
+                    }
                 }
             }
-            LpTextField(st.override, { vm.setOverride(it) }, stringResource(R.string.override_reason), singleLine = false)
+            Expander(stringResource(R.string.adjust), p?.let { "${it.name} · ${if (it.visualMode == VisualMode.VERTICAL_REFERENCE) "Mode A" else "Mode B k=${"%.2f".format(st.gain)}"}" } ?: "") {
+                Selector(stringResource(R.string.protocol), st.protocols, st.protocol, { "${it.name} (${it.positionRequired.name.lowercase().replace('_', ' ')})" }, { vm.selectProtocol(it) })
+                p?.let { pr ->
+                    Text("Blocks: " + pr.blocks.joinToString(" → ") { "${it.blockId} ${it.durationS}s" }, style = MaterialTheme.typography.bodyMedium)
+                    if (pr.visualMode == VisualMode.COMPENSATED_VIEW) {
+                        Text(stringResource(R.string.gain_proposed, st.proposedGain))
+                        Text("${stringResource(R.string.gain)}: ${"%.2f".format(st.gain)}")
+                        Slider(value = st.gain.toFloat(), onValueChange = { vm.setGain(it.toDouble()) }, valueRange = 0f..1f, steps = 19)
+                        CheckRow(st.advanced, { vm.setAdvanced(it) }, stringResource(R.string.advanced_protocol))
+                    }
+                }
+                LpTextField(st.override, { vm.setOverride(it) }, stringResource(R.string.override_reason), singleLine = false)
+            }
             st.preview?.let { r ->
                 if (r.blocking.isNotEmpty()) { WarningText(stringResource(R.string.preconditions_blocking)); r.blocking.forEach { Text("• $it", color = MaterialTheme.colorScheme.error) } }
                 if (r.overridden.isNotEmpty()) { Text(stringResource(R.string.preconditions_overridden), style = MaterialTheme.typography.titleMedium); r.overridden.forEach { Text("• $it") } }
                 if (r.warnings.isNotEmpty()) { Text(stringResource(R.string.preconditions_warnings), style = MaterialTheme.typography.titleMedium); r.warnings.forEach { Text("• $it") } }
             }
-            BigButton(stringResource(R.string.continue_label), { vm.proceed() }, Modifier.fillMaxWidth(), enabled = st.protocol != null && st.preview?.blocking?.all { it.startsWith("Pre-session checklist") } ?: false)
+            BigButton(stringResource(R.string.continue_to_checklist), { vm.proceed() }, Modifier.fillMaxWidth(), enabled = st.protocol != null && st.preview?.blocking?.all { it.startsWith("Pre-session checklist") } ?: false)
         }
     }
 }

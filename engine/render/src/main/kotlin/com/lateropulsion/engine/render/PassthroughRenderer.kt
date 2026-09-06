@@ -205,6 +205,10 @@ public class PassthroughRenderer(
                 tessellator.number(pose.thetaDeg - state.targetDeg, -0.35f, -0.62f, 0.14f, Rgba.WHITE, 0)
             }
         }
+        // Auto-start countdown (ADR-020): large head-locked digits so the patient and operator both see when the block begins.
+        if (!neutral && state.countdownS > 0) {
+            tessellator.number(state.countdownS.toDouble(), COUNTDOWN_X, COUNTDOWN_Y, COUNTDOWN_H, Rgba.WHITE, 0, signed = false)
+        }
 
         // Pass 1: the eye image(s). Visor: straight into the window. Lenses: into the FBO.
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, if (mono) 0 else fbo)
@@ -317,6 +321,7 @@ public class PassthroughRenderer(
 
     private companion object {
         const val FILL_R = 0.12f; const val FILL_G = 0.12f; const val FILL_B = 0.13f
+        const val COUNTDOWN_X = -0.2f; const val COUNTDOWN_Y = -0.25f; const val COUNTDOWN_H = 0.5f
         /** 16:9 is what CameraSource asks for first; the real buffer size replaces this when the stream starts. */
         const val DEFAULT_CAMERA_ASPECT = 16.0 / 9.0
     }

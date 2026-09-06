@@ -38,6 +38,7 @@ Found and fixed on hardware: hand motion produced false mount-shift flags and sp
 
 ## Implemented, compiles, needs device verification (Phases 3–4 exit criteria)
 
+- Three-step operator flow with defaults and hands-free session start from the patient view (ADR-020): register → baseline (auto-saved, stated in words) → session; countdown, Volume Up start, touch-restarts-countdown, view closes at the end. Needs a run with a person wearing the visor.
 - Visor (mono) display mode, now the default (ADR-019): single full-screen aspect-true camera image with overlays; check upright/not mirrored, plumb line on a real vertical edge, Mode B direction, on the display-alignment screen.
 - Mode B correction direction and lens distortion tuning in a lens headset (lens-calibration screen), cues seen by a wearer, abort controls from the clicker, therapist mirror on a second display.
 - SQLCipher + Keystore database on a real phone (pull the DB file and confirm it does not open without the key).

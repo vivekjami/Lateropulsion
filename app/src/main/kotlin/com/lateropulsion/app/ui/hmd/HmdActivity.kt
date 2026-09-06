@@ -40,8 +40,14 @@ import com.lateropulsion.engine.vision.CameraCapabilities
 import com.lateropulsion.engine.vision.CameraSource
 import com.lateropulsion.engine.vision.CameraState
 import com.lateropulsion.feature.protocol.AbortSource
+import com.lateropulsion.feature.protocol.SessionState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,9 +56,12 @@ import javax.inject.Inject
  * from the shared pose provider and render state (ARCHITECTURE §5, §7). The headset profile decides whether
  * this is one visor image or two lens viewports (ADR-019); everything else here is identical.
  *
- * Abort controls while the phone is in the headset: any touch, any volume key, the Bluetooth clicker's
- * ENTER/DPAD_CENTER, or Back — all reach [AbortController] first and the protocol engine second (REQ-SAF-004).
- * VOLUME_UP alone marks a checkpoint (therapist mark); everything else aborts.
+ * Single-phone operation (ADR-020): while the session is Ready, or resting with the rest complete, a countdown runs
+ * and the next block starts by itself so the operator can mount the visor and step back; a touch during the countdown
+ * restarts it instead of aborting; VOLUME_UP starts at once. The view closes itself when the session is over.
+ *
+ * Abort controls once a block is running: any touch, VOLUME_DOWN, the Bluetooth clicker's ENTER/DPAD_CENTER, or
+ * Back — all reach [AbortController] first and the protocol engine second (REQ-SAF-004). VOLUME_UP marks a checkpoint.
  */
 @AndroidEntryPoint
 class HmdActivity : ComponentActivity(), RenderListener {
@@ -108,7 +117,48 @@ class HmdActivity : ComponentActivity(), RenderListener {
             }
         }
         showMirrorIfSecondDisplay()
+        lifecycleScope.launch {
+            controller.state.map { st -> autoAdvanceKey(st) }.distinctUntilChanged().combine(countdownRestart) { key, nonce -> key to nonce }
+                .collectLatest { (key, _) -> autoAdvance(key) }
+        }
     }
+
+    /** What the auto-advance logic cares about; θ updates and block timers must not restart the countdown. */
+    private fun autoAdvanceKey(st: com.lateropulsion.app.session.LiveSessionState): String = when (val p = st.phase) {
+        SessionState.Ready -> "ready"
+        is SessionState.Resting -> if (st.restComplete) "rest-complete" else "resting"
+        SessionState.Summarizing, SessionState.Saved, SessionState.Cancelled, is SessionState.Failed, is SessionState.Aborted -> "done"
+        else -> p::class.simpleName ?: "other"
+    }
+
+    private suspend fun autoAdvance(key: String) {
+        val delayS = runtime.appConfig.session.autoStartDelayS
+        when (key) {
+            "ready" -> if (delayS > 0) { countdown(delayS); startFromHmd() }
+            "rest-complete" -> if (delayS > 0) { countdown(delayS); controller.nextBlock() }
+            "done" -> { renderStates.update { it.copy(countdownS = 0) }; finish() }
+            else -> renderStates.update { it.copy(countdownS = 0) }
+        }
+    }
+
+    private suspend fun countdown(seconds: Int) {
+        try {
+            for (i in seconds downTo 1) { renderStates.update { it.copy(countdownS = i) }; delay(1000) }
+        } finally {
+            renderStates.update { it.copy(countdownS = 0) }
+        }
+    }
+
+    /** Confirms the session reference (baseline midline or true vertical) if the operator has not, then starts. */
+    private fun startFromHmd() {
+        val st = controller.state.value
+        if (st.phase != SessionState.Ready) return
+        if (!st.midlineConfirmed) controller.confirmMidline(st.spec?.thetaRefDeg ?: 0.0)
+        controller.start()
+    }
+
+    private val countdownRestart = MutableStateFlow(0)
+    private val inCountdownPhase: Boolean get() = controller.state.value.let { it.phase == SessionState.Ready || (it.phase is SessionState.Resting && it.restComplete) }
 
     private fun startRendering(holder: SurfaceHolder) {
         if (renderThread != null) return
@@ -178,16 +228,30 @@ class HmdActivity : ComponentActivity(), RenderListener {
         }
     }
 
-    // ---- abort controls ----
+    // ---- controls ----
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_DOWN) { doAbort("touch") }
+        if (event.action == MotionEvent.ACTION_DOWN) {
+            // Mounting the visor means touching the screen: before a block runs that only restarts the countdown.
+            if (inCountdownPhase) countdownRestart.value++ else doAbort("touch")
+        }
         return true
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         return when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP -> { controller.mark(); true }
-            KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_SPACE, KeyEvent.KEYCODE_BUTTON_A -> { doAbort("clicker"); true }
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                val st = controller.state.value
+                when {
+                    st.phase == SessionState.Ready -> startFromHmd()
+                    st.phase is SessionState.Resting && st.restComplete -> controller.nextBlock()
+                    else -> controller.mark()
+                }
+                true
+            }
+            KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_SPACE, KeyEvent.KEYCODE_BUTTON_A -> {
+                if (inCountdownPhase) countdownRestart.value++ else doAbort("clicker")
+                true
+            }
             else -> super.onKeyDown(keyCode, event)
         }
     }
@@ -219,7 +283,7 @@ class HmdActivity : ComponentActivity(), RenderListener {
     override fun onPause() {
         super.onPause()
         // Leaving the HMD view with a block running is unsafe: neutral + pause.
-        if (controller.state.value.phase is com.lateropulsion.feature.protocol.SessionState.BlockRunning) { abort.abort("HMD_BACKGROUNDED"); controller.pause() }
+        if (controller.state.value.phase is SessionState.BlockRunning) { abort.abort("HMD_BACKGROUNDED"); controller.pause() }
     }
 
     override fun onDestroy() {

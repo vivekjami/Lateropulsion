@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -52,6 +53,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lateropulsion.feature.report.CanvasChartPainter
 import com.lateropulsion.feature.report.ChartLayout
 import com.lateropulsion.feature.report.ChartModel
@@ -193,5 +195,57 @@ fun ChartCanvas(spec: ChartSpec, modifier: Modifier = Modifier) {
     Canvas(modifier.fillMaxWidth().height(260.dp).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)).padding(4.dp)) {
         val layout: ChartLayout = ChartModel.layout(spec, size.width.toDouble(), size.height.toDouble(), 48.0 * density, 44.0 * density, 28.0 * density, 40.0 * density)
         drawContext.canvas.nativeCanvas.let { painter.draw(it, layout.copy(plot = Rect(48.0 * density, 28.0 * density, size.width - 44.0 * density, size.height - 40.0 * density))) }
+    }
+}
+
+/**
+ * Collapsed by default: the operator only opens it to change something (ADR-020). [summary] says what the
+ * defaults currently are so nothing is hidden.
+ */
+@Composable
+fun Expander(title: String, summary: String = "", initiallyOpen: Boolean = false, content: @Composable () -> Unit) {
+    var open by remember { mutableStateOf(initiallyOpen) }
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth().clickable { open = !open }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium)
+                    if (summary.isNotBlank()) Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Text(if (open) "▲" else "▼ change", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            }
+            AnimatedVisibility(open) { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { content() } }
+        }
+    }
+}
+
+/** "Step 2 of 3 · Baseline" header so the operator always knows where they are in the flow. */
+@Composable
+fun StepHeader(step: Int, total: Int, title: String, hint: String = "") {
+    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Text("Step $step of $total", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        Text(title, style = MaterialTheme.typography.headlineSmall)
+        if (hint.isNotBlank()) Text(hint, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** One big number with a caption: the way a result should read from across the room. */
+@Composable
+fun BigNumber(value: String, caption: String, modifier: Modifier = Modifier, emphasis: Boolean = true) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, style = MaterialTheme.typography.displayMedium.copy(fontSize = if (emphasis) 44.sp else 32.sp), fontWeight = FontWeight.Bold,
+            color = if (emphasis) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+        Text(caption, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** A checklist item shown as done / to do, without being a control. */
+@Composable
+fun StepRow(done: Boolean, text: String, trailing: (@Composable () -> Unit)? = null) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(if (done) "✓" else "○", style = MaterialTheme.typography.titleLarge, color = if (done) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.width(12.dp))
+        Text(text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        trailing?.invoke()
     }
 }

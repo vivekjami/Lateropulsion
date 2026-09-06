@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,11 +42,15 @@ import com.lateropulsion.app.ui.nav.Routes
 import com.lateropulsion.core.datastore.AssetConfigRepository
 import com.lateropulsion.core.model.AppConfig
 import com.lateropulsion.core.model.DeviceSelfCheck
+import com.lateropulsion.core.model.PatientListItem
+import com.lateropulsion.core.model.PatientRepository
 import com.lateropulsion.core.model.SessionRepository
 import com.lateropulsion.engine.vision.CameraCapabilities
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
@@ -69,8 +74,10 @@ class DashboardViewModel @Inject constructor(
     private val config: AssetConfigRepository,
     private val appConfig: AppConfig,
     val auth: AuthManager,
+    patients: PatientRepository,
 ) : ViewModel() {
     val state = MutableStateFlow(DashboardState())
+    val recent = patients.observeRecent(5).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init { refresh() }
 
@@ -123,6 +130,21 @@ fun DashboardScreen(nav: NavHostController, vm: DashboardViewModel = hiltViewMod
                     }
                 }
             }
+            val recent by vm.recent.collectAsState()
+            if (recent.isEmpty()) Text(stringResource(R.string.flow_guide), style = MaterialTheme.typography.bodyLarge)
+            else {
+                Text(stringResource(R.string.recent_patients), style = MaterialTheme.typography.titleMedium)
+                recent.forEach { p -> RecentPatientRow(p) { nav.navigate(Routes.profile(p.id.value)) } }
+            }
+            st.check?.takeIf { it.deviceQualification == com.lateropulsion.core.model.DeviceQualification.NONE }?.let {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(stringResource(R.string.calibrate_first_title), style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.unqualified_device), style = MaterialTheme.typography.bodyMedium)
+                        BigButton(stringResource(R.string.calibrate_visor), { nav.navigate(Routes.CALIBRATION) }, Modifier.fillMaxWidth())
+                    }
+                }
+            }
             Text(stringResource(R.string.today_summary, st.sessionsToday, st.patientsToday), style = MaterialTheme.typography.titleMedium)
             st.check?.let { c ->
                 Text(stringResource(R.string.device_check), style = MaterialTheme.typography.titleMedium)
@@ -141,16 +163,25 @@ fun DashboardScreen(nav: NavHostController, vm: DashboardViewModel = hiltViewMod
                         c.deviceQualified,
                     )
                 }
-                if (!c.deviceQualified) {
-                    WarningText(stringResource(R.string.unqualified_device))
-                    BigButton(stringResource(R.string.calibration), { nav.navigate(Routes.CALIBRATION) }, Modifier.fillMaxWidth(), secondary = true)
-                }
             }
             if (st.recovered > 0) WarningText(stringResource(R.string.crash_recovered_sessions, st.recovered))
             if (st.configErrors.isNotEmpty()) WarningText(stringResource(R.string.config_errors, st.configErrors.joinToString("; ")))
             Spacer(Modifier.height(8.dp))
             BigButton(stringResource(R.string.training_mode), { nav.navigate(Routes.TRAINING) }, Modifier.fillMaxWidth(), secondary = true)
             Text(stringResource(R.string.not_certified), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun RecentPatientRow(p: PatientListItem, onClick: () -> Unit) {
+    Card(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            Column {
+                Text(p.displayId, style = MaterialTheme.typography.titleMedium)
+                Text("${p.name} · ${p.age} y · pushes ${p.lateropulsionDirection.name.lowercase()}", style = MaterialTheme.typography.bodyMedium)
+            }
+            Text(stringResource(R.string.sessions_count, p.sessionCount), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

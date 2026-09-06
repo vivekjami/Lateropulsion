@@ -35,16 +35,38 @@ public data class Baseline(
 ) {
     public val isComplete: Boolean get() = measured != null && thetaRefDeg != null
 
+    public companion object {
+        public const val MAX_DEVIATION: Double = 90.0
+        public const val MAX_THETA_REF: Double = 45.0
+
+        /**
+         * Clinical picture pre-filled with conservative defaults so the operator only edits what differs (ADR-020):
+         * a supported sitter who needs one person, pushes toward the side recorded at registration, high fall risk.
+         * Everything is editable later on the patient-condition screen; the first session's protocol gating starts
+         * from sitting regardless.
+         */
+        public fun defaultFor(patient: Patient, recordedBy: ClinicianId, nowUtcMillis: Long): Baseline = Baseline(
+            id = Ids.baseline(), patientId = patient.id, severity = Severity.MODERATE, headDeviationDeg = 0.0, trunkDeviationDeg = 0.0,
+            sittingBalance = SittingBalance.SUPPORTED_ONLY, standingBalance = StandingBalance.UNABLE, walkingAbility = WalkingAbility.NON_AMBULANT,
+            assistanceLevel = AssistanceLevel.ONE_PERSON, midlineAwareness = MidlineAwareness.PARTIAL, correctionAbility = CorrectionAbility.TOLERATES_PASSIVE,
+            fallRisk = FallRisk.HIGH, measured = null, thetaRefDeg = null, thetaRefSetBy = null, thetaRefSetAt = null,
+            recordedAt = nowUtcMillis, recordedBy = recordedBy, notes = "",
+        )
+
+        /** Plain-language description of a mean head tilt for operators and patients: θ > 0 is toward the patient's right. */
+        public fun describeTilt(meanDeg: Double, thresholdDeg: Double = 1.0): String = when {
+            meanDeg > thresholdDeg -> "${"%.1f".format(meanDeg)}° to the RIGHT"
+            meanDeg < -thresholdDeg -> "${"%.1f".format(-meanDeg)}° to the LEFT"
+            else -> "upright within ${"%.1f".format(thresholdDeg)}°"
+        }
+    }
+
     public fun validate(): ValidationErrors = ValidationErrors()
         .require(headDeviationDeg in -MAX_DEVIATION..MAX_DEVIATION, "headDeviationDeg", "Head deviation out of range")
         .require(trunkDeviationDeg in -MAX_DEVIATION..MAX_DEVIATION, "trunkDeviationDeg", "Trunk deviation out of range")
         .require(thetaRefDeg == null || thetaRefDeg in -MAX_THETA_REF..MAX_THETA_REF, "thetaRefDeg", "Midline reference out of range")
         .require(thetaRefDeg == null || thetaRefSetBy != null, "thetaRefSetBy", "Midline must record who set it")
 
-    public companion object {
-        public const val MAX_DEVIATION: Double = 90.0
-        public const val MAX_THETA_REF: Double = 45.0
-    }
 }
 
 /** Numbers from the 60 s baseline capture with correction off (README §4.2 step 3). */

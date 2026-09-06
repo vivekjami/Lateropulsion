@@ -7,7 +7,9 @@
     "auto_stop_on_ssq_flag": true,
     "ssq_flag_threshold_total": 20.0,
     "ssq_flags_to_lock_mode_a": 2,
-    "min_valid_seconds_for_confidence": 60.0
+    "min_valid_seconds_for_confidence": 60.0,
+    "baseline_capture_s": 60,
+    "auto_start_delay_s": 15
   },
   "visual": {
     "default_mode": "VERTICAL_REFERENCE",

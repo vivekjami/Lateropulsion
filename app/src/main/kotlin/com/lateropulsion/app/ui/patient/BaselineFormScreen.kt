@@ -88,6 +88,7 @@ class BaselineFormViewModel @Inject constructor(
         val head = f.head.toDoubleOrNull() ?: 0.0
         val trunk = f.trunk.toDoubleOrNull() ?: 0.0
         val prev = f.existing
+        // The measurement may already exist (baseline captured first, ADR-020); editing the picture must keep it.
         // A locked baseline cannot be edited: create a superseding one (ADR-004).
         val base = Baseline(
             id = if (prev != null && !prev.locked) prev.id else Ids.baseline(), patientId = patientId, severity = f.severity, headDeviationDeg = head, trunkDeviationDeg = trunk,
@@ -101,13 +102,15 @@ class BaselineFormViewModel @Inject constructor(
     }
 }
 
+/** Optional clinical picture. Pre-filled with the defaults the baseline capture records, so nothing here gates a session (ADR-020). */
 @Composable
 fun BaselineFormScreen(nav: NavHostController, patientId: String, vm: BaselineFormViewModel = hiltViewModel()) {
     val f by vm.form.collectAsState()
-    f.savedId?.let { nav.navigate(Routes.baselineCapture(patientId)); return }
-    LpScreen(stringResource(R.string.clinical_baseline), onBack = { nav.popBackStack() }, banner = { f.patient?.let { PatientBanner(it.displayId, f.name, "${it.age} y · pushes ${it.lateropulsionDirection.name.lowercase()}") } }) { mod ->
+    f.savedId?.let { nav.popBackStack(); return }
+    LpScreen(stringResource(R.string.patient_condition), onBack = { nav.popBackStack() }, banner = { f.patient?.let { PatientBanner(it.displayId, f.name, "${it.age} y · pushes ${it.lateropulsionDirection.name.lowercase()}") } }) { mod ->
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            f.existing?.let { if (it.locked) WarningText("Current baseline is locked (sessions exist). Saving creates a new baseline that supersedes it.") }
+            Text(stringResource(R.string.patient_condition_hint), style = MaterialTheme.typography.bodyMedium)
+            f.existing?.let { if (it.locked) WarningText(stringResource(R.string.baseline_locked_supersede)) }
             Selector(stringResource(R.string.severity), Severity.entries, f.severity, { it.name.lowercase().replace('_', ' ') }, { v -> vm.update { it.copy(severity = v) } })
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 LpTextField(f.head, { v -> vm.update { it.copy(head = v) } }, stringResource(R.string.head_deviation), Modifier.weight(1f), number = true)
@@ -129,7 +132,7 @@ fun BaselineFormScreen(nav: NavHostController, patientId: String, vm: BaselineFo
             }
             f.error?.let { WarningText(it) }
             Text(stringResource(R.string.baseline_locked_note), style = MaterialTheme.typography.bodyMedium)
-            BigButton(stringResource(R.string.continue_label), { vm.save() }, Modifier.fillMaxWidth(), enabled = f.patient != null)
+            BigButton(stringResource(R.string.save), { vm.save() }, Modifier.fillMaxWidth(), enabled = f.patient != null)
         }
     }
 }

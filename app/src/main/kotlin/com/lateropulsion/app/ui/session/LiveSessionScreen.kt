@@ -31,6 +31,7 @@ import com.lateropulsion.app.session.SessionDraft
 import com.lateropulsion.app.session.SessionRuntime
 import com.lateropulsion.app.ui.components.AngleDial
 import com.lateropulsion.app.ui.components.BigButton
+import com.lateropulsion.app.ui.components.Expander
 import com.lateropulsion.app.ui.components.LpScreen
 import com.lateropulsion.app.ui.components.PatientBanner
 import com.lateropulsion.app.ui.components.StatusChip
@@ -48,6 +49,7 @@ import javax.inject.Inject
 class LiveSessionViewModel @Inject constructor(val controller: SessionController, val draft: SessionDraft, private val runtime: SessionRuntime) : ViewModel() {
     val state = controller.state
     val headset = runtime.headset
+    val autoStartDelayS = runtime.appConfig.session.autoStartDelayS
     init {
         // Calibration completes when the gyro-bias window is full (3 s still) or after a 15 s fallback.
         viewModelScope.launch {
@@ -61,7 +63,8 @@ class LiveSessionViewModel @Inject constructor(val controller: SessionController
             }
         }
     }
-    fun confirmMidline() = controller.confirmMidline(controller.state.value.thetaHeadDeg)
+    /** Uses the session's reference (the baseline's clinician midline, or 0 = true vertical), not the head's current position (ADR-020). */
+    fun confirmMidline() = controller.confirmMidline(controller.state.value.spec?.thetaRefDeg ?: 0.0)
     fun start() = controller.start(); fun pause() = controller.pause(); fun resume() = controller.resume(); fun stop() = controller.stop()
     fun next() = controller.nextBlock(); fun mark() = controller.mark(); fun balanceLoss() = controller.balanceLoss(); fun proceed() = controller.proceedAfterAbort()
     fun abort() = controller.abort(AbortSource.THERAPIST_CONTROL, "therapist screen")
@@ -94,13 +97,16 @@ fun LiveSessionScreen(nav: NavHostController, vm: LiveSessionViewModel = hiltVie
                     LinearProgressIndicator(progress = { st.calibrationProgress.toFloat() }, modifier = Modifier.fillMaxWidth())
                 }
                 SessionState.Ready -> {
-                    Text(stringResource(R.string.confirm_midline), style = MaterialTheme.typography.bodyLarge)
-                    BigButton(stringResource(R.string.confirm_midline_button), { vm.confirmMidline() }, Modifier.fillMaxWidth(), secondary = true)
                     val hs by vm.headset.collectAsState()
                     Text(stringResource(if (hs?.isMono != false) R.string.mount_phone_visor else R.string.insert_phone), style = MaterialTheme.typography.bodyLarge)
-                    BigButton(stringResource(R.string.start_hmd), { ctx.startActivity(Intent(ctx, HmdActivity::class.java)) }, Modifier.fillMaxWidth(), secondary = true)
-                    BigButton(stringResource(R.string.start_session), { vm.start() }, Modifier.fillMaxWidth(), enabled = st.midlineConfirmed)
-                    Text(stringResource(R.string.mirror_hint), style = MaterialTheme.typography.bodyMedium)
+                    if (vm.autoStartDelayS > 0) Text(stringResource(R.string.auto_start_explain, vm.autoStartDelayS), style = MaterialTheme.typography.bodyMedium)
+                    BigButton(stringResource(R.string.start_hmd), { ctx.startActivity(Intent(ctx, HmdActivity::class.java)) }, Modifier.fillMaxWidth())
+                    Expander(stringResource(R.string.start_from_here), "") {
+                        Text(stringResource(R.string.confirm_midline), style = MaterialTheme.typography.bodyMedium)
+                        BigButton(stringResource(R.string.confirm_midline_button), { vm.confirmMidline() }, Modifier.fillMaxWidth(), secondary = true)
+                        BigButton(stringResource(R.string.start_session), { vm.start() }, Modifier.fillMaxWidth(), enabled = st.midlineConfirmed)
+                        Text(stringResource(R.string.mirror_hint), style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
                 is SessionState.BlockRunning -> {
                     Text(stringResource(R.string.block_progress, st.blockIndex + 1, st.blockCount, st.blockName, st.blockRemainingS), style = MaterialTheme.typography.titleMedium)
@@ -123,6 +129,7 @@ fun LiveSessionScreen(nav: NavHostController, vm: LiveSessionViewModel = hiltVie
                 }
                 is SessionState.Resting -> {
                     Text(if (st.restComplete) stringResource(R.string.rest_complete) else stringResource(R.string.resting, st.restRemainingS), style = MaterialTheme.typography.titleMedium)
+                    if (vm.autoStartDelayS > 0) Text(stringResource(R.string.rest_auto_explain, vm.autoStartDelayS), style = MaterialTheme.typography.bodyMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         BigButton(stringResource(R.string.next_block), { vm.next() }, Modifier.weight(1f), enabled = st.restComplete)
                         BigButton(stringResource(R.string.stop), { vm.stop() }, Modifier.weight(1f), secondary = true)

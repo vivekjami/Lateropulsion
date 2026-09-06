@@ -70,4 +70,34 @@ class EntityValidationTest {
         assertFalse(ok.copy(residualRmsDeg = 1.2).meetsAccuracyTargets())
         assertFalse(ok.copy(imuRateHz = 90.0).meetsAccuracyTargets())
     }
+
+    @Test
+    fun `REQ-PAT-030 baseline defaults are conservative, complete only once measured, and tilt reads in clinical words`() {
+        val b = Baseline.defaultFor(patient, ClinicianId("c1"), 1_000L)
+        assertEquals(patient.id, b.patientId)
+        assertEquals(Severity.MODERATE, b.severity)
+        assertEquals(WalkingAbility.NON_AMBULANT, b.walkingAbility)
+        assertEquals(AssistanceLevel.ONE_PERSON, b.assistanceLevel)
+        assertEquals(FallRisk.HIGH, b.fallRisk)
+        assertFalse(b.locked)
+        assertFalse(b.isComplete)
+        assertTrue(b.validate().toList().isEmpty(), b.validate().toList().toString())
+        // measured against true vertical (θ_ref = 0) by default; who set it is still recorded
+        val measured = b.copy(thetaRefDeg = 0.0, thetaRefSetBy = ClinicianId("c1"), thetaRefSetAt = 2L, measured = null)
+        assertFalse(measured.isComplete)
+        assertTrue(measured.validate().toList().isEmpty())
+        assertEquals("12.3° to the RIGHT", Baseline.describeTilt(12.34))
+        assertEquals("7.0° to the LEFT", Baseline.describeTilt(-7.04))
+        assertEquals("upright within 1.0°", Baseline.describeTilt(0.4))
+    }
+
+    @Test
+    fun `REQ-SES-040 auto-start delay and baseline capture length are range checked`() {
+        assertTrue(AppConfig().validate().isEmpty())
+        assertEquals(15, AppConfig().session.autoStartDelayS)
+        assertEquals(60, AppConfig().session.baselineCaptureS)
+        assertTrue(AppConfig(session = SessionConfig(autoStartDelayS = 61)).validate().any { "auto_start_delay_s" in it })
+        assertTrue(AppConfig(session = SessionConfig(autoStartDelayS = 0)).validate().isEmpty())
+        assertTrue(AppConfig(session = SessionConfig(baselineCaptureS = 10)).validate().any { "baseline_capture_s" in it })
+    }
 }

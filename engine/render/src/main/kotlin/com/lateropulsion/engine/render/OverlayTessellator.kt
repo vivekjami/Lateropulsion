@@ -32,9 +32,9 @@ public class OverlayTessellator(capacityVertices: Int = 12_000) {
     }
 
     /** Seven-segment digits so the deviation readout needs no font atlas. */
-    public fun number(value: Double, x: Float, y: Float, h: Float, color: Rgba, decimals: Int = 0) {
+    public fun number(value: Double, x: Float, y: Float, h: Float, color: Rgba, decimals: Int = 0, signed: Boolean = true) {
         var text = if (decimals == 0) Math.round(value).toString() else String.format(java.util.Locale.ROOT, "%.${decimals}f", value)
-        if (!text.startsWith("-")) text = "+$text"
+        if (signed && !text.startsWith("-")) text = "+$text"
         var cx = x
         val w = h * 0.55f
         val gap = h * 0.25f

@@ -172,12 +172,12 @@ fun LensCalibrationScreen(nav: NavHostController, vm: SensorViewModel = hiltView
                 BigButton("Rotation +1", { vm.setRotationSign(1) }, Modifier.weight(1f), secondary = true)
                 BigButton("Rotation −1", { vm.setRotationSign(-1) }, Modifier.weight(1f), secondary = true)
             }
-            Text("Camera image orientation (should be automatic; use these only if the passthrough is upside down or sideways):")
+            // Only half turns: a landscape-locked view on a phone whose camera buffer is landscape never needs a quarter turn,
+            // and a quarter turn would show a portrait strip in the middle of the screen (ADR-017).
+            Text(stringResource(R.string.camera_orientation_hint))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BigButton("Auto", { vm.setCameraTurns(-1) }, Modifier.weight(1f), secondary = true)
-                BigButton("180°", { vm.setCameraTurns(2) }, Modifier.weight(1f), secondary = true)
-                BigButton("90°", { vm.setCameraTurns(1) }, Modifier.weight(1f), secondary = true)
-                BigButton("270°", { vm.setCameraTurns(3) }, Modifier.weight(1f), secondary = true)
+                BigButton(stringResource(R.string.camera_auto), { vm.setCameraTurns(-1) }, Modifier.weight(1f), secondary = true)
+                BigButton(stringResource(R.string.flip_180), { vm.setCameraTurns(2) }, Modifier.weight(1f), secondary = true)
             }
             BigButton(stringResource(R.string.start_preview), { vm.startLensPreview(); ctx.startActivity(Intent(ctx, HmdActivity::class.java)) }, Modifier.fillMaxWidth())
             if (!mono) {

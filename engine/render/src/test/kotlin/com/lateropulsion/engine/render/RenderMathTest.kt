@@ -212,4 +212,22 @@ class RenderMathTest {
         assertEquals(com.lateropulsion.core.model.RotationFit.CROP, visor.copy(rotationFit = com.lateropulsion.core.model.RotationFit.CROP).rotationFit)
         assertEquals(com.lateropulsion.core.model.RotationFit.CROP, com.lateropulsion.core.model.HeadsetProfile("h", "H").rotationFit)
     }
+
+    @Test
+    fun `REQ-VIS-014 countdown digits are unsigned and a zero countdown adds nothing`() {
+        // The tessellator draws no glyph for '+', it only reserves its width: an unsigned number starts at x itself.
+        fun minX(t: OverlayTessellator) = (0 until t.vertexCount).minOf { t.data[it * OverlayTessellator.FLOATS_PER_VERTEX] }
+        val t = OverlayTessellator()
+        t.number(5.0, 0f, 0f, 0.5f, Rgba.WHITE, 0, signed = true)
+        val signedStart = minX(t)
+        t.reset()
+        t.number(5.0, 0f, 0f, 0.5f, Rgba.WHITE, 0, signed = false)
+        assertTrue(t.vertexCount > 0)
+        val unsignedStart = minX(t)
+        assertTrue(unsignedStart < signedStart, "unsigned digits must start where the sign would have been: $unsignedStart vs $signedStart")
+        assertEquals(0f, unsignedStart, 1e-6f)
+        // RenderState carries the countdown; NEUTRAL has none
+        assertEquals(0, RenderState.NEUTRAL.countdownS)
+        assertEquals(7, RenderState.NEUTRAL.copy(countdownS = 7).countdownS)
+    }
 }
