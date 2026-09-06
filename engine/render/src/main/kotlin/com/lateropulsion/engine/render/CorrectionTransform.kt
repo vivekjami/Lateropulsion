@@ -74,3 +74,14 @@ public object LatencyEstimate {
     public fun motionToPhotonMs(poseAgeMs: Double, renderMs: Double, vsyncPeriodMs: Double, pipelineDepth: Int = 2): Double =
         poseAgeMs + renderMs + vsyncPeriodMs * pipelineDepth
 }
+
+/** Camera orientation bookkeeping for a landscape-locked HMD activity (works for any sensor orientation / display rotation). */
+public object CameraOrientation {
+    /**
+     * @param sensorOrientationDeg CameraCharacteristics.SENSOR_ORIENTATION (0/90/180/270)
+     * @param displayRotationDeg the activity's display rotation in degrees (Surface.ROTATION_x × 90)
+     * @return quarter turns to apply to the camera image so it appears upright on the display
+     */
+    public fun quarterTurns(sensorOrientationDeg: Int, displayRotationDeg: Int): Int =
+        (((sensorOrientationDeg - displayRotationDeg) % 360 + 360) % 360) / 90
+}

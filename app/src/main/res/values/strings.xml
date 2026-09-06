@@ -214,8 +214,8 @@
     <string name="retention_pending">%1$d media file(s) past retention — confirm deletion</string>
     <string name="about">About</string>
     <string name="about_versions">App %1$s · metrics %2$s · protocol %3$s · fusion %4$s</string>
-    <string name="calib_step1">Step 1 — hold the device exactly as mounted in the headset, head upright, then capture neutral.</string>
-    <string name="calib_step2">Step 2 — tilt the top of the device clearly toward the PATIENT\'S RIGHT (at least 10°), then capture.</string>
+    <string name="calib_step1">Step 1 — put the phone in the headset in LANDSCAPE, exactly as the patient will wear it, and wear it yourself with your head upright. Then capture neutral (θ_raw will read near ±90°; the mount offset absorbs this).</string>
+    <string name="calib_step2">Step 2 — still wearing the headset, roll your head clearly toward YOUR RIGHT shoulder (at least 10°) and capture.</string>
     <string name="capture_neutral">Capture neutral</string>
     <string name="capture_tilt">Capture tilt</string>
     <string name="calib_result">Result: sign %1$d, mount %2$.1f° — %3$s</string>

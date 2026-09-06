@@ -153,11 +153,18 @@ uniform float uAspect;    // displayed image aspect (w/h) so the rotation is iso
 uniform float uZoom;      // over-scan crop factor >= 1
 uniform float uShift;     // lateral prism-like offset, image units
 uniform vec3 uFill;       // neutral grey: never a smeared edge
+uniform int uQuarterTurns; // 0..3: camera sensor orientation vs landscape display, applied before everything else
 in vec2 vTex;
 out vec4 fragColor;
+vec2 quarterTurn(vec2 t, int q) {
+    if (q == 1) return vec2(t.y, 1.0 - t.x);
+    if (q == 2) return vec2(1.0 - t.x, 1.0 - t.y);
+    if (q == 3) return vec2(1.0 - t.y, t.x);
+    return t;
+}
 void main() {
     float c = cos(uAngle), s = sin(uAngle);
-    vec2 p = vTex - uCenter;
+    vec2 p = quarterTurn(vTex, uQuarterTurns) - uCenter;
     p.x *= uAspect;
     p /= uZoom;
     vec2 r = vec2(c * p.x - s * p.y, s * p.x + c * p.y);

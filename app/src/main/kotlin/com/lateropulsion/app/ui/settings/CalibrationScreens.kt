@@ -82,6 +82,7 @@ class SensorViewModel @Inject constructor(private val runtime: SessionRuntime, p
     }
 
     fun setRotationSign(sign: Int) = viewModelScope.launch { settings.update { it.copy(renderRotationSign = sign) }; runtime.resolveProfiles() }
+    fun setCameraTurns(turns: Int) = viewModelScope.launch { settings.update { it.copy(cameraQuarterTurnsOverride = turns) }; runtime.resolveProfiles() }
     fun setIpd(mm: Double) = viewModelScope.launch { settings.update { it.copy(ipdMm = mm) }; runtime.resolveProfiles() }
 
     /** Lens check: Mode B at k = 1 with the plumb line; the line must sit on a real vertical edge as the head rolls. */
@@ -151,9 +152,17 @@ fun LensCalibrationScreen(nav: NavHostController, vm: SensorViewModel = hiltView
             var ipd = 63.0
             Text(stringResource(R.string.ipd))
             Slider(value = ipd.toFloat(), onValueChange = { ipd = it.toDouble(); vm.setIpd(Math.round(it).toDouble()) }, valueRange = 56f..72f, steps = 15)
+            Text("Mode B counter-rotation direction (the image must rotate against your head roll):")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BigButton("Rotation +1", { vm.setRotationSign(1) }, Modifier.weight(1f), secondary = true)
                 BigButton("Rotation −1", { vm.setRotationSign(-1) }, Modifier.weight(1f), secondary = true)
+            }
+            Text("Camera image orientation (should be automatic; use these only if the passthrough is upside down or sideways):")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                BigButton("Auto", { vm.setCameraTurns(-1) }, Modifier.weight(1f), secondary = true)
+                BigButton("180°", { vm.setCameraTurns(2) }, Modifier.weight(1f), secondary = true)
+                BigButton("90°", { vm.setCameraTurns(1) }, Modifier.weight(1f), secondary = true)
+                BigButton("270°", { vm.setCameraTurns(3) }, Modifier.weight(1f), secondary = true)
             }
             BigButton("Start preview in HMD (k = 1, plumb line)", { vm.startLensPreview(); ctx.startActivity(Intent(ctx, HmdActivity::class.java)) }, Modifier.fillMaxWidth())
             Text("Distortion coefficients (k1, k2) come from config/headsets/*.json; tune per headset model and re-run the Phase 3 plumb-line check (overlay vertical within 1° over ±30°).", style = MaterialTheme.typography.bodyMedium)

@@ -28,6 +28,7 @@ import com.lateropulsion.core.common.LpLog
 import com.lateropulsion.core.model.CueType
 import com.lateropulsion.engine.render.AbortController
 import com.lateropulsion.engine.render.AudioPanCue
+import com.lateropulsion.engine.render.CameraOrientation
 import com.lateropulsion.engine.render.OverlayGeometry
 import com.lateropulsion.engine.render.RenderListener
 import com.lateropulsion.engine.render.RenderStateHolder
@@ -35,6 +36,7 @@ import com.lateropulsion.engine.render.RenderTelemetry
 import com.lateropulsion.engine.render.RenderThread
 import com.lateropulsion.engine.render.StereoRenderer
 import com.lateropulsion.engine.render.ThermalMonitor
+import com.lateropulsion.engine.vision.CameraCapabilities
 import com.lateropulsion.engine.vision.CameraSource
 import com.lateropulsion.engine.vision.CameraState
 import com.lateropulsion.feature.protocol.AbortSource
@@ -113,6 +115,11 @@ class HmdActivity : ComponentActivity(), RenderListener {
         val dev = runtime.device.value ?: return
         val hs = runtime.headset.value ?: return
         val renderer = StereoRenderer(hs, dev, runtime.appConfig.visual)
+        // Landscape-locked activity: rotate the camera image by whole quarter turns so it is upright on any phone.
+        val sensorOrientation = runCatching { CameraCapabilities.probe(this).sensorOrientation }.getOrDefault(90)
+        val displayDeg = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display?.rotation else @Suppress("DEPRECATION") windowManager.defaultDisplay.rotation)?.times(90) ?: 90
+        renderer.cameraQuarterTurns = runtime.cameraQuarterTurnsOverride.takeIf { it >= 0 } ?: CameraOrientation.quarterTurns(sensorOrientation, displayDeg)
+        LpLog.i(TAG, "camera orientation", "sensor_deg" to sensorOrientation, "display_deg" to displayDeg, "quarter_turns" to renderer.cameraQuarterTurns)
         val refresh = currentDisplayRefreshRate()
         val t = RenderThread(holder.surface, renderer, poses, renderStates, abort, this, vsyncHz = refresh, abortMs = runtime.appConfig.safety.motionToPhotonAbortMs.toDouble(),
             watchdogFrames = runtime.appConfig.safety.watchdogFrames, cameraStallMs = runtime.appConfig.safety.cameraStallMs.toDouble())
@@ -154,7 +161,17 @@ class HmdActivity : ComponentActivity(), RenderListener {
     override fun onPerfDegraded(motionToPhotonMs: Double) { controller.onPerfDegraded(motionToPhotonMs) }
     override fun onCameraStall() { controller.onCameraStall(true) }
     override fun onCameraRecovered() { controller.onCameraStall(false) }
-    override fun onFrame(telemetry: RenderTelemetry) { mirror?.update(telemetry) }
+    private var lastTelemetryLogNs = 0L
+    override fun onFrame(telemetry: RenderTelemetry) {
+        mirror?.update(telemetry)
+        val now = System.nanoTime()
+        if (now - lastTelemetryLogNs > 5_000_000_000L) {
+            lastTelemetryLogNs = now
+            LpLog.d(TAG, "frame", "frame_ms" to "%.1f".format(telemetry.frameTimeMs), "pose_age_ms" to "%.1f".format(telemetry.poseAgeMs),
+                "m2p_est_ms" to "%.0f".format(telemetry.motionToPhotonEstMs), "camera_frames" to telemetry.cameraFrames, "rot_deg" to "%.1f".format(telemetry.appliedRotationDeg),
+                "neutral" to telemetry.neutral, "slow_pct" to "%.1f".format(renderThread?.stats?.slowPct ?: 0.0))
+        }
+    }
 
     // ---- abort controls ----
     override fun onTouchEvent(event: MotionEvent): Boolean {

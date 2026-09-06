@@ -32,6 +32,8 @@ public data class Settings(
     /** 0 = use the device profile value; +1/-1 overrides the Mode B rotation direction after the lens check. */
     val renderRotationSign: Int = 0,
     val retentionPendingCount: Int = 0,
+    /** -1 = automatic from camera sensor orientation and display rotation; 0..3 forces quarter turns of the camera image. */
+    val cameraQuarterTurnsOverride: Int = -1,
 )
 
 private val Context.lpDataStore: DataStore<Preferences> by preferencesDataStore(name = "lateropulsion_settings")
@@ -56,6 +58,7 @@ public class SettingsStore(context: Context) {
             language = p[LANG] ?: "en",
             renderRotationSign = p[ROT_SIGN] ?: 0,
             retentionPendingCount = p[RETENTION_PENDING] ?: 0,
+            cameraQuarterTurnsOverride = p[CAM_TURNS] ?: -1,
         )
     }
 
@@ -79,6 +82,7 @@ public class SettingsStore(context: Context) {
             p[LANG] = next.language
             p[ROT_SIGN] = next.renderRotationSign
             p[RETENTION_PENDING] = next.retentionPendingCount
+            p[CAM_TURNS] = next.cameraQuarterTurnsOverride
         }
     }
 
@@ -98,5 +102,6 @@ public class SettingsStore(context: Context) {
         val LANG = stringPreferencesKey("language")
         val ROT_SIGN = intPreferencesKey("render_rotation_sign")
         val RETENTION_PENDING = intPreferencesKey("retention_pending")
+        val CAM_TURNS = intPreferencesKey("camera_quarter_turns_override")
     }
 }

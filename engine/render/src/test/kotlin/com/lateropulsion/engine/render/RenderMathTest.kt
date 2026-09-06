@@ -93,6 +93,15 @@ class RenderMathTest {
     }
 
     @Test
+    fun `REQ-VIS-002 camera quarter turns for landscape HMD on any phone`() {
+        assertEquals(0, CameraOrientation.quarterTurns(90, 90))   // typical phone, landscape ROTATION_90
+        assertEquals(2, CameraOrientation.quarterTurns(270, 90))  // sensor mounted the other way round
+        assertEquals(0, CameraOrientation.quarterTurns(270, 270)) // reverse landscape
+        assertEquals(1, CameraOrientation.quarterTurns(90, 0))    // portrait display
+        assertEquals(3, CameraOrientation.quarterTurns(0, 90))
+    }
+
+    @Test
     fun `band edge detector debounces`() {
         val d = BandEdgeDetector(300_000_000L)
         assertEquals(BandEdgeDetector.Edge.NONE, d.feed(0L, true))

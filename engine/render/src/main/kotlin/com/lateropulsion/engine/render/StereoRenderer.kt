@@ -32,6 +32,8 @@ public class StereoRenderer(
     private val device: DeviceProfile,
     visual: VisualConfig,
     private val gridN: Int = 32,
+    /** (sensorOrientation − displayRotation) / 90, so any phone's camera comes out upright in the landscape HMD. */
+    @Volatile public var cameraQuarterTurns: Int = 0,
 ) {
     public val correction: CorrectionTransform = CorrectionTransform(visual.slewLimitDegPerS, visual.predictionClampMs / 1000.0)
     public val telemetry: RenderTelemetry = RenderTelemetry()
@@ -66,7 +68,7 @@ public class StereoRenderer(
 
     // uniform/attrib locations
     private var pAPos = 0; private var pATex = 0; private var pUTexMatrix = 0; private var pUAngle = 0; private var pUCenter = 0
-    private var pUAspect = 0; private var pUZoom = 0; private var pUShift = 0; private var pUFill = 0; private var pUCamera = 0
+    private var pUAspect = 0; private var pUZoom = 0; private var pUShift = 0; private var pUFill = 0; private var pUCamera = 0; private var pUQuarter = 0
     private var oAPos = 0; private var oAColor = 0; private var oUAspect = 0
     private var dAPos = 0; private var dATexR = 0; private var dATexG = 0; private var dATexB = 0; private var dUTex = 0
 
@@ -82,7 +84,7 @@ public class StereoRenderer(
         pAPos = passthrough.attrib("aPos"); pATex = passthrough.attrib("aTex")
         pUTexMatrix = passthrough.uniform("uTexMatrix"); pUAngle = passthrough.uniform("uAngle"); pUCenter = passthrough.uniform("uCenter")
         pUAspect = passthrough.uniform("uAspect"); pUZoom = passthrough.uniform("uZoom"); pUShift = passthrough.uniform("uShift")
-        pUFill = passthrough.uniform("uFill"); pUCamera = passthrough.uniform("uCamera")
+        pUFill = passthrough.uniform("uFill"); pUCamera = passthrough.uniform("uCamera"); pUQuarter = passthrough.uniform("uQuarterTurns")
 
         overlay = GlProgram(Shaders.OVERLAY_VS, Shaders.OVERLAY_FS)
         oAPos = overlay.attrib("aPos"); oAColor = overlay.attrib("aColor"); oUAspect = overlay.uniform("uAspect")
@@ -229,6 +231,7 @@ public class StereoRenderer(
         GLES30.glUniform1f(pUZoom, overscan.toFloat())
         GLES30.glUniform1f(pUShift, (state.lateralShift * if (eye == 0) 1 else -1).toFloat())
         GLES30.glUniform3f(pUFill, 0.12f, 0.12f, 0.13f)
+        GLES30.glUniform1i(pUQuarter, ((cameraQuarterTurns % 4) + 4) % 4)
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, quadVbo)
         GLES30.glEnableVertexAttribArray(pAPos); GLES30.glVertexAttribPointer(pAPos, 2, GLES30.GL_FLOAT, false, 16, 0)
         GLES30.glEnableVertexAttribArray(pATex); GLES30.glVertexAttribPointer(pATex, 2, GLES30.GL_FLOAT, false, 16, 8)

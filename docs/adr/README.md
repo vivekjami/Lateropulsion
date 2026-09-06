@@ -28,3 +28,7 @@ ADR-001 … ADR-010 are recorded in `docs/ARCHITECTURE.md` §19. Decisions taken
 ## ADR-016 — Phone compatibility floor
 **Decision.** minSdk 29 (Android 10), GLES 3.0, any back camera with a `SurfaceTexture` output, raw gyroscope + accelerometer required (`ImuCapabilities.measurementCapable`). Preview size and fps range are chosen at runtime from `CameraCharacteristics`; 30 fps phones run but are flagged for latency.
 **Consequence.** Runs on the large majority of active Android phones; clinical qualification remains per model.
+
+## ADR-017 — Landscape mounting is a calibration property, not a code path
+**Decision.** Android sensor axes are fixed to the device body and never rotate with the screen. The headset holds the phone in landscape, so raw roll reads about ±90° when the head is upright; the device profile's `theta_mount_deg` (from the jig or the in-app field calibration performed *with the phone mounted*) absorbs this, and `roll_sign` is resolved empirically in the same posture. Nothing in the fusion changes with orientation. The camera image, by contrast, does depend on the phone: the renderer rotates it by whole quarter turns computed from `SENSOR_ORIENTATION` and the display rotation (`CameraOrientation.quarterTurns`), with a manual override on the lens-calibration screen.
+**Consequence.** Calibration instructions insist on the mounted, landscape posture; overlays are drawn in landscape screen space and are unaffected; the HMD activity is landscape-locked while the clinician UI rotates freely.

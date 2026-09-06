@@ -38,6 +38,12 @@ class SessionRuntime @Inject constructor(
         private set
     var simulated: Boolean = false
         private set
+    /** Read at HMD start; -1 = automatic. */
+    var cameraQuarterTurnsOverride: Int = -1
+        private set
+    /** Mode B rotation direction override from the lens check; 0 = use the device profile. */
+    var renderRotationSignOverride: Int = 0
+        private set
 
     val imuCapabilities: ImuCapabilities by lazy {
         ImuCapabilities.probe(ctx.getSystemService(Context.SENSOR_SERVICE) as android.hardware.SensorManager)
@@ -55,6 +61,9 @@ class SessionRuntime @Inject constructor(
         }
         val hs = (s.headsetProfileId?.let { id -> config.headsetProfiles().firstOrNull { it.id == id } } ?: config.headsetProfiles().firstOrNull() ?: HeadsetProfile("default", "Default"))
             .let { h -> s.ipdMm?.let { h.copy(ipdMm = it) } ?: h }
+        cameraQuarterTurnsOverride = s.cameraQuarterTurnsOverride
+        renderRotationSignOverride = s.renderRotationSign
+        if (renderRotationSignOverride != 0) dev = dev.copy(renderRotationSign = renderRotationSignOverride)
         _device.value = dev; _headset.value = hs
         return dev to hs
     }
