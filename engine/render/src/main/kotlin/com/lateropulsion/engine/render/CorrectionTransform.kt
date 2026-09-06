@@ -31,6 +31,16 @@ public class CorrectionTransform(
 
     /** Instant neutral: used by the abort path. */
     public fun reset() { appliedDeg = 0.0 }
+
+    public companion object {
+        /**
+         * What the correction should chase this frame. A pose that is invalid for metrics (pitch guard, tracking lost,
+         * mount shift, calibrating, paused) is noise or stale, so the picture relaxes to truthful passthrough at the
+         * slew limit instead of following it (ARCHITECTURE §15, REQ-VIS-002).
+         */
+        public fun target(predictedThetaDeg: Double, poseFlags: Int): Double =
+            if (com.lateropulsion.core.model.ValidityFlags.isValidForMetrics(poseFlags)) predictedThetaDeg else 0.0
+    }
 }
 
 /**

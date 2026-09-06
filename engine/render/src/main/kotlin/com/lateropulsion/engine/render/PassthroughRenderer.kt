@@ -183,7 +183,7 @@ public class PassthroughRenderer(
         } else {
             val omegaDegS = Angles.radToDeg(pose.wz) * (if (device.rollSign == 0) 1 else device.rollSign)
             val predicted = correction.predictTheta(pose.thetaDeg, omegaDegS, poseAgeNs / 1e9)
-            applied = correction.update(state.gain, predicted, dt)
+            applied = correction.update(state.gain, CorrectionTransform.target(predicted, pose.flags), dt)
         }
         telemetry.appliedRotationDeg = applied
         telemetry.neutral = neutral

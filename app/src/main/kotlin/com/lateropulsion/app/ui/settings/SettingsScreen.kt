@@ -58,6 +58,7 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
     val settings = store.settings.stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
     val headset = runtime.headset
+    val device = runtime.device
     val ui = MutableStateFlow(SettingsUi())
     init { viewModelScope.launch { ui.value = SettingsUi(config.deviceProfiles(), config.headsetProfiles(), audit.recent(50), retentionPending = retention.pending()) } }
     fun update(f: (Settings) -> Settings) = viewModelScope.launch { store.update(f); runtime.resolveProfiles() }
@@ -72,8 +73,10 @@ fun SettingsScreen(nav: NavHostController, vm: SettingsViewModel = hiltViewModel
     LpScreen(stringResource(R.string.settings), onBack = { nav.popBackStack() }) { mod ->
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             LpTextField(s.siteName, { v -> vm.update { it.copy(siteName = v) } }, stringResource(R.string.site_name))
+            val resolvedDevice by vm.device.collectAsState()
+            // No explicit choice: show the profile the runtime actually resolved for this phone model, not the generic fallback.
             Selector(stringResource(R.string.device_profile), ui.devices,
-                ui.devices.firstOrNull { it.id == s.deviceProfileId } ?: ui.devices.firstOrNull { it.id == AssetConfigRepository.GENERIC_ID },
+                ui.devices.firstOrNull { it.id == (s.deviceProfileId ?: resolvedDevice?.id) } ?: ui.devices.firstOrNull { it.id == AssetConfigRepository.GENERIC_ID },
                 { "${it.model} ${if (it.qualified) "✓" else "(unqualified)"}" }, { v -> vm.update { it.copy(deviceProfileId = v.id) } })
             val resolved by vm.headset.collectAsState()
             val mono = resolved?.isMono != false

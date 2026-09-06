@@ -25,6 +25,22 @@ class RenderMathTest {
     }
 
     @Test
+    fun `REQ-VIS-002 an invalid pose relaxes the correction to neutral instead of following noise`() {
+        val valid = com.lateropulsion.core.model.ValidityFlags.VALID
+        assertEquals(25.0, CorrectionTransform.target(25.0, valid), 1e-9)
+        assertEquals(0.0, CorrectionTransform.target(25.0, valid or com.lateropulsion.core.model.ValidityFlags.PITCH_OUT_OF_RANGE), 1e-9)
+        assertEquals(0.0, CorrectionTransform.target(25.0, valid or com.lateropulsion.core.model.ValidityFlags.TRACKING_LOST), 1e-9)
+        assertEquals(0.0, CorrectionTransform.target(25.0, valid or com.lateropulsion.core.model.ValidityFlags.MOUNT_SHIFT), 1e-9)
+        assertEquals(25.0, CorrectionTransform.target(25.0, valid or com.lateropulsion.core.model.ValidityFlags.IN_BAND or com.lateropulsion.core.model.ValidityFlags.PREDICTED), 1e-9)
+        // and the return to neutral is still slew-limited, never a jump
+        val c = CorrectionTransform(slewLimitDegPerS = 30.0, predictionClampS = 0.05)
+        repeat(200) { c.update(1.0, 20.0, 1.0 / 60) }
+        assertEquals(-20.0, c.appliedDeg, 1e-9)
+        val step = c.update(1.0, CorrectionTransform.target(20.0, valid or com.lateropulsion.core.model.ValidityFlags.TRACKING_LOST), 1.0 / 60)
+        assertEquals(-19.5, step, 1e-9)
+    }
+
+    @Test
     fun `REQ-SAF-032 watchdog trips after three consecutive slow frames only`() {
         val w = RenderWatchdog(60.0, 3)
         assertFalse(w.onFrame(70.0)); assertFalse(w.onFrame(70.0)); assertFalse(w.onFrame(40.0))

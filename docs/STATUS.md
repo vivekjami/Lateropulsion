@@ -13,7 +13,7 @@ Honest inventory of what exists in this repository, what has been verified and h
 | `.lpx` log round trip, trailer hash, crash recovery, ring overflow accounting | `core:timeseries` | 5 tests |
 | IMU fusion: quaternion algebra, complementary filter convergence, roll extraction, bias/drift/mount-shift/disagreement monitors, jig fit, sign calibration, allocation-free loop, lock-free triple buffer, simulated patient | `engine:sensor` | 18 tests |
 | Camera frame clock, stall watchdog | `engine:vision` | 2 tests |
-| Correction transform, render watchdog, distortion mesh, cover mapping, visor profile, gravity-locked overlays, tessellator, band edges | `engine:render` | 9 tests |
+| Correction transform and its validity gate, render watchdog, distortion mesh, cover mapping, visor profile, gravity-locked overlays, tessellator, band edges | `engine:render` | 10 tests |
 | Encrypted-DB schema, DAOs, audited repositories, erasure, v1→v2 migration | `core:database` | 5 Robolectric tests (plain SQLite; SQLCipher only on device) |
 | Config loading with generic device fallback | `core:datastore` | 3 tests |
 | Chart geometry, CSV/JSON exporters (de-identified) | `feature:report` | 6 tests |
@@ -31,9 +31,10 @@ Honest inventory of what exists in this repository, what has been verified and h
 | IMU pipeline | 199 Hz pose rate; gyro bias converges when still; vendor rotation-vector agreement 0.1–0.4° |
 | Pitch guard | flags PITCH_OUT_OF_RANGE when the phone lies flat |
 | Stereo passthrough in the HMD activity (before ADR-019) | render 4–5 ms/frame, pose age 2–7 ms, 0.1 % slow frames, camera 30 fps (phone limit) |
+| Visor (mono) passthrough, the default since ADR-019 | render 2–3 ms/frame with the camera at 1280×720 @ 30 fps, pose age 2–5 ms, 0.2–0.3 % slow frames, no GL errors; Back leaves cleanly |
 | Motion-to-photon (app estimate, excludes camera exposure) | 40–44 ms; the bench rig is still required for the real number |
 
-Found and fixed on hardware: hand motion produced false mount-shift flags and spurious drift until the gyro reference became a full 3D gyro-only orientation re-aligned at rest.
+Found and fixed on hardware: hand motion produced false mount-shift flags and spurious drift until the gyro reference became a full 3D gyro-only orientation re-aligned at rest. With the phone lying flat (pitch guard active) the Mode B preview followed the noisy roll estimate by ±40°; the correction now relaxes to neutral whenever the pose is invalid (REQ-VIS-002).
 
 ## Implemented, compiles, needs device verification (Phases 3–4 exit criteria)
 
