@@ -107,9 +107,12 @@ fun CalibrationScreen(nav: NavHostController, vm: SensorViewModel = hiltViewMode
             BigButton(stringResource(R.string.capture_neutral) + (neutral?.let { " (%.1f°)".format(it) } ?: ""), { vm.captureNeutral() }, Modifier.fillMaxWidth(), enabled = s != null)
             Text(stringResource(R.string.calib_step2), style = MaterialTheme.typography.bodyLarge)
             BigButton(stringResource(R.string.capture_tilt) + (tilt?.let { " (%.1f°)".format(it) } ?: ""), { vm.captureTilt() }, Modifier.fillMaxWidth(), enabled = neutral != null)
+            val d by vm.diag.collectAsState()
             r?.let { res ->
                 if (res.resolved) Text(stringResource(R.string.calib_result, res.sign, res.thetaMountDeg, res.message), style = MaterialTheme.typography.titleMedium) else WarningText(res.message)
-                BigButton(stringResource(R.string.calib_apply), { vm.apply() }, Modifier.fillMaxWidth(), enabled = res.resolved)
+                val vendorOk = !d.hasVendorFusion || d.disagreementDeg <= 2.0
+                Text("Cross-check vs phone's own sensor fusion: ${"%.1f".format(d.disagreementDeg)}° (${d.vendorSamples} samples)" + if (vendorOk) " — agrees" else " — DISAGREES, do not apply")
+                BigButton(stringResource(R.string.calib_apply), { vm.apply() }, Modifier.fillMaxWidth(), enabled = res.resolved && vendorOk)
             }
             msg?.let { Text(it) }
             Text("A jig-derived profile (tools/jig/analyse.py) replaces this field calibration and is required for a qualified device (REQ-SEN-040).", style = MaterialTheme.typography.bodyMedium)

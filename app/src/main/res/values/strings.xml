@@ -29,7 +29,10 @@
     <string name="check_thermal">thermal</string>
     <string name="check_storage">storage</string>
     <string name="check_device_profile">device profile</string>
-    <string name="unqualified_device">Unqualified device — research mode only</string>
+    <string name="unqualified_device">Roll not calibrated on this phone: hardware is fine, but the roll sign and mount offset are unknown. Run Roll calibration (with the phone mounted in the headset) before clinical sessions, or enable research mode.</string>
+    <string name="qual_jig">jig-qualified</string>
+    <string name="qual_field">field-calibrated (no jig report)</string>
+    <string name="qual_none">not calibrated</string>
     <string name="settings">Settings</string>
     <string name="training_mode">Training mode (simulated patient)</string>
     <string name="crash_recovered_sessions">%1$d session(s) recovered after a crash. Review them in Reports.</string>

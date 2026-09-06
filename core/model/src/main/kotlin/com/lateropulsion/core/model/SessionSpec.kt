@@ -60,8 +60,10 @@ public data class DeviceSelfCheck(
     val thermalStatus: Int,
     val freeStorageMb: Long,
     val deviceProfileId: String?,
-    val deviceQualified: Boolean,
+    val deviceQualification: DeviceQualification,
 ) {
+    public val deviceQualified: Boolean get() = deviceQualification != DeviceQualification.NONE
+
     public fun passes(config: SafetyConfig): Boolean =
         cameraOk && imuOk && batteryPct >= config.minBatteryPct && thermalStatus <= THERMAL_MODERATE &&
             freeStorageMb >= config.minFreeStorageMb

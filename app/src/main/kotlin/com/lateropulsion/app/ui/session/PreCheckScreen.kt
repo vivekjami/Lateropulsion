@@ -82,7 +82,7 @@ class PreCheckViewModel @Inject constructor(
                 batteryOk = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) >= appConfig.safety.minBatteryPct,
                 thermalOk = pm.currentThermalStatus <= com.lateropulsion.core.model.DeviceSelfCheck.THERMAL_MODERATE,
                 storageOk = free >= appConfig.safety.minFreeStorageMb,
-                deviceQualified = dev.qualified || research || draft.simulated,
+                deviceQualified = dev.allowsClinicalSession || research || draft.simulated,
             )
             state.value = state.value.copy(checklist = auto, ssqDef = config.scale("SSQ"),
                 deviceInfo = "${dev.id} · camera ${cam?.hardwareLevelName ?: "n/a"} ${cam?.maxFps ?: 0} fps · IMU ${"%.0f".format(runtime.imuCapabilities.gyroMaxRateHz)} Hz${if (draft.simulated) " · SIMULATED PATIENT" else ""}")

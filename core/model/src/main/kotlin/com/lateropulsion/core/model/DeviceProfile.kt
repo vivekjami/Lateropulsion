@@ -34,8 +34,24 @@ public data class DeviceProfile(
     val qualifiedAt: String? = null,
     val qualifiedBy: String? = null,
     val notes: String = "",
+    /**
+     * Runtime only (never in config JSON): sign and mount resolved by the in-app field calibration with the vendor
+     * rotation-vector cross-check in agreement. Accuracy is self-consistent but not jig-verified (ADR-018).
+     */
+    @kotlinx.serialization.Transient val fieldQualified: Boolean = false,
+    @kotlinx.serialization.Transient val fieldQualifiedAt: Long? = null,
 ) {
     public val signResolved: Boolean get() = rollSign == 1 || rollSign == -1
+
+    public val qualification: DeviceQualification
+        get() = when {
+            qualified -> DeviceQualification.JIG
+            fieldQualified && signResolved -> DeviceQualification.FIELD
+            else -> DeviceQualification.NONE
+        }
+
+    /** Clinical sessions may start at FIELD or JIG; NONE needs research mode and is flagged on every report. */
+    public val allowsClinicalSession: Boolean get() = qualification != DeviceQualification.NONE
 
     /** Qualification thresholds from ARCHITECTURE §16. */
     public fun meetsAccuracyTargets(): Boolean =
@@ -52,6 +68,17 @@ public data class DeviceProfile(
         public const val MAX_DRIFT_DEG_PER_MIN: Double = 0.5
         public const val TARGET_MOTION_TO_PHOTON_MS: Double = 45.0
     }
+}
+
+/** How much we trust this phone's roll measurement (REQ-SAF-020). */
+@Serializable
+public enum class DeviceQualification {
+    /** No calibration: sign unresolved or mount unknown. */
+    NONE,
+    /** In-app calibration in the mounted posture; vendor fusion agrees; no jig report. */
+    FIELD,
+    /** Rotary-jig report meets ARCHITECTURE §16 accuracy limits. */
+    JIG,
 }
 
 /** Optics of one headset model (ARCHITECTURE §7.1). Distortion coefficients are in normalised eye radius units. */

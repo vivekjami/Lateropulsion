@@ -110,7 +110,11 @@ public class SessionReportBuilder(private val painter: CanvasChartPainter = Canv
             line("Session ${s.sessionNumber}  ·  ${Fmt.dateTime(s.startedAtUtc, s.deviceTimezone)} (${s.deviceTimezone})  ·  ${data.siteName}", small)
             line("Clinician: ${data.clinicianName}  ·  Protocol: ${data.protocolName} (${s.protocolId} v${s.protocolVersion})  ·  Position: ${s.position.name.lowercase().replace('_', ' ')}", small)
             line("${Fmt.mode(s.visualMode)}  ·  gain k = ${Fmt.num(s.gainUsed, 2)}  ·  midline θ_ref = ${Fmt.deg(s.thetaRefDeg)}  ·  device ${s.deviceProfileId}", small)
-            if (!data.deviceQualified) line(ReportText.UNQUALIFIED_DEVICE, warn)
+            when (data.deviceQualification) {
+                com.lateropulsion.core.model.DeviceQualification.NONE -> line(ReportText.UNQUALIFIED_DEVICE, warn)
+                com.lateropulsion.core.model.DeviceQualification.FIELD -> wrapped(ReportText.FIELD_CALIBRATED_DEVICE, small)
+                com.lateropulsion.core.model.DeviceQualification.JIG -> Unit
+            }
             if (s.endReason == EndReason.ABORTED) line("ABORTED: ${s.abortReason ?: ""}  —  ${ReportText.ABORTED_NOTE}", warn)
             if (s.crashRecovered) line(ReportText.CRASH_RECOVERED_NOTE, warn)
             rule()

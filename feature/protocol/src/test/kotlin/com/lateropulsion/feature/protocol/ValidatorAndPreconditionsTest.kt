@@ -142,5 +142,9 @@ class ValidatorAndPreconditionsTest {
         assertTrue(r.warnings.any { it.contains("UNQUALIFIED") })
         val unresolved = Fixtures.spec(device = Fixtures.device.copy(rollSign = 0))
         assertTrue(SessionPreconditions.check(ctx(unresolved)).blocking.any { it.contains("Roll sign") })
+        val field = Fixtures.spec(device = Fixtures.device.copy(qualified = false, fieldQualified = true))
+        val fr = SessionPreconditions.check(ctx(field))
+        assertTrue(fr.canStart)
+        assertTrue(fr.warnings.any { it.contains("field-calibrated") })
     }
 }

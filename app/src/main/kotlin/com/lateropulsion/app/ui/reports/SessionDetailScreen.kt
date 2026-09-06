@@ -66,6 +66,7 @@ data class DetailState(val data: SessionReportData? = null, val error: String? =
 class SessionDetailViewModel @Inject constructor(
     handle: SavedStateHandle, private val sessions: SessionRepository, private val patients: PatientRepository, private val baselines: BaselineRepository,
     private val config: ConfigRepository, private val exports: ExportManager, private val auth: AuthManager, private val settings: SettingsStore, private val clock: Clock,
+    private val runtime: com.lateropulsion.app.session.SessionRuntime,
 ) : ViewModel() {
     private val sessionId = SessionId(handle.get<String>("sessionId")!!)
     val state = MutableStateFlow(DetailState())
@@ -84,10 +85,10 @@ class SessionDetailViewModel @Inject constructor(
                     ts?.let { t -> runCatching { LpxReader.read(File(t.path)) }.getOrNull() }?.records?.map { TracePoint(it.tDeltaMs / 1000.0, it.thetaFiltDeg, ValidityFlags.isValidForMetrics(it.flags)) } ?: emptyList()
                 }
                 val protocolName = config.protocol(s.protocolId)?.name ?: s.protocolId
-                val dev = config.deviceProfiles().firstOrNull { it.id == s.deviceProfileId }
+                val dev = runtime.device.value?.takeIf { it.id == s.deviceProfileId } ?: config.deviceProfiles().firstOrNull { it.id == s.deviceProfileId }
                 val clinicianName = auth.current?.takeIf { it.id == s.clinicianId }?.displayName ?: "clinician ${s.clinicianId.value.take(8)}"
                 SessionReportData(p, clinicianName, s, blocks, summary, baseline, events, ChartModel.downsample(trace.map { Pt(it.tS, it.thetaDeg) },
-                    3000).let { ds -> ds.map { TracePoint(it.x, it.y, true) } }, protocolName, dev?.qualified == true, BuildConfig.VERSION_NAME, settings.current().siteName, clock.nowUtcMillis())
+                    3000).let { ds -> ds.map { TracePoint(it.x, it.y, true) } }, protocolName, dev?.qualification ?: com.lateropulsion.core.model.DeviceQualification.NONE, BuildConfig.VERSION_NAME, settings.current().siteName, clock.nowUtcMillis())
             }.onSuccess { state.value = DetailState(it) }.onFailure { state.value = DetailState(error = it.message) }
         }
     }
@@ -132,7 +133,11 @@ fun SessionDetailScreen(nav: NavHostController, sessionId: String, vm: SessionDe
             val m = d.summary; val s = d.session
             if (s.endReason?.name == "ABORTED") WarningText("Aborted: ${s.abortReason}. ${ReportText.ABORTED_NOTE}")
             if (s.crashRecovered) WarningText(ReportText.CRASH_RECOVERED_NOTE)
-            if (!d.deviceQualified) WarningText(ReportText.UNQUALIFIED_DEVICE)
+            when (d.deviceQualification) {
+                com.lateropulsion.core.model.DeviceQualification.NONE -> WarningText(ReportText.UNQUALIFIED_DEVICE)
+                com.lateropulsion.core.model.DeviceQualification.FIELD -> Text(ReportText.FIELD_CALIBRATED_DEVICE, style = MaterialTheme.typography.bodyMedium)
+                com.lateropulsion.core.model.DeviceQualification.JIG -> Unit
+            }
             val modeLabel = if (s.visualMode.name.startsWith("VERT")) "Mode A" else "Mode B"
             Text("$modeLabel · k ${s.gainUsed} · θ_ref ${"%.1f".format(s.thetaRefDeg)}° · ${s.position.name.lowercase().replace('_', ' ')} · valid ${"%.0f".format(m.metrics.validSamplePct)} %")
             if (d.trace.isNotEmpty()) ChartCanvas(vm.chartSpec(d))

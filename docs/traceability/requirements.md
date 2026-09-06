@@ -59,7 +59,7 @@ IDs are referenced in test names (`REQ-MET-014_episode_hysteresis`) and in the r
 | REQ-SAF-006 | Mandatory rest after 5 min of exercise | README §15 | I | `ProtocolEngineTest` |
 | REQ-SAF-010 | SSQ scored per Kennedy; two consecutive flags lock the patient to Mode A | README §15 | I | `AssessmentTest`, `ValidatorAndPreconditionsTest` |
 | REQ-SAF-012 | Device self-check (camera, IMU, battery, thermal, storage) before sessions | README §4.1 | P | `DeviceSelfCheck`; UI wiring in app |
-| REQ-SAF-020 | Unqualified device blocks clinical sessions unless research mode (flagged) | ARCH §18 | I | `ValidatorAndPreconditionsTest`, `AssetConfigRepositoryTest` |
+| REQ-SAF-020 | Device qualification tiers: NONE blocks unless research mode (flagged), FIELD allowed with a report note, JIG clean (ADR-018) | ARCH §18 | I | `ValidatorAndPreconditionsTest`, `AssetConfigRepositoryTest` |
 | REQ-SAF-030 | Mount-shift detection flags data after a headset slip | ARCH §15 | I | `FusionTest` |
 | REQ-SAF-031 | Camera stall detected within 200 ms | ARCH §15 | I | `FrameClockTest` |
 | REQ-SAF-032 | Render watchdog: 3 frames over threshold → neutral + alert | ARCH §5 | I | `RenderMathTest` |

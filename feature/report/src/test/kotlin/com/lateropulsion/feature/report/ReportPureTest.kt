@@ -65,7 +65,7 @@ class ReportPureTest {
 
     @Test
     fun `REQ-SEC-006 JSON bundle never carries identifiers and strips free text when de-identified`() {
-        val data = SessionReportData(patient, "Dr X", session, emptyList(), summary, null, emptyList(), emptyList(), "Standard sitting", true, "0.1.0", "Ward 3", 2L)
+        val data = SessionReportData(patient, "Dr X", session, emptyList(), summary, null, emptyList(), emptyList(), "Standard sitting", com.lateropulsion.core.model.DeviceQualification.JIG, "0.1.0", "Ward 3", 2L)
         val deid = JsonExporter.sessionBundle(data, deidentified = true)
         assertTrue(deid.contains("\"study_code\": \"LP-2026-0007\""))
         assertFalse(deid.contains("secret diagnosis"))

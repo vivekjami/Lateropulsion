@@ -86,7 +86,7 @@ class DashboardViewModel @Inject constructor(
         val check = DeviceSelfCheck(
             cameraOk = cam?.usable == true, imuOk = runtime.imuCapabilities.measurementCapable, imuRateHz = runtime.imuCapabilities.gyroMaxRateHz,
             batteryPct = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY), thermalStatus = pm.currentThermalStatus,
-            freeStorageMb = stat.availableBytes / (1024 * 1024), deviceProfileId = dev.id, deviceQualified = dev.qualified,
+            freeStorageMb = stat.availableBytes / (1024 * 1024), deviceProfileId = dev.id, deviceQualification = dev.qualification,
         )
         config.protocols(); config.scales()
         state.value = DashboardState(s, p, check, recovered, config.loadErrors, auth.current?.displayName ?: "")
@@ -132,9 +132,19 @@ fun DashboardScreen(nav: NavHostController, vm: DashboardViewModel = hiltViewMod
                     StatusChip("${stringResource(R.string.check_battery)} ${c.batteryPct} %", c.batteryPct >= vm.safety.minBatteryPct)
                     StatusChip(stringResource(R.string.check_thermal), c.thermalStatus <= DeviceSelfCheck.THERMAL_MODERATE)
                     StatusChip("${stringResource(R.string.check_storage)} ${c.freeStorageMb / 1024} GB", c.freeStorageMb >= vm.safety.minFreeStorageMb)
-                    StatusChip("${stringResource(R.string.check_device_profile)} ${c.deviceProfileId}", c.deviceQualified)
+                    StatusChip(
+                        "${stringResource(R.string.check_device_profile)} ${c.deviceProfileId} · " + when (c.deviceQualification) {
+                            com.lateropulsion.core.model.DeviceQualification.JIG -> stringResource(R.string.qual_jig)
+                            com.lateropulsion.core.model.DeviceQualification.FIELD -> stringResource(R.string.qual_field)
+                            com.lateropulsion.core.model.DeviceQualification.NONE -> stringResource(R.string.qual_none)
+                        },
+                        c.deviceQualified,
+                    )
                 }
-                if (!c.deviceQualified) WarningText(stringResource(R.string.unqualified_device))
+                if (!c.deviceQualified) {
+                    WarningText(stringResource(R.string.unqualified_device))
+                    BigButton(stringResource(R.string.calibration), { nav.navigate(Routes.CALIBRATION) }, Modifier.fillMaxWidth(), secondary = true)
+                }
             }
             if (st.recovered > 0) WarningText(stringResource(R.string.crash_recovered_sessions, st.recovered))
             if (st.configErrors.isNotEmpty()) WarningText(stringResource(R.string.config_errors, st.configErrors.joinToString("; ")))

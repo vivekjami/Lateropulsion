@@ -44,9 +44,13 @@ public object SessionPreconditions {
 
         // REQ-SAF-020: device qualification.
         if (!spec.deviceProfile.signResolved) blocking += "Roll sign not resolved for device profile ${spec.deviceProfile.id}; run calibration"
-        if (!spec.deviceProfile.qualified) {
-            if (ctx.researchMode) warnings += "Device ${spec.deviceProfile.id} is not jig-qualified; session will be flagged UNQUALIFIED DEVICE"
-            else blocking += "Device ${spec.deviceProfile.id} is not qualified; enable research mode to proceed with flagged data"
+        when (spec.deviceProfile.qualification) {
+            com.lateropulsion.core.model.DeviceQualification.JIG -> Unit
+            com.lateropulsion.core.model.DeviceQualification.FIELD ->
+                warnings += "Device ${spec.deviceProfile.id} is field-calibrated (no jig report); reports will say so"
+            com.lateropulsion.core.model.DeviceQualification.NONE ->
+                if (ctx.researchMode) warnings += "Device ${spec.deviceProfile.id} is not calibrated; session will be flagged UNQUALIFIED DEVICE"
+                else blocking += "Device ${spec.deviceProfile.id} is not calibrated: run Roll calibration in Settings (or enable research mode to proceed with flagged data)"
         }
 
         // REQ-SAF-003: progression gate.
