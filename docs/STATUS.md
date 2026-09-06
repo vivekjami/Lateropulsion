@@ -22,9 +22,22 @@ Honest inventory of what exists in this repository, what has been verified and h
 ## Static quality gates
 `./gradlew detekt` (0 issues at the tuned thresholds in `config/detekt/detekt.yml`), `./gradlew :app:lintClinicalDebug` (0 errors), `tools/ci/phi_log_scan.py` and `tools/ci/soup_check.py` all pass; the clinical flavour is verified to request no INTERNET permission.
 
+## Verified on the development phone (Redmi Note 10S, Android 13, 2026-09-06)
+
+| Check | Observed |
+|---|---|
+| App start, encrypted DB open, Keystore key (TEE; StrongBox unavailable) | OK, no crash |
+| Account creation, unlock, dashboard device check | OK; camera ✓, IMU 200 Hz ✓, battery/thermal/storage ✓ |
+| IMU pipeline | 199 Hz pose rate; gyro bias converges when still; vendor rotation-vector agreement 0.1–0.4° |
+| Pitch guard | flags PITCH_OUT_OF_RANGE when the phone lies flat |
+| Stereo passthrough in the HMD activity | render 4–5 ms/frame, pose age 2–7 ms, 0.1 % slow frames, camera 30 fps (phone limit) |
+| Motion-to-photon (app estimate, excludes camera exposure) | 40–44 ms; the bench rig is still required for the real number |
+
+Found and fixed on hardware: hand motion produced false mount-shift flags and spurious drift until the gyro reference became a full 3D gyro-only orientation re-aligned at rest.
+
 ## Implemented, compiles, needs device verification (Phases 3–4 exit criteria)
 
-- Stereo passthrough renderer, render thread, Mode B correction, cues, HMD activity, abort controls, therapist mirror on a second display.
+- Mode B correction direction and lens distortion tuning in the headset (lens-calibration screen), cues seen by a wearer, abort controls from the clicker, therapist mirror on a second display.
 - SQLCipher + Keystore database on a real phone (pull the DB file and confirm it does not open without the key).
 - Full session flow end to end on hardware: register → baseline → protocol setup → pre-check → calibration → blocks → summary → PDF.
 - Camera fps/size selection across phones; Redmi Note 10S caps at 30 fps in normal sessions.

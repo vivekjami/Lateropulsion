@@ -85,8 +85,14 @@ class SensorViewModel @Inject constructor(private val runtime: SessionRuntime, p
     fun setCameraTurns(turns: Int) = viewModelScope.launch { settings.update { it.copy(cameraQuarterTurnsOverride = turns) }; runtime.resolveProfiles() }
     fun setIpd(mm: Double) = viewModelScope.launch { settings.update { it.copy(ipdMm = mm) }; runtime.resolveProfiles() }
 
-    /** Lens check: Mode B at k = 1 with the plumb line; the line must sit on a real vertical edge as the head rolls. */
-    fun startLensPreview() { renderStates.set(RenderState(mode = VisualMode.COMPENSATED_VIEW, gain = 1.0, cues = setOf(CueType.PLUMB_LINE, CueType.HORIZON), idle = false, showReadout = true)) }
+    /**
+     * Lens check: Mode B at k = 1 with the plumb line; the line must sit on a real vertical edge as the head rolls.
+     * The current head roll is taken as the zero so the preview is usable before the mount offset is calibrated.
+     */
+    fun startLensPreview() {
+        sample.value?.let { runtime.poseProvider?.setThetaRef(it.thetaHeadDeg) }
+        renderStates.set(RenderState(mode = VisualMode.COMPENSATED_VIEW, gain = 1.0, cues = setOf(CueType.PLUMB_LINE, CueType.HORIZON), idle = false, showReadout = true))
+    }
     fun stopLensPreview() { renderStates.set(RenderState.NEUTRAL) }
 
     override fun onCleared() { job?.cancel(); runtime.releasePoseProvider(); renderStates.set(RenderState.NEUTRAL) }
