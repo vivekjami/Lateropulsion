@@ -19,7 +19,8 @@
     "allow_error_augmentation": false,
     "slew_limit_deg_per_s": 30.0,
     "overscan": 1.2,
-    "prediction_clamp_ms": 50.0
+    "prediction_clamp_ms": 50.0,
+    "default_headset_profile_id": "phone-visor-mono-v1"
   },
   "metrics": {
     "sample_rate_hz": 100,

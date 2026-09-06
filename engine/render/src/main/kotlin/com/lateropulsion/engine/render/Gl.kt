@@ -139,21 +139,24 @@ void main() { vTex = aTex; gl_Position = vec4(aPos, 0.0, 1.0); }
 """
 
     /**
-     * Rotation about the optical centre in isotropic space, over-scan zoom, lateral shift, neutral fill
-     * outside the valid camera region, then the SurfaceTexture transform.
+     * Viewport → camera mapping, all in isotropic viewport space (units of the viewport height): rotation about
+     * the optical centre, over-scan zoom, lateral shift, then an aspect-preserving "cover" map into the upright
+     * camera image ([ViewMapping]), the quarter turn that makes the camera upright, and the SurfaceTexture
+     * transform. Anything that lands outside the camera image is neutral grey, never a smeared edge.
      */
     public const val PASSTHROUGH_FS: String = """#version 300 es
 #extension GL_OES_EGL_image_external_essl3 : require
-precision mediump float;
+precision highp float;
 uniform samplerExternalOES uCamera;
 uniform mat4 uTexMatrix;
-uniform float uAngle;     // radians, image-content rotation (sign verified per device)
-uniform vec2 uCenter;     // optical centre in [0,1]^2 image space
-uniform float uAspect;    // displayed image aspect (w/h) so the rotation is isotropic
-uniform float uZoom;      // over-scan crop factor >= 1
-uniform float uShift;     // lateral prism-like offset, image units
-uniform vec3 uFill;       // neutral grey: never a smeared edge
-uniform int uQuarterTurns; // 0..3: camera sensor orientation vs landscape display, applied before everything else
+uniform float uAngle;      // radians, image-content rotation (sign verified per device)
+uniform vec2 uCenter;      // optical centre in [0,1]^2 viewport space
+uniform float uAspect;     // viewport aspect (w/h) so the rotation is isotropic
+uniform float uZoom;       // over-scan crop factor >= 1
+uniform float uShift;      // lateral prism-like offset, fraction of the viewport width
+uniform vec3 uFill;        // neutral grey: never a smeared edge
+uniform vec2 uCover;       // covering camera rectangle (w, h) in viewport-height units (ViewMapping.cover)
+uniform int uQuarterTurns; // 0..3: camera sensor orientation vs the landscape display
 in vec2 vTex;
 out vec4 fragColor;
 vec2 quarterTurn(vec2 t, int q) {
@@ -164,18 +167,18 @@ vec2 quarterTurn(vec2 t, int q) {
 }
 void main() {
     float c = cos(uAngle), s = sin(uAngle);
-    vec2 p = quarterTurn(vTex, uQuarterTurns) - uCenter;
+    vec2 p = vTex - uCenter;
     p.x *= uAspect;
     p /= uZoom;
     vec2 r = vec2(c * p.x - s * p.y, s * p.x + c * p.y);
-    r.x /= uAspect;
-    r += uCenter;
-    r.x += uShift;
-    if (r.x < 0.0 || r.x > 1.0 || r.y < 0.0 || r.y > 1.0) {
+    r += vec2(uCenter.x * uAspect, uCenter.y);
+    r.x += uShift * uAspect;
+    vec2 t = vec2((r.x - 0.5 * uAspect) / uCover.x + 0.5, (r.y - 0.5) / uCover.y + 0.5);
+    if (t.x < 0.0 || t.x > 1.0 || t.y < 0.0 || t.y > 1.0) {
         fragColor = vec4(uFill, 1.0);
     } else {
-        vec2 t = (uTexMatrix * vec4(r, 0.0, 1.0)).xy;
-        fragColor = texture(uCamera, t);
+        vec2 tt = (uTexMatrix * vec4(quarterTurn(t, uQuarterTurns), 0.0, 1.0)).xy;
+        fragColor = texture(uCamera, tt);
     }
 }
 """

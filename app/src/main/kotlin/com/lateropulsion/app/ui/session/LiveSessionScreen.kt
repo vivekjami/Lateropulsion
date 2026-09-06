@@ -47,6 +47,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LiveSessionViewModel @Inject constructor(val controller: SessionController, val draft: SessionDraft, private val runtime: SessionRuntime) : ViewModel() {
     val state = controller.state
+    val headset = runtime.headset
     init {
         // Calibration completes when the gyro-bias window is full (3 s still) or after a 15 s fallback.
         viewModelScope.launch {
@@ -95,7 +96,8 @@ fun LiveSessionScreen(nav: NavHostController, vm: LiveSessionViewModel = hiltVie
                 SessionState.Ready -> {
                     Text(stringResource(R.string.confirm_midline), style = MaterialTheme.typography.bodyLarge)
                     BigButton(stringResource(R.string.confirm_midline_button), { vm.confirmMidline() }, Modifier.fillMaxWidth(), secondary = true)
-                    Text(stringResource(R.string.insert_phone), style = MaterialTheme.typography.bodyLarge)
+                    val hs by vm.headset.collectAsState()
+                    Text(stringResource(if (hs?.isMono != false) R.string.mount_phone_visor else R.string.insert_phone), style = MaterialTheme.typography.bodyLarge)
                     BigButton(stringResource(R.string.start_hmd), { ctx.startActivity(Intent(ctx, HmdActivity::class.java)) }, Modifier.fillMaxWidth(), secondary = true)
                     BigButton(stringResource(R.string.start_session), { vm.start() }, Modifier.fillMaxWidth(), enabled = st.midlineConfirmed)
                     Text(stringResource(R.string.mirror_hint), style = MaterialTheme.typography.bodyMedium)

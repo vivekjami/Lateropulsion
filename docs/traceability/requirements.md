@@ -48,6 +48,8 @@ IDs are referenced in test names (`REQ-MET-014_episode_hysteresis`) and in the r
 | REQ-SEN-040 | Roll accuracy RMS ≤ 1.0°, max ≤ 2.0° over ±40° on the jig | ARCH §16 | V | Phase 2 jig report |
 | REQ-VIS-001 | Mode B counter-rotation slew-limited; pose prediction clamped to 50 ms | ARCH §5, §7.2 | I | `RenderMathTest` |
 | REQ-VIS-010 | Lens distortion mesh: centre fixed, radial growth, chromatic aberration | ARCH §7.1 | I | `RenderMathTest` |
+| REQ-VIS-011 | Camera image covers the viewport without stretching in both display modes; rotated buffers use the reciprocal aspect | ARCH §7.1, ADR-019 | I | `RenderMathTest` |
+| REQ-VIS-012 | Visor (mono) headset profile parses, validates without lens data, overlays stay gravity-locked with a viewport-wide horizon | ADR-019 | I | `RenderMathTest` |
 | REQ-VIS-020 | Overlay cues are gravity-locked | ARCH §7.4 | I | `RenderMathTest` (+ plumb line vs physical plumb, Phase 3) |
 | REQ-VIS-021 | Tolerance band colour follows deviation and validity; idle draws nothing | ARCH §7.4 | I | `RenderMathTest` |
 | REQ-VIS-030 | Motion-to-photon ≤ 45 ms measured | ARCH §16 | V | Phase 3 latency rig |

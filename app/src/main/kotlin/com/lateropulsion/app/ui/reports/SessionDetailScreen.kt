@@ -87,8 +87,9 @@ class SessionDetailViewModel @Inject constructor(
                 val protocolName = config.protocol(s.protocolId)?.name ?: s.protocolId
                 val dev = runtime.device.value?.takeIf { it.id == s.deviceProfileId } ?: config.deviceProfiles().firstOrNull { it.id == s.deviceProfileId }
                 val clinicianName = auth.current?.takeIf { it.id == s.clinicianId }?.displayName ?: "clinician ${s.clinicianId.value.take(8)}"
-                SessionReportData(p, clinicianName, s, blocks, summary, baseline, events, ChartModel.downsample(trace.map { Pt(it.tS, it.thetaDeg) },
-                    3000).let { ds -> ds.map { TracePoint(it.x, it.y, true) } }, protocolName, dev?.qualification ?: com.lateropulsion.core.model.DeviceQualification.NONE, BuildConfig.VERSION_NAME, settings.current().siteName, clock.nowUtcMillis())
+                val points = ChartModel.downsample(trace.map { Pt(it.tS, it.thetaDeg) }, 3000).map { TracePoint(it.x, it.y, true) }
+                val qualification = dev?.qualification ?: com.lateropulsion.core.model.DeviceQualification.NONE
+                SessionReportData(p, clinicianName, s, blocks, summary, baseline, events, points, protocolName, qualification, BuildConfig.VERSION_NAME, settings.current().siteName, clock.nowUtcMillis())
             }.onSuccess { state.value = DetailState(it) }.onFailure { state.value = DetailState(error = it.message) }
         }
     }

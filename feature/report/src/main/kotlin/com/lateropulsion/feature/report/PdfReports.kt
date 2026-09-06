@@ -87,6 +87,15 @@ internal object Fmt {
     fun assistance(a: AssistanceLevel?): String = a?.let { "${it.level} – ${it.name.lowercase().replace('_', ' ')}" } ?: "—"
 }
 
+/** Device-trust statement that every session report must carry (REQ-SAF-020, ADR-018). */
+internal fun Page.qualificationNote(q: com.lateropulsion.core.model.DeviceQualification) {
+    when (q) {
+        com.lateropulsion.core.model.DeviceQualification.NONE -> line(ReportText.UNQUALIFIED_DEVICE, warn)
+        com.lateropulsion.core.model.DeviceQualification.FIELD -> wrapped(ReportText.FIELD_CALIBRATED_DEVICE, small)
+        com.lateropulsion.core.model.DeviceQualification.JIG -> Unit
+    }
+}
+
 /** Session report, 3 pages (ARCHITECTURE §12.1). Generation is synchronous and must stay under 2 s (REQ-RPT-001). */
 public class SessionReportBuilder(private val painter: CanvasChartPainter = CanvasChartPainter()) {
     public fun build(data: SessionReportData, out: OutputStream) {
@@ -110,11 +119,7 @@ public class SessionReportBuilder(private val painter: CanvasChartPainter = Canv
             line("Session ${s.sessionNumber}  ·  ${Fmt.dateTime(s.startedAtUtc, s.deviceTimezone)} (${s.deviceTimezone})  ·  ${data.siteName}", small)
             line("Clinician: ${data.clinicianName}  ·  Protocol: ${data.protocolName} (${s.protocolId} v${s.protocolVersion})  ·  Position: ${s.position.name.lowercase().replace('_', ' ')}", small)
             line("${Fmt.mode(s.visualMode)}  ·  gain k = ${Fmt.num(s.gainUsed, 2)}  ·  midline θ_ref = ${Fmt.deg(s.thetaRefDeg)}  ·  device ${s.deviceProfileId}", small)
-            when (data.deviceQualification) {
-                com.lateropulsion.core.model.DeviceQualification.NONE -> line(ReportText.UNQUALIFIED_DEVICE, warn)
-                com.lateropulsion.core.model.DeviceQualification.FIELD -> wrapped(ReportText.FIELD_CALIBRATED_DEVICE, small)
-                com.lateropulsion.core.model.DeviceQualification.JIG -> Unit
-            }
+            qualificationNote(data.deviceQualification)
             if (s.endReason == EndReason.ABORTED) line("ABORTED: ${s.abortReason ?: ""}  —  ${ReportText.ABORTED_NOTE}", warn)
             if (s.crashRecovered) line(ReportText.CRASH_RECOVERED_NOTE, warn)
             rule()

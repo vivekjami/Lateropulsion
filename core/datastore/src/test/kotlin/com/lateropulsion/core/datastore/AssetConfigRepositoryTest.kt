@@ -21,7 +21,7 @@ class AssetConfigRepositoryTest {
         assertEquals(7, repo.protocols().size)
         assertEquals(8, repo.scales().size)
         assertEquals(2, repo.deviceProfiles().size)
-        assertEquals(1, repo.headsetProfiles().size)
+        assertEquals(2, repo.headsetProfiles().size)
         assertTrue(repo.loadErrors.isEmpty(), repo.loadErrors.toString())
     }
 

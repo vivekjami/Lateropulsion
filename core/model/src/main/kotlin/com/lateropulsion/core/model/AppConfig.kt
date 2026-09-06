@@ -53,6 +53,8 @@ public data class VisualConfig(
     val slewLimitDegPerS: Double = 30.0,
     val overscan: Double = 1.2,
     val predictionClampMs: Double = 50.0,
+    /** Headset profile used when the site has not chosen one in Settings (ADR-019: the visor is the shipped kit). */
+    val defaultHeadsetProfileId: String = "phone-visor-mono-v1",
 )
 
 @Serializable

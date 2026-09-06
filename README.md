@@ -102,7 +102,7 @@ flowchart TD
     D --> E{Visual mode}
     E -->|Mode A| F[Truthful passthrough + gravity-locked vertical cues]
     E -->|Mode B| G[Counter-rotated passthrough, gain k, fading schedule]
-    F --> H[Stereo render: dual viewport + lens distortion]
+    F --> H[Render: full-screen visor view by default, or stereo + lens distortion]
     G --> H
     H --> A
     D --> I[Metrics engine: MAD, RMS, time-in-band, episodes, recovery]
@@ -346,7 +346,7 @@ lateropulsion/
 ├── engine/
 │   ├── sensor/                   # IMU acquisition, fusion, calibration (Kotlin + JNI)
 │   ├── vision/                   # Camera2 pipeline, frame timing, optional CV
-│   └── render/                   # C++/GLES stereo renderer, shaders, distortion mesh
+│   └── render/                   # Kotlin/GLES passthrough renderer (visor or stereo), shaders, distortion mesh
 │       └── src/main/cpp/shaders/
 ├── config/
 │   ├── scales/                   # Versioned JSON scale definitions

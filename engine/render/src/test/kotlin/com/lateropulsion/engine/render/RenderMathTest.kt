@@ -111,4 +111,55 @@ class RenderMathTest {
         val (pan, loud) = OverlayGeometry.audioPan(-15.0, 5.0)
         assertEquals(-1f, pan); assertEquals(1f, loud)
     }
+
+    @Test
+    fun `REQ-VIS-011 camera image covers the viewport without stretching in both display modes`() {
+        // Visor: 20:9 phone screen, 16:9 camera → full width, symmetric vertical crop.
+        val visor = ViewMapping.cover(20.0 / 9, 16.0 / 9)
+        assertEquals(20.0 / 9, visor.width, 1e-9)
+        assertEquals(visor.width / (16.0 / 9), visor.height, 1e-9)
+        assertTrue(visor.height > 1.0)
+        val (tx0, ty0) = ViewMapping.toCamera(0.0, 0.0, 20.0 / 9, visor)
+        val (tx1, ty1) = ViewMapping.toCamera(20.0 / 9, 1.0, 20.0 / 9, visor)
+        assertEquals(0.0, tx0, 1e-9); assertEquals(1.0, tx1, 1e-9)
+        assertEquals(0.5 - 0.4, ty0, 1e-9); assertEquals(0.5 + 0.4, ty1, 1e-9) // 20 % of the camera height cropped
+        // Stereo eye viewport 1.1:1 with the same camera → full height, horizontal crop.
+        val eye = ViewMapping.cover(1.1, 16.0 / 9)
+        assertEquals(1.0, eye.height, 1e-9)
+        assertEquals(16.0 / 9, eye.width, 1e-9)
+        val (ex0, _) = ViewMapping.toCamera(0.0, 0.5, 1.1, eye)
+        assertTrue(ex0 > 0.0 && ex0 < 0.5)
+        // Matching aspects → identity; a point outside the viewport still maps monotonically beyond [0, 1].
+        val same = ViewMapping.cover(1.5, 1.5)
+        assertEquals(0.5 to 0.5, ViewMapping.toCamera(0.75, 0.5, 1.5, same))
+        assertTrue(ViewMapping.toCamera(-0.1, 0.5, 1.5, same).first < 0.0)
+        // Camera rotated by an odd number of quarter turns has the reciprocal aspect.
+        assertEquals(9.0 / 16, ViewMapping.turnedAspect(16.0 / 9, 1), 1e-9)
+        assertEquals(9.0 / 16, ViewMapping.turnedAspect(16.0 / 9, -1), 1e-9)
+        assertEquals(16.0 / 9, ViewMapping.turnedAspect(16.0 / 9, 2), 1e-9)
+        // The horizon must reach the corners of any viewport at any roll.
+        assertTrue(ViewMapping.horizonHalfExtent(20.0 / 9) > sqrt((20.0 / 9) * (20.0 / 9) + 1.0) / 2)
+    }
+
+    @Test
+    fun `REQ-VIS-012 visor profile parses, validates without lens data, and stays gravity locked with a wide horizon`() {
+        val json = """{"id":"visor","name":"Visor","display_mode":"MONO_VISOR","ipd_mm":63.0,"ipd_min_mm":50.0,"ipd_max_mm":80.0,"overscan":1.0}"""
+        val hs = com.lateropulsion.core.model.LpJson.lenient.decodeFromString(com.lateropulsion.core.model.HeadsetProfile.serializer(), json)
+        assertTrue(hs.isMono)
+        assertTrue(hs.validate().isEmpty(), hs.validate().toString())
+        // Default is the lens headset, so old profiles keep their meaning.
+        val legacy = com.lateropulsion.core.model.LpJson.lenient.decodeFromString(com.lateropulsion.core.model.HeadsetProfile.serializer(), """{"id":"h","name":"H"}""")
+        assertFalse(legacy.isMono)
+        assertEquals(com.lateropulsion.core.model.HeadsetDisplayMode.STEREO_LENS, legacy.displayMode)
+        // A lens profile with an IPD outside its own range is rejected; the visor ignores IPD.
+        assertTrue(legacy.copy(ipdMm = 90.0).validate().isNotEmpty())
+        assertTrue(hs.copy(ipdMm = 90.0).validate().isEmpty())
+        // Horizon length follows the requested extent; a right roll still rotates it counter-clockwise.
+        val wide = OverlayGeometry.build(OverlayInput(20.0, 20.0, state(setOf(CueType.HORIZON)), true, horizonHalfExtent = 2.0)).single() as Primitive.Line
+        val len = sqrt(((wide.x2 - wide.x1) * (wide.x2 - wide.x1) + (wide.y2 - wide.y1) * (wide.y2 - wide.y1)).toDouble())
+        assertEquals(4.0, len, 1e-4)
+        val right = if (wide.x2 > wide.x1) wide.x2 to wide.y2 else wide.x1 to wide.y1
+        assertTrue(right.second > 0f, "right end of the horizon rises for a right roll, y=${right.second}")
+        assertEquals(20.0, Math.toDegrees(Math.atan2(right.second.toDouble(), right.first.toDouble())), 1e-3)
+    }
 }

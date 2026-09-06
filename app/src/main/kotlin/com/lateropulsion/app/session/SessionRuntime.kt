@@ -5,6 +5,7 @@ import android.os.Build
 import com.lateropulsion.core.datastore.SettingsStore
 import com.lateropulsion.core.model.AppConfig
 import com.lateropulsion.core.model.DeviceProfile
+import com.lateropulsion.core.model.HeadsetDisplayMode
 import com.lateropulsion.core.model.HeadsetProfile
 import com.lateropulsion.core.datastore.AssetConfigRepository
 import com.lateropulsion.engine.sensor.AndroidPoseProvider
@@ -20,7 +21,8 @@ import javax.inject.Singleton
 /**
  * Owns the long-lived engine objects the HMD activity and the therapist screens share: the pose
  * provider, the resolved device and headset profiles. Built once per process, re-resolved when the
- * settings change.
+ * settings change. Headset resolution: Settings choice → `visual.default_headset_profile_id` → any visor
+ * profile → first profile (ADR-019).
  */
 @Singleton
 class SessionRuntime @Inject constructor(
@@ -59,8 +61,13 @@ class SessionRuntime @Inject constructor(
         if (!dev.qualified && s.fieldCalibratedSign != 0 && fieldMount != null) {
             dev = dev.copy(rollSign = s.fieldCalibratedSign, thetaMountDeg = fieldMount, fieldQualified = true, fieldQualifiedAt = s.fieldCalibratedAt)
         }
-        val hs = (s.headsetProfileId?.let { id -> config.headsetProfiles().firstOrNull { it.id == id } } ?: config.headsetProfiles().firstOrNull() ?: HeadsetProfile("default", "Default"))
-            .let { h -> s.ipdMm?.let { h.copy(ipdMm = it) } ?: h }
+        val headsets = config.headsetProfiles()
+        val hs = (
+            s.headsetProfileId?.let { id -> headsets.firstOrNull { it.id == id } }
+                ?: headsets.firstOrNull { it.id == appConfig.visual.defaultHeadsetProfileId }
+                ?: headsets.firstOrNull { it.isMono } ?: headsets.firstOrNull()
+                ?: HeadsetProfile("default", "Default", displayMode = HeadsetDisplayMode.MONO_VISOR, overscan = 1.0)
+            ).let { h -> s.ipdMm?.let { h.copy(ipdMm = it) } ?: h }
         cameraQuarterTurnsOverride = s.cameraQuarterTurnsOverride
         renderRotationSignOverride = s.renderRotationSign
         if (renderRotationSignOverride != 0) dev = dev.copy(renderRotationSign = renderRotationSignOverride)

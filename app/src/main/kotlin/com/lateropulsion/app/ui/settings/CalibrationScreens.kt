@@ -59,6 +59,7 @@ class SensorViewModel @Inject constructor(private val runtime: SessionRuntime, p
     val tiltRaw = MutableStateFlow<Double?>(null)
     val result = MutableStateFlow<FieldCalibration.Result?>(null)
     val message = MutableStateFlow<String?>(null)
+    val headset = runtime.headset
     private var job: Job? = null
 
     init {
@@ -143,7 +144,8 @@ fun SensorDebugScreen(nav: NavHostController, vm: SensorViewModel = hiltViewMode
                 Text(stringResource(R.string.imu_rate, d.imuRateHz, d.poseRateHz))
                 Text(stringResource(R.string.drift, d.driftDegPerMin))
                 Text(stringResource(R.string.bias, d.gyroBias?.let { "(%.4f, %.4f, %.4f) rad/s".format(it.x, it.y, it.z) } ?: "estimating ${(d.biasProgress * 100).toInt()} %"))
-                Text("vendor disagreement ${"%.1f".format(d.disagreementDeg)}° (${d.disagreementEvents} events, ${d.vendorSamples} samples) · jolts ${d.mountShiftCount} · still ${d.still} · tracking lost ${d.trackingLost} · gyro ${d.hasGyro} · vendor fusion ${d.hasVendorFusion}")
+                Text("vendor disagreement ${"%.1f".format(d.disagreementDeg)}° (${d.disagreementEvents} events, ${d.vendorSamples} samples) · jolts ${d.mountShiftCount} · still ${d.still}")
+                Text("tracking lost ${d.trackingLost} · gyro ${d.hasGyro} · vendor fusion ${d.hasVendorFusion}")
             }
         }
     }
@@ -152,16 +154,20 @@ fun SensorDebugScreen(nav: NavHostController, vm: SensorViewModel = hiltViewMode
 @Composable
 fun LensCalibrationScreen(nav: NavHostController, vm: SensorViewModel = hiltViewModel()) {
     val ctx = LocalContext.current
-    LpScreen(stringResource(R.string.lens_calibration), onBack = { vm.stopLensPreview(); nav.popBackStack() }) { mod ->
+    val hs by vm.headset.collectAsState()
+    val mono = hs?.isMono != false
+    LpScreen(stringResource(if (mono) R.string.display_check else R.string.lens_calibration), onBack = { vm.stopLensPreview(); nav.popBackStack() }) { mod ->
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("1. Set the IPD to the wearer's measurement. 2. Start the preview, put the phone in the headset and look at a door frame or plumb line while rolling your head. " +
-                "The white plumb line must stay on the real vertical edge. If the camera image rotates the wrong way as you roll, flip the rotation direction.", style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(if (mono) R.string.visor_check_text else R.string.lens_check_text), style = MaterialTheme.typography.bodyLarge)
+            hs?.let { Text("Profile: ${it.name}", style = MaterialTheme.typography.bodyMedium) }
             val settings by vm.let { it.diag }.collectAsState() // keeps the sensor alive while on this screen
             @Suppress("UNUSED_VARIABLE") val unused = settings
-            var ipd = 63.0
-            Text(stringResource(R.string.ipd))
-            Slider(value = ipd.toFloat(), onValueChange = { ipd = it.toDouble(); vm.setIpd(Math.round(it).toDouble()) }, valueRange = 56f..72f, steps = 15)
-            Text("Mode B counter-rotation direction (the image must rotate against your head roll):")
+            if (!mono) {
+                var ipd = 63.0
+                Text(stringResource(R.string.ipd))
+                Slider(value = ipd.toFloat(), onValueChange = { ipd = it.toDouble(); vm.setIpd(Math.round(it).toDouble()) }, valueRange = 56f..72f, steps = 15)
+            }
+            Text("Mode B counter-rotation direction (the picture must rotate against your head roll):")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BigButton("Rotation +1", { vm.setRotationSign(1) }, Modifier.weight(1f), secondary = true)
                 BigButton("Rotation −1", { vm.setRotationSign(-1) }, Modifier.weight(1f), secondary = true)
@@ -173,8 +179,11 @@ fun LensCalibrationScreen(nav: NavHostController, vm: SensorViewModel = hiltView
                 BigButton("90°", { vm.setCameraTurns(1) }, Modifier.weight(1f), secondary = true)
                 BigButton("270°", { vm.setCameraTurns(3) }, Modifier.weight(1f), secondary = true)
             }
-            BigButton("Start preview in HMD (k = 1, plumb line)", { vm.startLensPreview(); ctx.startActivity(Intent(ctx, HmdActivity::class.java)) }, Modifier.fillMaxWidth())
-            Text("Distortion coefficients (k1, k2) come from config/headsets/*.json; tune per headset model and re-run the Phase 3 plumb-line check (overlay vertical within 1° over ±30°).", style = MaterialTheme.typography.bodyMedium)
+            BigButton(stringResource(R.string.start_preview), { vm.startLensPreview(); ctx.startActivity(Intent(ctx, HmdActivity::class.java)) }, Modifier.fillMaxWidth())
+            if (!mono) {
+                Text("Distortion coefficients (k1, k2) come from config/headsets/*.json; tune per headset model and re-run the Phase 3 plumb-line check (overlay vertical within 1° over ±30°).",
+                    style = MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }

@@ -57,6 +57,7 @@ class SettingsViewModel @Inject constructor(
     private val retention: RetentionCheck, val auth: AuthManager,
 ) : ViewModel() {
     val settings = store.settings.stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
+    val headset = runtime.headset
     val ui = MutableStateFlow(SettingsUi())
     init { viewModelScope.launch { ui.value = SettingsUi(config.deviceProfiles(), config.headsetProfiles(), audit.recent(50), retentionPending = retention.pending()) } }
     fun update(f: (Settings) -> Settings) = viewModelScope.launch { store.update(f); runtime.resolveProfiles() }
@@ -74,8 +75,11 @@ fun SettingsScreen(nav: NavHostController, vm: SettingsViewModel = hiltViewModel
             Selector(stringResource(R.string.device_profile), ui.devices,
                 ui.devices.firstOrNull { it.id == s.deviceProfileId } ?: ui.devices.firstOrNull { it.id == AssetConfigRepository.GENERIC_ID },
                 { "${it.model} ${if (it.qualified) "✓" else "(unqualified)"}" }, { v -> vm.update { it.copy(deviceProfileId = v.id) } })
-            Selector(stringResource(R.string.headset_profile), ui.headsets, ui.headsets.firstOrNull { it.id == s.headsetProfileId } ?: ui.headsets.firstOrNull(), { it.name }, { v -> vm.update { it.copy(headsetProfileId = v.id) } })
-            LpTextField(s.ipdMm?.toString() ?: "", { v -> vm.update { it.copy(ipdMm = v.toDoubleOrNull()) } }, stringResource(R.string.ipd), number = true)
+            val resolved by vm.headset.collectAsState()
+            val mono = resolved?.isMono != false
+            val selectedHeadset = ui.headsets.firstOrNull { it.id == (s.headsetProfileId ?: resolved?.id) } ?: ui.headsets.firstOrNull()
+            Selector(stringResource(R.string.headset_profile), ui.headsets, selectedHeadset, { it.name }, { v -> vm.update { it.copy(headsetProfileId = v.id) } })
+            if (!mono) LpTextField(s.ipdMm?.toString() ?: "", { v -> vm.update { it.copy(ipdMm = v.toDoubleOrNull()) } }, stringResource(R.string.ipd), number = true)
             CheckRow(s.researchMode, { v -> vm.update { it.copy(researchMode = v) } }, stringResource(R.string.research_mode))
             LpTextField(s.autoLockSeconds.toString(), { v -> v.toIntOrNull()?.let { n -> vm.update { it.copy(autoLockSeconds = n.coerceIn(30, 900)) } } }, stringResource(R.string.auto_lock), number = true)
             if (s.fieldCalibratedSign != 0) {
@@ -86,7 +90,7 @@ fun SettingsScreen(nav: NavHostController, vm: SettingsViewModel = hiltViewModel
                 BigButton(stringResource(R.string.calibration), { nav.navigate(Routes.CALIBRATION) }, Modifier.weight(1f), secondary = true)
                 BigButton(stringResource(R.string.sensor_debug), { nav.navigate(Routes.SENSOR_DEBUG) }, Modifier.weight(1f), secondary = true)
             }
-            BigButton(stringResource(R.string.lens_calibration), { nav.navigate(Routes.LENS) }, Modifier.fillMaxWidth(), secondary = true)
+            BigButton(stringResource(if (mono) R.string.display_check else R.string.lens_calibration), { nav.navigate(Routes.LENS) }, Modifier.fillMaxWidth(), secondary = true)
             InfoCard("Retention") {
                 if (ui.retentionPending > 0) { WarningText(stringResource(R.string.retention_pending, ui.retentionPending)); BigButton("Confirm deletion", { vm.confirmDeletion() }, Modifier.fillMaxWidth(), danger = true) }
                 BigButton(stringResource(R.string.retention_check), { vm.runRetention() }, Modifier.fillMaxWidth(), secondary = true)

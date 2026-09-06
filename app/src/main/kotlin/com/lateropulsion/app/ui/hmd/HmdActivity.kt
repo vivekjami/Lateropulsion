@@ -34,7 +34,7 @@ import com.lateropulsion.engine.render.RenderListener
 import com.lateropulsion.engine.render.RenderStateHolder
 import com.lateropulsion.engine.render.RenderTelemetry
 import com.lateropulsion.engine.render.RenderThread
-import com.lateropulsion.engine.render.StereoRenderer
+import com.lateropulsion.engine.render.PassthroughRenderer
 import com.lateropulsion.engine.render.ThermalMonitor
 import com.lateropulsion.engine.vision.CameraCapabilities
 import com.lateropulsion.engine.vision.CameraSource
@@ -46,8 +46,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * The headset view: full-screen landscape stereo passthrough on a SurfaceView, rendered by
- * [RenderThread] from the shared pose provider and render state (ARCHITECTURE §5, §7).
+ * The patient view: full-screen landscape camera passthrough on a SurfaceView, rendered by [RenderThread]
+ * from the shared pose provider and render state (ARCHITECTURE §5, §7). The headset profile decides whether
+ * this is one visor image or two lens viewports (ADR-019); everything else here is identical.
  *
  * Abort controls while the phone is in the headset: any touch, any volume key, the Bluetooth clicker's
  * ENTER/DPAD_CENTER, or Back — all reach [AbortController] first and the protocol engine second (REQ-SAF-004).
@@ -114,12 +115,12 @@ class HmdActivity : ComponentActivity(), RenderListener {
         val poses = runtime.poseProvider ?: run { LpLog.e(TAG, "no pose provider; open a session first"); finish(); return }
         val dev = runtime.device.value ?: return
         val hs = runtime.headset.value ?: return
-        val renderer = StereoRenderer(hs, dev, runtime.appConfig.visual)
+        val renderer = PassthroughRenderer(hs, dev, runtime.appConfig.visual)
         // Landscape-locked activity: rotate the camera image by whole quarter turns so it is upright on any phone.
         val sensorOrientation = runCatching { CameraCapabilities.probe(this).sensorOrientation }.getOrDefault(90)
         val displayDeg = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display?.rotation else @Suppress("DEPRECATION") windowManager.defaultDisplay.rotation)?.times(90) ?: 90
         renderer.cameraQuarterTurns = runtime.cameraQuarterTurnsOverride.takeIf { it >= 0 } ?: CameraOrientation.quarterTurns(sensorOrientation, displayDeg)
-        LpLog.i(TAG, "camera orientation", "sensor_deg" to sensorOrientation, "display_deg" to displayDeg, "quarter_turns" to renderer.cameraQuarterTurns)
+        LpLog.i(TAG, "camera orientation", "sensor_deg" to sensorOrientation, "display_deg" to displayDeg, "quarter_turns" to renderer.cameraQuarterTurns, "display_mode" to hs.displayMode)
         val refresh = currentDisplayRefreshRate()
         val t = RenderThread(holder.surface, renderer, poses, renderStates, abort, this, vsyncHz = refresh, abortMs = runtime.appConfig.safety.motionToPhotonAbortMs.toDouble(),
             watchdogFrames = runtime.appConfig.safety.watchdogFrames, cameraStallMs = runtime.appConfig.safety.cameraStallMs.toDouble())
@@ -150,7 +151,11 @@ class HmdActivity : ComponentActivity(), RenderListener {
             cam.state.collectLatest { s ->
                 when (s) {
                     is CameraState.Error -> { LpLog.e(TAG, "camera error", null, "code" to s.code, "message" to s.message); controller.onCameraStall(true) }
-                    is CameraState.Streaming -> { LpLog.i(TAG, "streaming", "fps" to s.fps.upper, "w" to s.size.width); Handler(ct.looper).postDelayed({ cam.setExposureLock(true) }, 2500) }
+                    is CameraState.Streaming -> {
+                        renderThread?.renderer?.cameraBufferAspect = s.size.width.toDouble() / s.size.height
+                        LpLog.i(TAG, "streaming", "fps" to s.fps.upper, "w" to s.size.width, "h" to s.size.height)
+                        Handler(ct.looper).postDelayed({ cam.setExposureLock(true) }, 2500)
+                    }
                     else -> Unit
                 }
             }

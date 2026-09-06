@@ -29,7 +29,7 @@ public interface RenderListener {
  */
 public class RenderThread(
     private val surface: Surface,
-    private val renderer: StereoRenderer,
+    public val renderer: PassthroughRenderer,
     private val poses: PoseProvider,
     private val states: RenderStateHolder,
     private val abort: AbortController,

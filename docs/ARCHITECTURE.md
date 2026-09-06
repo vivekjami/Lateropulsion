@@ -135,7 +135,7 @@ Strict dependency direction: **outer depends on inner, never the reverse.**
 | `core:datastore` | Encrypted settings, device profile, feature flags | `DeviceProfile`, `AppConfig` | common |
 | `engine:sensor` | IMU acquisition, fusion, calibration, drift monitoring | `PoseProvider`, `ImuSource`, `RollEstimator`, `CalibrationStore` | common |
 | `engine:vision` | Camera2 session, frame timing, exposure lock, optional CV markers | `CameraSource`, `FrameClock` | common |
-| `engine:render` | GLES stereo renderer, distortion mesh, overlay layer, abort path | `StereoRenderer`, `CorrectionTransform`, `OverlayPainter` | sensor, vision |
+| `engine:render` | GLES passthrough renderer (visor mono or stereo lens, ADR-019), distortion mesh, overlay layer, abort path | `PassthroughRenderer`, `CorrectionTransform`, `OverlayGeometry`, `ViewMapping` | sensor, vision |
 | `feature:assessment` | Scales, baseline capture flow, SVV test | `ScaleDefinition`, `BaselineCapture` | model, database |
 | `feature:protocol` | Exercise definitions, block sequencing, progression gates, gain fading | `ProtocolEngine`, `BlockState`, `ProgressionGate` | model, metrics |
 | `feature:metrics` | Streaming and batch metric computation, episode detection | `MetricsAccumulator`, `EpisodeDetector`, `SessionSummarizer` | model |
@@ -253,7 +253,15 @@ q_k = normalize( (1−α) · (q_{k−1} ⊗ Δq_gyro) + α · q_accel_correction
 
 ### 7.1 Render graph
 
+Two display modes, selected by `HeadsetProfile.display_mode` (ADR-019). The shipped default is the **visor**: the phone sits on a bracket with its screen facing the eyes and no lenses, so the patient reads it like a normal display.
+
 ```
+Visor (MONO_VISOR, default)
+Camera OES texture ──► [single pass] correction rotation about the screen centre,
+                        aspect-preserving cover crop ──► window
+                        └─► [Overlay pass] gravity-locked cues, drawn once
+
+Lens headset (STEREO_LENS)
 Camera OES texture
    │
    ├─► [Left eye pass]  ── correction matrix ──► viewport L ──┐
@@ -262,6 +270,8 @@ Camera OES texture
    │
    └─► [Overlay pass] gravity-locked cues drawn in world space, projected per eye
 ```
+
+In both modes the camera image is scaled uniformly until it covers the viewport and the overflow is cropped (`ViewMapping.cover`); it is never stretched, so a real-world angle is the same angle on screen and the plumb-line check stays meaningful.
 
 ### 7.2 Correction transform (Mode B)
 
@@ -824,4 +834,4 @@ Additional: certificate pinning on the sync flavour, no third-party analytics or
 | 008 | Magnetometer excluded from fusion | Indoor ferrous interference; yaw is irrelevant here | Yaw drifts, which is acceptable |
 | 009 | Aborted sessions are saved | Discarding bad sessions biases the trend | Reports must display abort reasons |
 | 010 | Head IMU only in v1, trunk IMU designed-for | Ships sooner; the data model already supports multi-stream | Head-as-proxy limitation must be stated in every report |
-| 011–016 | See `docs/adr/README.md` | Parquet off-device, Kotlin-only fusion/render (no NDK), no game engine, 22-byte record, empirical per-device signs, Android 10+/GLES 3.0 compatibility floor | — |
+| 011–019 | See `docs/adr/README.md` | Parquet off-device, Kotlin-only fusion/render (no NDK), no game engine, 22-byte record, empirical per-device signs, Android 10+/GLES 3.0 compatibility floor, landscape as calibration data, qualification tiers, visor display mode | — |

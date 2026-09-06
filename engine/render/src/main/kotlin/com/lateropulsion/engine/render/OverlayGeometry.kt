@@ -32,11 +32,18 @@ public data class OverlayInput(
     val thetaDeg: Double,
     val state: RenderState,
     val valid: Boolean,
-)
+    /** Half-length of the horizon bar in eye units (1 = half the viewport height); the renderer sizes it to the viewport. */
+    val horizonHalfExtent: Double = DEFAULT_HORIZON_HALF_EXTENT,
+) {
+    public companion object {
+        public const val DEFAULT_HORIZON_HALF_EXTENT: Double = 1.3
+    }
+}
 
 /**
  * Gravity-locked cue geometry (ARCHITECTURE §7.4). All coordinates are in eye space with the optical
- * centre at (0, 0), +y up, and 1 = half the eye's vertical field; the renderer projects per eye.
+ * centre at (0, 0), +y up, and 1 = half the eye's vertical field; the renderer projects per eye (stereo)
+ * or once for the whole screen (visor, ADR-019).
  *
  * When the head rolls right by θ, world-vertical appears rotated counter-clockwise by θ in head/screen
  * coordinates (+x right, +y up), so gravity-locked geometry is rotated by +θ_head: a 30° right roll draws
@@ -74,8 +81,8 @@ public object OverlayGeometry {
             out += Primitive.Line(x1, y1, x2, y2, 0.012f, Rgba.WHITE)
         }
         if (CueType.HORIZON in s.cues) {
-            val (x1, y1) = rot(-1.3, 0.0, a)
-            val (x2, y2) = rot(1.3, 0.0, a)
+            val (x1, y1) = rot(-input.horizonHalfExtent, 0.0, a)
+            val (x2, y2) = rot(input.horizonHalfExtent, 0.0, a)
             out += Primitive.Line(x1, y1, x2, y2, 0.008f, Rgba.CYAN)
         }
         if (CueType.TARGET in s.cues) {

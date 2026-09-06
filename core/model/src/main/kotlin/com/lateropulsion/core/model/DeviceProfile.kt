@@ -81,11 +81,30 @@ public enum class DeviceQualification {
     JIG,
 }
 
-/** Optics of one headset model (ARCHITECTURE §7.1). Distortion coefficients are in normalised eye radius units. */
+/**
+ * How the patient looks at the phone (ADR-019). The optics decide the render path; the fusion, overlays and
+ * protocol are identical in both modes.
+ */
+@Serializable
+public enum class HeadsetDisplayMode {
+    /**
+     * The phone sits on a visor bracket with its screen facing the eyes and no lenses: one full-screen camera
+     * image, aspect-preserving, gravity-locked overlays on top, Mode B tilts the image about the screen centre.
+     */
+    MONO_VISOR,
+    /** Cardboard-class headset with two lenses: per-eye viewports, barrel pre-distortion, chromatic correction. */
+    STEREO_LENS,
+}
+
+/**
+ * One headset or visor model (ARCHITECTURE §7.1). Distortion coefficients are in normalised eye radius units and
+ * are ignored in [HeadsetDisplayMode.MONO_VISOR].
+ */
 @Serializable
 public data class HeadsetProfile(
     val id: String,
     val name: String,
+    val displayMode: HeadsetDisplayMode = HeadsetDisplayMode.STEREO_LENS,
     val ipdMm: Double = 63.0,
     val ipdMinMm: Double = 56.0,
     val ipdMaxMm: Double = 72.0,
@@ -101,8 +120,10 @@ public data class HeadsetProfile(
     val openBottom: Boolean = true,
     val notes: String = "",
 ) {
+    public val isMono: Boolean get() = displayMode == HeadsetDisplayMode.MONO_VISOR
+
     public fun validate(): List<String> = buildList {
-        if (ipdMm !in ipdMinMm..ipdMaxMm) add("ipd_mm outside headset range")
+        if (!isMono && ipdMm !in ipdMinMm..ipdMaxMm) add("ipd_mm outside headset range")
         if (fovDeg !in 40.0..120.0) add("fov_deg unrealistic")
         if (overscan < 1.0 || overscan > 1.5) add("overscan must be 1.0..1.5")
     }

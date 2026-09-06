@@ -50,7 +50,8 @@ public object ReportText {
             "Read it together with the gain k and the assistance level: a falling deviation under a constant high gain or more hands-on help is not progress."
     public const val MDC_NOTE: String = "Changes smaller than the minimal detectable change (MDC) are within measurement noise."
     public const val UNQUALIFIED_DEVICE: String = "UNQUALIFIED DEVICE: this phone has no roll calibration. Angles carry unverified error."
-    public const val FIELD_CALIBRATED_DEVICE: String = "FIELD-CALIBRATED DEVICE: roll sign and mount were set in-app and cross-checked against the phone's own sensor fusion; no rotary-jig accuracy report exists for this phone model (REQ-SEN-040 pending)."
+    public const val FIELD_CALIBRATED_DEVICE: String = "FIELD-CALIBRATED DEVICE: roll sign and mount were set in-app and cross-checked against the phone's own sensor fusion; " +
+        "no rotary-jig accuracy report exists for this phone model (REQ-SEN-040 pending)."
     public const val ABORTED_NOTE: String = "This session was aborted. Aborted sessions are always saved and shown so the trend is not biased toward good sessions."
     public const val CRASH_RECOVERED_NOTE: String = "Session log was recovered after an app crash; metrics were recomputed from the recovered raw data."
     public const val DEIDENTIFIED: String = "De-identified export: patient display ID only; no name, MRN or contact data included."

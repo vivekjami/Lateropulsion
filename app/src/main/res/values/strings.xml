@@ -141,8 +141,9 @@
     <string name="calibrating">Calibrating… hold the headset still (%1$d %%)</string>
     <string name="confirm_midline">Re-check midline: patient at clinical upright, then confirm</string>
     <string name="confirm_midline_button">Confirm midline</string>
-    <string name="insert_phone">Insert the phone into the headset, then start the HMD view.</string>
-    <string name="start_hmd">Start HMD view</string>
+    <string name="insert_phone">Insert the phone into the lens headset, then start the patient view.</string>
+    <string name="mount_phone_visor">Mount the phone on the visor: screen tilted toward the patient\'s eyes, camera looking ahead. Then start the patient view.</string>
+    <string name="start_hmd">Start patient view</string>
     <string name="start_session">Start session</string>
     <string name="block_progress">Block %1$d/%2$d · %3$s · %4$d s left</string>
     <string name="resting">Rest · %1$d s left</string>
@@ -212,7 +213,11 @@
     <string name="auto_lock">Auto-lock after (s)</string>
     <string name="calibration">Roll calibration (sign and mount)</string>
     <string name="sensor_debug">Sensor debug</string>
-    <string name="lens_calibration">Lens / IPD calibration (HMD)</string>
+    <string name="lens_calibration">Lens / IPD calibration (lens headset)</string>
+    <string name="display_check">Display alignment check (visor)</string>
+    <string name="visor_check_text">The patient looks at the phone screen directly, so there is nothing to focus or fuse: this check is about orientation only. Start the preview, mount the phone on the visor and look at a door frame while rolling your head. The picture must be upright and not mirrored, keep its true proportions, and the white plumb line must stay on the real vertical edge. If the picture turns the wrong way as you roll, flip the rotation direction. Grey corners during large rolls are expected; raise the profile\'s overscan to hide them.</string>
+    <string name="lens_check_text">1. Set the IPD to the wearer\'s measurement. 2. Start the preview, put the phone in the headset and look at a door frame or plumb line while rolling your head. The white plumb line must stay on the real vertical edge. If the camera image rotates the wrong way as you roll, flip the rotation direction.</string>
+    <string name="start_preview">Start preview (Mode B at k = 1, plumb line)</string>
     <string name="retention_check">Run retention check</string>
     <string name="retention_pending">%1$d media file(s) past retention — confirm deletion</string>
     <string name="about">About</string>

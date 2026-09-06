@@ -1,0 +1,19 @@
+{
+  "id": "phone-visor-mono-v1",
+  "name": "Phone on a visor bracket, no lenses (single full-screen view)",
+  "display_mode": "MONO_VISOR",
+  "ipd_mm": 63.0,
+  "ipd_min_mm": 50.0,
+  "ipd_max_mm": 80.0,
+  "lens_separation_mm": 0.0,
+  "screen_to_lens_mm": 0.0,
+  "distortion_k1": 0.0,
+  "distortion_k2": 0.0,
+  "chromatic_red_scale": 1.0,
+  "chromatic_blue_scale": 1.0,
+  "fov_deg": 70.0,
+  "overscan": 1.0,
+  "eye_center_offset_y": 0.0,
+  "open_bottom": true,
+  "notes": "The phone is strapped on top of the head or to a cap/visor with the screen tilted toward the eyes; the back camera looks ahead and slightly down. The patient reads the screen like a normal display, so no stereo split and no barrel distortion. The camera image keeps its true aspect (cropped, never stretched), the plumb line and horizon are gravity-locked, and Mode B rotates the picture about the screen centre. overscan 1.0 keeps the whole field of view; raise it to hide the grey corners that appear during large Mode B rotations."
+}
