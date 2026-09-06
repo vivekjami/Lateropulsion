@@ -27,7 +27,7 @@ public data class AppConfig(
         if (metrics.bandPrimaryDeg >= metrics.bandSecondaryDeg) add("metrics.band_primary_deg must be below band_secondary_deg")
         if (safety.motionToPhotonAbortMs < 30) add("safety.motion_to_photon_abort_ms unrealistically low")
         if (privacy.retentionDays < 1) add("privacy.retention_days must be positive")
-        if (security.autoLockSeconds !in 30..900) add("security.auto_lock_seconds must be 30..900")
+        if (security.autoLockSeconds !in 60..3600) add("security.auto_lock_seconds must be 60..3600")
     }
 }
 
@@ -111,7 +111,7 @@ public data class PrivacyConfig(
 
 @Serializable
 public data class SecurityConfig(
-    val autoLockSeconds: Int = 120,
+    val autoLockSeconds: Int = 1800,
     val pinMinLength: Int = 6,
     val maxFailedAttempts: Int = 5,
     val lockoutSeconds: Int = 300,

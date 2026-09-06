@@ -210,7 +210,7 @@
     <string name="headset_profile">Headset profile</string>
     <string name="ipd">IPD (mm)</string>
     <string name="research_mode">Research mode (allows unqualified devices, flags every report)</string>
-    <string name="auto_lock">Auto-lock after (s)</string>
+    <string name="auto_lock">Auto-lock after inactivity (seconds, 60–3600; default 1800 = 30 min)</string>
     <string name="calibration">Roll calibration (sign and mount)</string>
     <string name="sensor_debug">Sensor debug</string>
     <string name="lens_calibration">Lens / IPD calibration (lens headset)</string>
@@ -278,7 +278,7 @@
     <string name="midline_chip">clinician midline %1$.1f°</string>
     <string name="start_session_n">Start session %1$d</string>
     <string name="patient_condition">Patient condition</string>
-    <string name="patient_condition_hint">Severity, balance, assistance and fall risk. Recorded with conservative defaults; edit if the patient differs. Nothing here blocks a session.</string>
+    <string name="patient_condition_hint">Every item starts at none / no impairment. Change only what the patient actually has. Nothing here blocks a session.</string>
     <string name="edit_condition">Edit patient condition</string>
     <string name="open_report">Open report</string>
     <string name="baseline_locked_supersede">The current baseline is locked because sessions exist. Saving creates a new baseline that supersedes it.</string>

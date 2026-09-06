@@ -72,13 +72,14 @@ class EntityValidationTest {
     }
 
     @Test
-    fun `REQ-PAT-030 baseline defaults are conservative, complete only once measured, and tilt reads in clinical words`() {
+    fun `REQ-PAT-030 baseline defaults are none for every item, complete only once measured, and tilt reads in clinical words`() {
         val b = Baseline.defaultFor(patient, ClinicianId("c1"), 1_000L)
         assertEquals(patient.id, b.patientId)
-        assertEquals(Severity.MODERATE, b.severity)
-        assertEquals(WalkingAbility.NON_AMBULANT, b.walkingAbility)
-        assertEquals(AssistanceLevel.ONE_PERSON, b.assistanceLevel)
-        assertEquals(FallRisk.HIGH, b.fallRisk)
+        assertEquals(Severity.NONE, b.severity)
+        assertEquals(WalkingAbility.INDEPENDENT, b.walkingAbility)
+        assertEquals(AssistanceLevel.INDEPENDENT, b.assistanceLevel)
+        assertEquals(FallRisk.LOW, b.fallRisk)
+        assertEquals(0.0, b.headDeviationDeg); assertEquals(0.0, b.trunkDeviationDeg)
         assertFalse(b.locked)
         assertFalse(b.isComplete)
         assertTrue(b.validate().toList().isEmpty(), b.validate().toList().toString())

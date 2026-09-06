@@ -113,17 +113,20 @@ class AuthManager @Inject constructor(
     suspend fun lock(reason: String = "manual") {
         val who = id()
         val list = clinicians.list()
-        _state.value = if (list.isEmpty()) AuthState.NoAccount else AuthState.Locked(list, if (reason == "auto") "Locked after inactivity" else null)
+        _state.value = if (list.isEmpty()) AuthState.NoAccount else AuthState.Locked(list, if (reason.startsWith("auto")) "Locked after inactivity" else null)
         who?.let { log(AuditAction.LOGOUT, it, reason) }
     }
 
     fun touch() { lastActivityMs = clock.nowUtcMillis() }
 
-    /** Called by the process-lifecycle observer and a UI heartbeat (REQ-SEC-003). */
+    /**
+     * Called by the process-lifecycle observer and a UI heartbeat (REQ-SEC-003). The same inactivity timeout applies
+     * in the foreground and the background (default 30 min); leaving the app no longer locks it by itself.
+     */
     suspend fun autoLockIfIdle(inBackground: Boolean) {
         if (_state.value !is AuthState.Unlocked) return
         val idleMs = clock.nowUtcMillis() - lastActivityMs
-        if (inBackground || idleMs > security.autoLockSeconds * 1000L) lock("auto")
+        if (idleMs > security.autoLockSeconds * 1000L) lock(if (inBackground) "auto-background" else "auto")
     }
 
     private suspend fun log(action: AuditAction, id: ClinicianId, detail: String = "") {

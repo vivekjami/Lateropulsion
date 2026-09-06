@@ -40,16 +40,15 @@ public data class Baseline(
         public const val MAX_THETA_REF: Double = 45.0
 
         /**
-         * Clinical picture pre-filled with conservative defaults so the operator only edits what differs (ADR-020):
-         * a supported sitter who needs one person, pushes toward the side recorded at registration, high fall risk.
-         * Everything is editable later on the patient-condition screen; the first session's protocol gating starts
-         * from sitting regardless.
+         * Clinical picture pre-filled with "none / no impairment" for every item, so the operator only marks what the
+         * patient actually has (ADR-020). Everything is editable on the patient-condition screen; the first session's
+         * protocol gating starts from sitting regardless of what is recorded here.
          */
         public fun defaultFor(patient: Patient, recordedBy: ClinicianId, nowUtcMillis: Long): Baseline = Baseline(
-            id = Ids.baseline(), patientId = patient.id, severity = Severity.MODERATE, headDeviationDeg = 0.0, trunkDeviationDeg = 0.0,
-            sittingBalance = SittingBalance.SUPPORTED_ONLY, standingBalance = StandingBalance.UNABLE, walkingAbility = WalkingAbility.NON_AMBULANT,
-            assistanceLevel = AssistanceLevel.ONE_PERSON, midlineAwareness = MidlineAwareness.PARTIAL, correctionAbility = CorrectionAbility.TOLERATES_PASSIVE,
-            fallRisk = FallRisk.HIGH, measured = null, thetaRefDeg = null, thetaRefSetBy = null, thetaRefSetAt = null,
+            id = Ids.baseline(), patientId = patient.id, severity = Severity.NONE, headDeviationDeg = 0.0, trunkDeviationDeg = 0.0,
+            sittingBalance = SittingBalance.UNSUPPORTED_DYNAMIC, standingBalance = StandingBalance.INDEPENDENT, walkingAbility = WalkingAbility.INDEPENDENT,
+            assistanceLevel = AssistanceLevel.INDEPENDENT, midlineAwareness = MidlineAwareness.PRESENT, correctionAbility = CorrectionAbility.ACTIVE_INDEPENDENT,
+            fallRisk = FallRisk.LOW, measured = null, thetaRefDeg = null, thetaRefSetBy = null, thetaRefSetAt = null,
             recordedAt = nowUtcMillis, recordedBy = recordedBy, notes = "",
         )
 

@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable public enum class LesionSide { LEFT, RIGHT, BILATERAL, BRAINSTEM, UNKNOWN }
 
-@Serializable public enum class Severity { MINIMAL, MILD, MODERATE, SEVERE, VERY_SEVERE }
+@Serializable public enum class Severity { NONE, MINIMAL, MILD, MODERATE, SEVERE, VERY_SEVERE }
 
 @Serializable public enum class SittingBalance { UNABLE, SUPPORTED_ONLY, UNSUPPORTED_STATIC, UNSUPPORTED_DYNAMIC }
 

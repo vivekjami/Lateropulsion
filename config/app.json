@@ -61,7 +61,7 @@
     "export_deidentified_by_default": true
   },
   "security": {
-    "auto_lock_seconds": 120,
+    "auto_lock_seconds": 1800,
     "pin_min_length": 6,
     "max_failed_attempts": 5,
     "lockout_seconds": 300

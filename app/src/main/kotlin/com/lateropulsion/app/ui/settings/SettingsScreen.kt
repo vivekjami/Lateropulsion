@@ -84,7 +84,7 @@ fun SettingsScreen(nav: NavHostController, vm: SettingsViewModel = hiltViewModel
             Selector(stringResource(R.string.headset_profile), ui.headsets, selectedHeadset, { it.name }, { v -> vm.update { it.copy(headsetProfileId = v.id) } })
             if (!mono) LpTextField(s.ipdMm?.toString() ?: "", { v -> vm.update { it.copy(ipdMm = v.toDoubleOrNull()) } }, stringResource(R.string.ipd), number = true)
             CheckRow(s.researchMode, { v -> vm.update { it.copy(researchMode = v) } }, stringResource(R.string.research_mode))
-            LpTextField(s.autoLockSeconds.toString(), { v -> v.toIntOrNull()?.let { n -> vm.update { it.copy(autoLockSeconds = n.coerceIn(30, 900)) } } }, stringResource(R.string.auto_lock), number = true)
+            LpTextField(s.autoLockSeconds.toString(), { v -> v.toIntOrNull()?.let { n -> vm.update { it.copy(autoLockSeconds = n.coerceIn(60, 3600)) } } }, stringResource(R.string.auto_lock), number = true)
             if (s.fieldCalibratedSign != 0) {
                 val at = s.fieldCalibratedAt?.let { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)) } ?: ""
                 Text("Field calibration: sign ${s.fieldCalibratedSign}, mount ${"%.1f".format(s.fieldCalibratedMountDeg ?: 0.0)}° ($at)")

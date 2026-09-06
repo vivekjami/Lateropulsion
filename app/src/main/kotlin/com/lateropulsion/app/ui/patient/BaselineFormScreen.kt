@@ -53,10 +53,10 @@ import javax.inject.Inject
 
 data class BaselineForm(
     val patient: Patient? = null, val name: String = "",
-    val severity: Severity = Severity.MODERATE, val head: String = "", val trunk: String = "",
-    val sitting: SittingBalance = SittingBalance.SUPPORTED_ONLY, val standing: StandingBalance = StandingBalance.UNABLE, val walking: WalkingAbility = WalkingAbility.NON_AMBULANT,
-    val assistance: AssistanceLevel = AssistanceLevel.ONE_PERSON, val midline: MidlineAwareness = MidlineAwareness.PARTIAL, val correction: CorrectionAbility = CorrectionAbility.TOLERATES_PASSIVE,
-    val fall: FallRisk = FallRisk.HIGH, val notes: String = "", val existing: Baseline? = null, val scales: List<String> = emptyList(),
+    val severity: Severity = Severity.NONE, val head: String = "0", val trunk: String = "0",
+    val sitting: SittingBalance = SittingBalance.UNSUPPORTED_DYNAMIC, val standing: StandingBalance = StandingBalance.INDEPENDENT, val walking: WalkingAbility = WalkingAbility.INDEPENDENT,
+    val assistance: AssistanceLevel = AssistanceLevel.INDEPENDENT, val midline: MidlineAwareness = MidlineAwareness.PRESENT, val correction: CorrectionAbility = CorrectionAbility.ACTIVE_INDEPENDENT,
+    val fall: FallRisk = FallRisk.LOW, val notes: String = "", val existing: Baseline? = null, val scales: List<String> = emptyList(),
     val error: String? = null, val savedId: String? = null,
 )
 
