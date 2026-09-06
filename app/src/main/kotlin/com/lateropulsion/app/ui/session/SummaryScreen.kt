@@ -33,6 +33,7 @@ import com.lateropulsion.app.ui.components.PatientBanner
 import com.lateropulsion.app.ui.components.Selector
 import com.lateropulsion.app.ui.components.WarningText
 import com.lateropulsion.app.ui.nav.Routes
+import com.lateropulsion.core.common.LpLog
 import com.lateropulsion.core.model.AppConfig
 import com.lateropulsion.core.model.AssistanceLevel
 import com.lateropulsion.core.model.ConfigRepository
@@ -46,6 +47,8 @@ import javax.inject.Inject
 
 data class SummaryUi(val notes: String = "", val assistance: AssistanceLevel? = null, val ssqDef: ScaleDefinition? = null, val ssqAnswers: Map<String, Int> = emptyMap(),
     val ssq: SsqScore? = null, val saving: Boolean = false, val error: String? = null, val savedSessionId: String? = null)
+
+private const val TAG = "Summary"
 
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
@@ -69,11 +72,12 @@ class SummaryViewModel @Inject constructor(
         ui.value = s.copy(ssqAnswers = a, ssq = if (a.size == def.items.size) SsqScoring.score(def, a, appConfig.session.ssqFlagThresholdTotal) else null)
     }
     fun save() = viewModelScope.launch {
+        LpLog.i(TAG, "confirm and save", "phase" to live.value.phase::class.simpleName, "summary" to (live.value.summary != null))
         val s = ui.value
         ui.value = s.copy(saving = true)
         controller.finalize(s.notes, s.assistance, s.ssq).fold(
             onSuccess = { c -> runtime.releasePoseProvider(); controller.release(); draft.clear(); ui.value = ui.value.copy(saving = false, savedSessionId = c.session.id.value) },
-            onFailure = { ui.value = ui.value.copy(saving = false, error = it.message) },
+            onFailure = { e -> LpLog.e(TAG, "confirm and save failed", e); ui.value = ui.value.copy(saving = false, error = e.message ?: e::class.simpleName) },
         )
     }
 }

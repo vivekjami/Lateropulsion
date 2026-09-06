@@ -93,12 +93,14 @@ class ProgressViewModel @Inject constructor(
         val st = state.value; val p = st.patient ?: return@launch
         val code = if (deidentified) p.displayId else "${p.displayId}_${st.name.replace(' ', '_')}"
         exports.share("${p.displayId}_sessions.csv", "text/csv", "sessions-csv", "patient", p.id.value, deidentified, auth.current?.id) { it.writeText(CsvExporter.sessionsCsv(p, st.rows, code)) }
+            .onFailure { state.value = state.value.copy(message = "Export failed: ${it.message ?: it::class.simpleName}") }
     }
 
     fun exportPdf() = viewModelScope.launch {
         val st = state.value; val p = st.patient ?: return@launch
         val data = reportData().copy(siteName = settings.current().siteName)
         exports.share("${p.displayId}_progress.pdf", "application/pdf", "progress-pdf", "patient", p.id.value, true, auth.current?.id) { f -> f.outputStream().use { ProgressReportBuilder().build(data, it) } }
+            .onFailure { state.value = state.value.copy(message = "Export failed: ${it.message ?: it::class.simpleName}") }
     }
 
     fun erase(retain: Boolean) = viewModelScope.launch {

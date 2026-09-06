@@ -31,6 +31,8 @@ import com.lateropulsion.app.ui.components.LpScreen
 import com.lateropulsion.app.ui.components.PatientBanner
 import com.lateropulsion.app.ui.components.WarningText
 import com.lateropulsion.core.common.Clock
+import com.lateropulsion.core.common.LpLog
+import com.lateropulsion.core.common.Redaction
 import com.lateropulsion.core.datastore.SettingsStore
 import com.lateropulsion.core.model.BaselineRepository
 import com.lateropulsion.core.model.ConfigRepository
@@ -60,7 +62,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
-data class DetailState(val data: SessionReportData? = null, val error: String? = null)
+private const val TAG = "Report"
+
+data class DetailState(val data: SessionReportData? = null, val error: String? = null, val exportError: String? = null)
 
 @HiltViewModel
 class SessionDetailViewModel @Inject constructor(
@@ -90,7 +94,7 @@ class SessionDetailViewModel @Inject constructor(
                 val points = ChartModel.downsample(trace.map { Pt(it.tS, it.thetaDeg) }, 3000).map { TracePoint(it.x, it.y, true) }
                 val qualification = dev?.qualification ?: com.lateropulsion.core.model.DeviceQualification.NONE
                 SessionReportData(p, clinicianName, s, blocks, summary, baseline, events, points, protocolName, qualification, BuildConfig.VERSION_NAME, settings.current().siteName, clock.nowUtcMillis())
-            }.onSuccess { state.value = DetailState(it) }.onFailure { state.value = DetailState(error = it.message) }
+            }.onSuccess { state.value = DetailState(it) }.onFailure { e -> LpLog.e(TAG, "report load failed", e, "session_id" to Redaction.shortId(sessionId.value)); state.value = DetailState(error = e.message ?: e::class.simpleName) }
         }
     }
 
@@ -108,18 +112,18 @@ class SessionDetailViewModel @Inject constructor(
     fun exportPdf() = viewModelScope.launch {
         val d = state.value.data ?: return@launch
         exports.share("${d.patient.displayId}_session${d.session.sessionNumber}.pdf", "application/pdf", "session-pdf", "session", d.session.id.value, true,
-            auth.current?.id) { f -> f.outputStream().use { SessionReportBuilder().build(d, it) } }
+            auth.current?.id) { f -> f.outputStream().use { SessionReportBuilder().build(d, it) } }.onFailure { state.value = state.value.copy(exportError = it.message ?: it::class.simpleName) }
     }
     fun exportJson(deidentified: Boolean) = viewModelScope.launch {
         val d = state.value.data ?: return@launch
         exports.share("${d.patient.displayId}_session${d.session.sessionNumber}.json", "application/json", "session-json", "session", d.session.id.value, deidentified,
-            auth.current?.id) { it.writeText(JsonExporter.sessionBundle(d, deidentified)) }
+            auth.current?.id) { it.writeText(JsonExporter.sessionBundle(d, deidentified)) }.onFailure { state.value = state.value.copy(exportError = it.message ?: it::class.simpleName) }
     }
     fun exportTraceCsv() = viewModelScope.launch {
         val d = state.value.data ?: return@launch
         val ts = sessions.timeseries(d.session.id) ?: return@launch
         exports.share("${d.patient.displayId}_session${d.session.sessionNumber}_trace.csv", "text/csv", "trace-csv", "session", d.session.id.value, true,
-            auth.current?.id) { f -> f.writeText(CsvExporter.traceCsv(LpxReader.read(File(ts.path)))) }
+            auth.current?.id) { f -> f.writeText(CsvExporter.traceCsv(LpxReader.read(File(ts.path)))) }.onFailure { state.value = state.value.copy(exportError = it.message ?: it::class.simpleName) }
     }
 }
 
@@ -172,6 +176,7 @@ fun SessionDetailScreen(nav: NavHostController, sessionId: String, vm: SessionDe
                 BigButton(stringResource(R.string.export_json), { vm.exportJson(true) }, Modifier.weight(1f), secondary = true)
             }
             BigButton("Export raw trace CSV", { vm.exportTraceCsv() }, Modifier.fillMaxWidth(), secondary = true)
+            st.exportError?.let { WarningText(stringResource(R.string.export_failed, it)) }
         }
     }
 }

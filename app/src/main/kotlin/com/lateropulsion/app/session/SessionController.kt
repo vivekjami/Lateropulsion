@@ -4,6 +4,7 @@ import android.content.Context
 import com.lateropulsion.core.common.Clock
 import com.lateropulsion.core.common.LpDispatchers
 import com.lateropulsion.core.common.LpLog
+import com.lateropulsion.core.common.Redaction
 import com.lateropulsion.core.common.TimeUnits
 import com.lateropulsion.core.model.AssistanceLevel
 import com.lateropulsion.core.model.Baseline
@@ -397,8 +398,9 @@ class SessionController @Inject constructor(
         sessions.complete(completed).getOrThrow()
         handle(SessionInput.Confirm)
         _state.value = _state.value.copy(saved = true, summary = finalSummary)
+        LpLog.i(TAG, "session saved", "session_id" to Redaction.shortId(sp.sessionId.value), "end" to eng.endReason, "blocks" to blockResults.size, "records" to (ts?.sampleCount ?: 0L))
         completed
-    }
+    }.onFailure { LpLog.e(TAG, "session save failed", it, "state" to engine?.state?.let { s -> s::class.simpleName }) }
 
     fun release() {
         scope?.cancel(); scope = null
