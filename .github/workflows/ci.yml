@@ -83,15 +83,19 @@ jobs:
         with:
           packages: platforms;android-35 build-tools;35.0.1
       - uses: gradle/actions/setup-gradle@v4
-      - name: Resolve dependency tree (SBOM input)
-        run: ./gradlew --no-daemon :app:dependencies --configuration clinicalReleaseRuntimeClasspath > sbom-dependencies.txt
+      - name: Resolve dependency tree and write verification metadata (SBOM input)
+        run: |
+          ./gradlew --no-daemon --write-verification-metadata sha256 :app:dependencies --configuration clinicalReleaseRuntimeClasspath > sbom-dependencies.txt
+          ls -la gradle/verification-metadata.xml
       - uses: actions/upload-artifact@v4
         with:
           name: sbom
-          path: sbom-dependencies.txt
-      - name: OSV vulnerability scan of the lockfile-free tree
-        uses: google/osv-scanner-action/osv-scanner-action@v2
+          path: |
+            sbom-dependencies.txt
+            gradle/verification-metadata.xml
+      - name: OSV vulnerability scan of the resolved runtime artifacts
+        uses: google/osv-scanner-action/osv-scanner-action@v2.5.1
         continue-on-error: true
         with:
           scan-args: |-
-            --lockfile=gradle.lockfile:gradle/libs.versions.toml
+            --lockfile=gradle/verification-metadata.xml

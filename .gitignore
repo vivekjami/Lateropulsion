@@ -38,3 +38,6 @@ google-services.json
 
 # Kotlin compiler session data
 .kotlin/
+
+# Generated in CI for the OSV scan; never committed (would turn on dependency verification for every build)
+gradle/verification-metadata.xml
