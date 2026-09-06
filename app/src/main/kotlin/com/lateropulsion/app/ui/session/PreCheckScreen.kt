@@ -96,7 +96,12 @@ class PreCheckViewModel @Inject constructor(
                 deviceQualified = dev.allowsClinicalSession || research || draft.simulated,
             )
             val spec = draft.spec.value
-            state.value = state.value.copy(checklist = auto, ssqDef = config.scale("SSQ"), assistanceBefore = draft.baseline?.assistanceLevel ?: AssistanceLevel.ONE_PERSON,
+            val ssqDef = config.scale("SSQ")
+            // SSQ starts at "none" for every item (ADR-021); the operator changes an item only if the patient reports it.
+            val none = ssqDef?.items?.associate { it.id to 0 } ?: emptyMap()
+            state.value = state.value.copy(checklist = auto, ssqDef = ssqDef, ssqAnswers = none,
+                ssq = ssqDef?.let { SsqScoring.score(it, none, appConfig.session.ssqFlagThresholdTotal) },
+                assistanceBefore = draft.baseline?.assistanceLevel ?: AssistanceLevel.ONE_PERSON,
                 requiresHarness = spec?.position?.requiresHarness == true,
                 deviceInfo = "${dev.id} · camera ${cam?.hardwareLevelName ?: "n/a"} ${cam?.maxFps ?: 0} fps · IMU ${"%.0f".format(runtime.imuCapabilities.gyroMaxRateHz)} Hz${if (draft.simulated) " · SIMULATED PATIENT" else ""}")
             evaluate()
@@ -121,13 +126,6 @@ class PreCheckViewModel @Inject constructor(
         val s = state.value; val def = s.ssqDef ?: return
         val a = s.ssqAnswers + (itemId to idx)
         state.value = s.copy(ssqAnswers = a, ssq = if (a.size == def.items.size) SsqScoring.score(def, a, appConfig.session.ssqFlagThresholdTotal) else null)
-    }
-
-    /** Patient reports no simulator-sickness symptoms: every item at its first (none) option. */
-    fun ssqNoSymptoms() {
-        val def = state.value.ssqDef ?: return
-        val a = def.items.associate { it.id to 0 }
-        state.value = state.value.copy(ssqAnswers = a, ssq = SsqScoring.score(def, a, appConfig.session.ssqFlagThresholdTotal))
     }
 
     fun assistance(a: AssistanceLevel) { state.value = state.value.copy(assistanceBefore = a) }
@@ -197,8 +195,7 @@ fun PreCheckScreen(nav: NavHostController, vm: PreCheckViewModel = hiltViewModel
                     Selector(stringResource(label), listOf(false, true), st.ci[ci] ?: false, { if (it) presentLabel else absentLabel }, { vm.ci(ci, it) })
                 }
             }
-            Expander(stringResource(R.string.ssq_pre), st.ssq?.let { stringResource(R.string.ssq_summary, it.total) } ?: stringResource(R.string.ssq_not_entered)) {
-                BigButton(stringResource(R.string.ssq_no_symptoms), { vm.ssqNoSymptoms() }, Modifier.fillMaxWidth(), secondary = true)
+            Expander(stringResource(R.string.ssq_pre), st.ssq?.let { if (it.total == 0.0) stringResource(R.string.ssq_all_none) else stringResource(R.string.ssq_summary, it.total) } ?: "") {
                 Text(stringResource(R.string.ssq_item_by_item), style = MaterialTheme.typography.bodyMedium)
                 st.ssqDef?.items?.forEach { item -> Selector(item.label, item.options.indices.toList(), st.ssqAnswers[item.id], { item.options[it].label }, { vm.ssq(item.id, it) }) }
                 st.ssq?.let { Text(stringResource(R.string.ssq_result, it.total, it.nausea, it.oculomotor, it.disorientation, if (it.flagged) stringResource(R.string.ssq_flagged) else "")) }
@@ -218,9 +215,7 @@ fun PreCheckScreen(nav: NavHostController, vm: PreCheckViewModel = hiltViewModel
                 r.warnings.forEach { WarningText(it) }
             }
             st.error?.let { WarningText(it) }
-            val ssqOk = st.ssq != null || st.ssqDef == null
-            if (!ssqOk) Text(stringResource(R.string.ssq_required_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            BigButton(stringResource(R.string.begin_calibration), { vm.begin() }, Modifier.fillMaxWidth(), enabled = st.result?.canStart == true && ssqOk)
+            BigButton(stringResource(R.string.begin_calibration), { vm.begin() }, Modifier.fillMaxWidth(), enabled = st.result?.canStart == true)
         }
     }
 }

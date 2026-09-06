@@ -25,6 +25,7 @@ import com.lateropulsion.app.session.SessionController
 import com.lateropulsion.app.session.SessionDraft
 import com.lateropulsion.app.session.SessionRuntime
 import com.lateropulsion.app.ui.components.BigButton
+import com.lateropulsion.app.ui.components.Expander
 import com.lateropulsion.app.ui.components.InfoCard
 import com.lateropulsion.app.ui.components.LpScreen
 import com.lateropulsion.app.ui.components.LpTextField
@@ -53,7 +54,13 @@ class SummaryViewModel @Inject constructor(
 ) : ViewModel() {
     val live = controller.state
     val ui = MutableStateFlow(SummaryUi(assistance = draft.assistanceBefore))
-    init { viewModelScope.launch { ui.value = ui.value.copy(ssqDef = config.scale("SSQ")) } }
+    init {
+        viewModelScope.launch {
+            val def = config.scale("SSQ")
+            val none = def?.items?.associate { it.id to 0 } ?: emptyMap()
+            ui.value = ui.value.copy(ssqDef = def, ssqAnswers = none, ssq = def?.let { SsqScoring.score(it, none, appConfig.session.ssqFlagThresholdTotal) })
+        }
+    }
     fun notes(t: String) { ui.value = ui.value.copy(notes = t) }
     fun assistance(a: AssistanceLevel) { ui.value = ui.value.copy(assistance = a) }
     fun ssq(itemId: String, idx: Int) {
@@ -108,9 +115,11 @@ fun SummaryScreen(nav: NavHostController, vm: SummaryViewModel = hiltViewModel()
             } else Text("Computing summary…")
             LpTextField(ui.notes, { vm.notes(it) }, stringResource(R.string.therapist_notes), singleLine = false)
             Selector(stringResource(R.string.assistance_after), AssistanceLevel.entries, ui.assistance, { "${it.level} – ${it.name.lowercase().replace('_', ' ')}" }, { vm.assistance(it) })
-            Text(stringResource(R.string.ssq_post), style = MaterialTheme.typography.titleMedium)
-            ui.ssqDef?.items?.forEach { item -> Selector(item.label, item.options.indices.toList(), ui.ssqAnswers[item.id], { item.options[it].label }, { vm.ssq(item.id, it) }) }
-            ui.ssq?.let { Text(stringResource(R.string.ssq_result, it.total, it.nausea, it.oculomotor, it.disorientation, if (it.flagged) stringResource(R.string.ssq_flagged) else "")) }
+            Expander(stringResource(R.string.ssq_post), ui.ssq?.let { if (it.total == 0.0) stringResource(R.string.ssq_all_none) else stringResource(R.string.ssq_summary, it.total) } ?: "") {
+                Text(stringResource(R.string.ssq_item_by_item), style = MaterialTheme.typography.bodyMedium)
+                ui.ssqDef?.items?.forEach { item -> Selector(item.label, item.options.indices.toList(), ui.ssqAnswers[item.id], { item.options[it].label }, { vm.ssq(item.id, it) }) }
+                ui.ssq?.let { Text(stringResource(R.string.ssq_result, it.total, it.nausea, it.oculomotor, it.disorientation, if (it.flagged) stringResource(R.string.ssq_flagged) else "")) }
+            }
             ui.error?.let { WarningText(it) }
             BigButton(stringResource(R.string.confirm_save), { vm.save() }, Modifier.fillMaxWidth(), enabled = m != null && !ui.saving)
         }
