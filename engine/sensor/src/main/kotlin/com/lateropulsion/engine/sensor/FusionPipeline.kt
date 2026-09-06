@@ -9,6 +9,7 @@ import com.lateropulsion.core.model.ValidityFlags
 import com.lateropulsion.core.model.Vec3
 import kotlin.math.abs
 import kotlin.math.atan2
+import kotlin.math.sqrt
 
 /**
  * Pure, allocation-free pipeline from raw IMU events to a [MutablePose]. Gyro events drive the update;
@@ -46,7 +47,12 @@ public class FusionPipeline(
     private var lastAccelNs = -1L
     private var ax = 0.0; private var ay = 0.0; private var az = 0.0
     private var haveAccel = false
-    private var gyroRollDeg = 0.0
+    /** Gyro-only orientation (never corrected by the accelerometer) for drift and jolt detection. */
+    private val gyroOnlyQ = DoubleArray(4).also { QuatMath.identity(it) }
+    private var gyroOnlyInit = false
+    private val gq = DoubleArray(3)
+    private val tmpA = DoubleArray(4)
+    private val tmpB = DoubleArray(4)
     private val g = DoubleArray(3)
     private var gyroCount = 0L
     private var rateWindowStartNs = -1L
@@ -56,6 +62,11 @@ public class FusionPipeline(
     public var disagreementEvents: Int = 0
         private set
     public var pitchOutOfRangeCount: Long = 0
+        private set
+    public var vendorSamples: Long = 0
+        private set
+    /** True while the device is not moving: |ω| small and |a| within 10 % of 1 g. Monitors only trust these samples. */
+    public var still: Boolean = false
         private set
 
     private val pose = MutablePose()
@@ -101,12 +112,28 @@ public class FusionPipeline(
         filter.correctWithAccel(ax, ay, az)
         filter.gravity(g)
 
-        // gyro-only roll about the line of sight (device Z), same sign convention as θ_head
+        // Gyro-only roll in 3D: the same roll extraction applied to an orientation integrated from the gyro alone,
+        // so pitch/yaw hand motion does not masquerade as roll disagreement.
+        if (!gyroOnlyInit) { gyroOnlyQ[0] = filter.q[0]; gyroOnlyQ[1] = filter.q[1]; gyroOnlyQ[2] = filter.q[2]; gyroOnlyQ[3] = filter.q[3]; gyroOnlyInit = true }
+        else QuatMath.integrateBodyRate(gyroOnlyQ, wx, wy, wz, dt, tmpA, tmpB)
+        QuatMath.rotateInverse(gyroOnlyQ, 0.0, 1.0, 0.0, gq)
         val s = if (estimator.rollSign == 0) 1 else estimator.rollSign
-        gyroRollDeg += s * Angles.radToDeg(wz * dt) / estimator.scaleError
+        val gyroRollDeg = Angles.wrapDeg(s * Angles.radToDeg(atan2(gq[0], gq[1])) / estimator.scaleError + estimator.thetaMountDeg)
         val gravityRollDeg = Angles.wrapDeg(s * Angles.radToDeg(atan2(ax, ay)) / estimator.scaleError + estimator.thetaMountDeg)
-        drift.feed(tNs / 1e9, gyroRollDeg, gravityRollDeg)
-        if (!calibrating && mountShift.feed(tNs, gravityRollDeg, gyroRollDeg)) mountShifted = true
+        val an = sqrt(ax * ax + ay * ay + az * az)
+        val accelSteady = abs(an / ComplementaryFilter.STANDARD_GRAVITY - 1.0) < 0.10
+        val nowStill = accelSteady && abs(wx) + abs(wy) + abs(wz) < 0.15
+        if (nowStill && !still) {
+            // Motion just ended: gyro-only integration through the movement is not a drift measurement.
+            // Re-align the gyro-only orientation to the fused one and start a fresh drift window.
+            gyroOnlyQ[0] = filter.q[0]; gyroOnlyQ[1] = filter.q[1]; gyroOnlyQ[2] = filter.q[2]; gyroOnlyQ[3] = filter.q[3]
+            drift.reset()
+        }
+        still = nowStill
+        // Drift: slope of (gyro-only roll − gravity roll) over a continuous still period (jig hold, headset at rest).
+        if (still) drift.feed(tNs / 1e9, gyroRollDeg, gravityRollDeg)
+        // Jolt / possible headset shift: a gravity-roll step the gyro does not explain, judged only on steady samples.
+        if (!calibrating && accelSteady && mountShift.feed(tNs, gravityRollDeg, gyroRollDeg)) mountShifted = true
 
         val ok = estimator.estimate(g[0], g[1], g[2], thetaRefDeg)
         if (!ok) pitchOutOfRangeCount++
@@ -131,6 +158,7 @@ public class FusionPipeline(
 
     /** Vendor fusion cross-check. `vendorRollDeg` must already be in the θ_head convention. */
     public fun onVendorRoll(tNs: Long, vendorRollDeg: Double) {
+        vendorSamples++
         if (disagreement.feed(tNs, estimator.thetaHeadDeg, vendorRollDeg)) disagreementEvents++
     }
 
@@ -140,6 +168,6 @@ public class FusionPipeline(
 
     public fun resetForSession() {
         bias.reset(); biasVec = null; drift.reset(); mountShift.reset(); disagreement.reset()
-        mountShifted = false; trackingLost = false; gyroRollDeg = 0.0; disagreementEvents = 0; pitchOutOfRangeCount = 0
+        mountShifted = false; trackingLost = false; gyroOnlyInit = false; disagreementEvents = 0; pitchOutOfRangeCount = 0
     }
 }

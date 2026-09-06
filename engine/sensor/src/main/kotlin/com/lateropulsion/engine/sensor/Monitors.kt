@@ -100,7 +100,7 @@ public class MountShiftDetector(
             i--
         }
         if (ref < 0) return false
-        if (lastShiftNs >= 0 && tNanos - lastShiftNs < 2 * windowNs) return false // debounce
+        if (lastShiftNs >= 0 && tNanos - lastShiftNs < DEBOUNCE_NS) return false // debounce
         val dAcc = abs(acc[w] - acc[ref])
         val dGyr = abs(gyr[w] - gyr[ref])
         val detected = dAcc > stepDeg && dGyr < stepDeg / 2
@@ -110,6 +110,8 @@ public class MountShiftDetector(
     }
 
     public fun reset() { head = 0; size = 0; count = 0; lastShiftNs = -1 }
+
+    private companion object { const val DEBOUNCE_NS = 2_000_000_000L }
 }
 
 /** Persistent disagreement between the in-app filter and the vendor GAME_ROTATION_VECTOR (ARCHITECTURE §6.3). */

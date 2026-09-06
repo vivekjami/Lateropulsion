@@ -197,6 +197,7 @@ class FusionTest {
         }
         assertTrue(maxErr < 1.0, "max err $maxErr")
         assertTrue(p.imuRateHz > 190 && p.imuRateHz < 210, "rate ${p.imuRateHz}")
+        assertEquals(0, p.mountShift.count, "a genuine roll must not be reported as a jolt/mount shift")
         // 300 ms dropout → TRACKING_LOST on the next sample, recovering afterwards
         tNs += 300_000_000L
         p.onAccel(tNs, 0.0, g, 0.0)

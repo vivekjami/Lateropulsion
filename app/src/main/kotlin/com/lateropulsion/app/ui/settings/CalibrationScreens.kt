@@ -133,7 +133,7 @@ fun SensorDebugScreen(nav: NavHostController, vm: SensorViewModel = hiltViewMode
                 Text(stringResource(R.string.imu_rate, d.imuRateHz, d.poseRateHz))
                 Text(stringResource(R.string.drift, d.driftDegPerMin))
                 Text(stringResource(R.string.bias, d.gyroBias?.let { "(%.4f, %.4f, %.4f) rad/s".format(it.x, it.y, it.z) } ?: "estimating ${(d.biasProgress * 100).toInt()} %"))
-                Text("vendor disagreement ${"%.1f".format(d.disagreementDeg)}° (${d.disagreementEvents} events) · mount shifts ${d.mountShiftCount} · tracking lost ${d.trackingLost} · gyro ${d.hasGyro} · vendor fusion ${d.hasVendorFusion}")
+                Text("vendor disagreement ${"%.1f".format(d.disagreementDeg)}° (${d.disagreementEvents} events, ${d.vendorSamples} samples) · jolts ${d.mountShiftCount} · still ${d.still} · tracking lost ${d.trackingLost} · gyro ${d.hasGyro} · vendor fusion ${d.hasVendorFusion}")
             }
         }
     }

@@ -25,6 +25,8 @@ public data class SensorDiagnostics(
     val thetaDeg: Double = 0.0,
     val hasGyro: Boolean = true,
     val hasVendorFusion: Boolean = false,
+    val vendorSamples: Long = 0,
+    val still: Boolean = false,
 )
 
 /**

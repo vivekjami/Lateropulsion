@@ -93,7 +93,7 @@ public class AndroidPoseProvider(
                 disagreementDeg = pipeline.disagreement.currentDeg, disagreementEvents = pipeline.disagreementEvents,
                 mountShiftCount = pipeline.mountShift.count, mountShifted = pipeline.mountShifted, trackingLost = pipeline.trackingLost,
                 pitchOutOfRange = pipeline.estimator.pitchOutOfRange, lastFlags = back.flags,
-                thetaHeadDeg = back.thetaHeadDeg, thetaDeg = back.thetaDeg,
+                thetaHeadDeg = back.thetaHeadDeg, thetaDeg = back.thetaDeg, vendorSamples = pipeline.vendorSamples, still = pipeline.still,
             )
         }
     }
