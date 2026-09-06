@@ -257,12 +257,7 @@ class SessionController @Inject constructor(
             is Effect.StartBlock -> {
                 val rec = BlockRecorder(e.index, e.block, clock.monotonicNanos(), sp)
                 withContext(hotDispatcher) { current = rec }
-                renderStates.set(RenderState(
-                    mode = sp.visualMode, gain = e.gain, cues = e.block.cues.toSet(), toleranceDeg = e.block.toleranceDeg,
-                    bandPrimaryDeg = sp.config.metrics.bandPrimaryDeg, bandSecondaryDeg = sp.config.metrics.bandSecondaryDeg,
-                    targetDeg = e.block.targetDeg, progress01 = 0.0, showReadout = CueType.DEVIATION_READOUT in e.block.cues, idle = false,
-                    staticOffsetDeg = -sp.appliedTiltDeg,
-                ))
+                renderStates.set(blockRenderState(sp, e.block, e.gain))
                 poses?.setBand(e.block.toleranceDeg)
                 writer?.sync()
                 _state.value = _state.value.copy(instructionKey = e.block.instructionKey)
@@ -276,7 +271,11 @@ class SessionController @Inject constructor(
             }
             is Effect.Checkpoint -> withContext(hotDispatcher) { current?.checkpoint(e.atS) }
             is Effect.StartRest, Effect.RestComplete, Effect.Save -> Unit
-            is Effect.SetGain -> renderStates.update { it.copy(gain = e.gain) }
+            // Resume after a pause: the pause drew the neutral picture, so the block's cues, band and tilt come back with the gain.
+            is Effect.SetGain -> {
+                val running = eng.state as? SessionState.BlockRunning
+                renderStates.update { rs -> if (rs.idle && running != null) blockRenderState(sp, sp.protocol.blocks[running.blockIndex], e.gain).copy(progress01 = rs.progress01) else rs.copy(gain = e.gain) }
+            }
             is Effect.Instruction -> _state.value = _state.value.copy(instructionKey = e.key)
             is Effect.Alert -> LpLog.w(TAG, "alert", "message" to e.message)
             is Effect.Event -> record(e.type, e.payload)
@@ -286,6 +285,13 @@ class SessionController @Inject constructor(
             is Effect.Rejected -> LpLog.d(TAG, "input rejected", "input" to e.input::class.simpleName, "state" to e.state::class.simpleName, "why" to e.why)
         }
     }
+
+    private fun blockRenderState(sp: SessionSpec, block: BlockSpec, gain: Double): RenderState = RenderState(
+        mode = sp.visualMode, gain = gain, cues = block.cues.toSet(), toleranceDeg = block.toleranceDeg,
+        bandPrimaryDeg = sp.config.metrics.bandPrimaryDeg, bandSecondaryDeg = sp.config.metrics.bandSecondaryDeg,
+        targetDeg = block.targetDeg, progress01 = 0.0, showReadout = CueType.DEVIATION_READOUT in block.cues, idle = false,
+        staticOffsetDeg = -sp.appliedTiltDeg,
+    )
 
     private fun record(type: SessionEventType, payload: String = "{}") {
         val sid = spec?.sessionId ?: return

@@ -75,6 +75,7 @@ IDs are referenced in test names (`REQ-MET-014_episode_hysteresis`) and in the r
 | REQ-SAF-031 | Camera stall detected within 200 ms | ARCH §15 | I | `FrameClockTest` |
 | REQ-SAF-032 | Render watchdog: 3 frames over threshold → neutral + alert | ARCH §5 | I | `RenderMathTest` |
 | REQ-SAF-033 | While a block runs, a brief touch or a single Back gesture on the patient view is ignored; a press held 1.5 s, Back twice within 2 s, Volume Down, the clicker or the operator Abort stop the session | ADR-024 | T | manual, `HmdActivity` |
+| REQ-SAF-034 | The patient view leaving the foreground during a block pauses the session (neutral picture, clock stopped) instead of aborting; returning resumes after the countdown with the block render state restored | ADR-025 | T | manual, `HmdActivity`, `SessionController` |
 | REQ-SEC-001 | Database encrypted at rest with SQLCipher; key wrapped in Android Keystore | ARCH §14 | P/V | `DatabaseKeyManager`; verify by pulling the DB file (Phase 1 exit) |
 | REQ-SEC-002 | Identifiers in a separate table joined by UUID | ARCH §10 | I | schema, `DatabaseRoundTripTest` |
 | REQ-SEC-003 | Clinician PIN/biometric login, auto-lock | ARCH §14 | P | app module |

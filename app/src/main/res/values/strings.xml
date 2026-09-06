@@ -303,7 +303,7 @@
     <string name="ssq_all_none">All items none (no symptoms). Change an item only if the patient reports it.</string>
     <string name="ssq_item_by_item">Every item starts at none; change what the patient reports:</string>
     <string name="edit_individually">Edit the confirmations individually</string>
-    <string name="auto_start_explain">Open the patient view, mount the visor and step back: the session starts by itself after %1$d s (the patient sees the countdown). Volume Up starts at once. Touching the screen during the countdown restarts it. Once a block is running a brief touch does nothing; to stop, hold the screen for 2 s, press Back twice, or press Volume Down.</string>
+    <string name="auto_start_explain">Open the patient view, mount the visor and step back: the session starts by itself after %1$d s (the patient sees the countdown). Volume Up starts at once. Touching the screen during the countdown restarts it. Once a block is running a brief touch does nothing; to stop, hold the screen for 2 s, press Back twice, or press Volume Down. If the patient view is left (Home gesture, call), the block pauses and resumes after the same countdown when the view is back.</string>
     <string name="start_from_here">Start from this screen instead (second display / mirror setup)</string>
     <string name="rest_auto_explain">The next block starts by itself %1$d s after the rest ends while the patient view is open; Volume Up starts it at once.</string>
     <string name="export_failed">Export failed: %1$s</string>

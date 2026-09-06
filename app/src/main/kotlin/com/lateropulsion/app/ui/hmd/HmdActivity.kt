@@ -60,6 +60,8 @@ import javax.inject.Inject
  * Single-phone operation (ADR-020): while the session is Ready, or resting with the rest complete, a countdown runs
  * and the next block starts by itself so the operator can mount the visor and step back; a touch during the countdown
  * restarts it instead of aborting; VOLUME_UP starts at once. The view closes itself when the session is over.
+ * Leaving the view during a block pauses the session; when the view is back the same countdown runs and the block
+ * resumes (ADR-025), so an accidental Home gesture costs seconds, not the session.
  *
  * Stop controls once a block is running (ADR-024): a held press on the screen, Back pressed twice, VOLUME_DOWN, or the
  * Bluetooth clicker's ENTER/DPAD_CENTER — all reach [AbortController] first and the protocol engine second (REQ-SAF-004).
@@ -134,6 +136,8 @@ class HmdActivity : ComponentActivity(), RenderListener {
     private fun autoAdvanceKey(st: com.lateropulsion.app.session.LiveSessionState): String = when (val p = st.phase) {
         SessionState.Ready -> "ready"
         is SessionState.Resting -> if (st.restComplete) "rest-complete" else "resting"
+        // A paused block resumes by itself once the view is back, unless the camera is the reason it paused.
+        is SessionState.Paused -> if (st.cameraStalled) "paused-stalled" else "paused"
         SessionState.Summarizing, SessionState.Saved, SessionState.Cancelled, is SessionState.Failed, is SessionState.Aborted -> "done"
         else -> p::class.simpleName ?: "other"
     }
@@ -143,6 +147,7 @@ class HmdActivity : ComponentActivity(), RenderListener {
         when (key) {
             "ready" -> if (delayS > 0) { countdown(delayS); startFromHmd() }
             "rest-complete" -> if (delayS > 0) { countdown(delayS); controller.nextBlock() }
+            "paused" -> if (delayS > 0) { countdown(delayS); controller.resume() }
             "done" -> { renderStates.update { it.copy(countdownS = 0) }; finish() }
             else -> renderStates.update { it.copy(countdownS = 0) }
         }
@@ -165,7 +170,8 @@ class HmdActivity : ComponentActivity(), RenderListener {
     }
 
     private val countdownRestart = MutableStateFlow(0)
-    private val inCountdownPhase: Boolean get() = controller.state.value.let { it.phase == SessionState.Ready || (it.phase is SessionState.Resting && it.restComplete) }
+    private val inCountdownPhase: Boolean
+        get() = controller.state.value.let { it.phase == SessionState.Ready || (it.phase is SessionState.Resting && it.restComplete) || (it.phase is SessionState.Paused && !it.cameraStalled) }
 
     private fun startRendering(holder: SurfaceHolder) {
         if (renderThread != null) return
@@ -264,6 +270,7 @@ class HmdActivity : ComponentActivity(), RenderListener {
                 when {
                     st.phase == SessionState.Ready -> startFromHmd()
                     st.phase is SessionState.Resting && st.restComplete -> controller.nextBlock()
+                    st.phase is SessionState.Paused && !st.cameraStalled -> controller.resume()
                     else -> controller.mark()
                 }
                 true
@@ -302,8 +309,9 @@ class HmdActivity : ComponentActivity(), RenderListener {
 
     override fun onPause() {
         super.onPause()
-        // Leaving the HMD view with a block running is unsafe: neutral + pause.
-        if (controller.state.value.phase is SessionState.BlockRunning) { abort.abort("HMD_BACKGROUNDED"); controller.pause() }
+        // Leaving the patient view with a block running (Home gesture, call, screen off) pauses the session: neutral picture,
+        // clock stopped, nothing lost. Coming back resumes it after the countdown (ADR-025). It used to abort the session.
+        if (controller.state.value.phase is SessionState.BlockRunning) { LpLog.w(TAG, "patient view left during a block: pausing"); controller.pause() }
     }
 
     override fun onDestroy() {
