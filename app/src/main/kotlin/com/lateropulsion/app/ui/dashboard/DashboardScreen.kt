@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -111,7 +113,7 @@ fun DashboardScreen(nav: NavHostController, vm: DashboardViewModel = hiltViewMod
         TextButton(onClick = { nav.navigate(Routes.SETTINGS) }) { Text(stringResource(R.string.settings)) }
         TextButton(onClick = { vm.lock() }) { Text(stringResource(R.string.sign_out)) }
     }) { mod ->
-        Column(mod.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(mod.verticalScroll(rememberScrollState()).padding(top = 8.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(st.clinicianName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Card(Modifier.weight(1f).heightIn(min = 140.dp)) {

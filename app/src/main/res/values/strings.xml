@@ -255,6 +255,7 @@
     <string name="step_session_hint">Defaults are chosen from the last session and the patient\'s condition. Change them only if you need to.</string>
     <string name="visor_not_calibrated">This phone\'s roll has not been calibrated on the visor yet, so the tilt number would be meaningless. Calibrate once (two captures, about a minute), then come back.</string>
     <string name="calibrate_visor">Calibrate the visor on this phone</string>
+    <string name="visor_not_calibrated_research">Research mode: this phone\'s roll is not calibrated on the visor, so the tilt shown is raw and may be off by a fixed offset or sign. Calibrate before measuring a real patient.</string>
     <string name="baseline_result_title">Baseline: the patient\'s error</string>
     <string name="baseline_result_mean">head tilt when the patient feels upright</string>
     <string name="baseline_result_steadiness">steadiness (MAD)</string>

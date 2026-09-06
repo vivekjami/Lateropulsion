@@ -89,7 +89,9 @@ public class RenderThread(
 
         val t = renderer.telemetry
         t.motionToPhotonEstMs = LatencyEstimate.motionToPhotonMs(t.poseAgeMs, t.frameTimeMs, 1000.0 / vsyncHz)
-        if (watchdog.onFrame(t.motionToPhotonEstMs) && !neutral) {
+        // The watchdog guards a laggy *correction*. While the view is idle (ready, countdown, rest) nothing is being
+        // corrected, so slow frames are logged but must not abort the session (seen on hardware during the countdown).
+        if (watchdog.onFrame(t.motionToPhotonEstMs) && !neutral && !state.idle) {
             abort.abort("PERF_DEGRADED")
             listener.onPerfDegraded(t.motionToPhotonEstMs)
         }

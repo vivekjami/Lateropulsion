@@ -63,8 +63,8 @@ data class CaptureState(
     val thetaRef: Double = 0.0, val setBy: String = "",
     val capturing: Boolean = false, val elapsedS: Int = 0, val captureS: Int = 60, val measured: BaselineMeasurement? = null,
     val valid: Boolean = true, val error: String? = null, val saved: Boolean = false, val running: Boolean = false,
-    /** The phone's roll has not been calibrated on the visor and research mode is off: the number would be meaningless. */
-    val needsCalibration: Boolean = false, val simulated: Boolean = false,
+    /** The phone's roll has not been calibrated on the visor: the number would be meaningless. Blocks unless research mode or training. */
+    val uncalibrated: Boolean = false, val needsCalibration: Boolean = false, val simulated: Boolean = false,
 )
 
 /**
@@ -92,7 +92,7 @@ class BaselineCaptureViewModel @Inject constructor(
             val (dev, _) = runtime.resolveProfiles()
             val research = settings.current().researchMode
             state.value = state.value.copy(patient = p, name = name, baseline = b, thetaRef = b?.thetaRefDeg ?: 0.0, simulated = draft.simulated,
-                needsCalibration = !dev.allowsClinicalSession && !research && !draft.simulated)
+                uncalibrated = !dev.allowsClinicalSession && !draft.simulated, needsCalibration = !dev.allowsClinicalSession && !research && !draft.simulated)
             startPoses()
         }
     }
@@ -172,10 +172,10 @@ fun BaselineCaptureScreen(nav: NavHostController, patientId: String, vm: Baselin
     LpScreen(stringResource(R.string.baseline_measurement), onBack = { nav.popBackStack() }, banner = { st.patient?.let { PatientBanner(it.displayId, st.name) } }) { mod ->
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             StepHeader(2, 3, stringResource(R.string.step_baseline), stringResource(R.string.step_baseline_hint))
-            if (st.needsCalibration) {
+            if (st.uncalibrated) {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        WarningText(stringResource(R.string.visor_not_calibrated))
+                        WarningText(stringResource(if (st.needsCalibration) R.string.visor_not_calibrated else R.string.visor_not_calibrated_research))
                         BigButton(stringResource(R.string.calibrate_visor), { nav.navigate(Routes.CALIBRATION) }, Modifier.fillMaxWidth())
                     }
                 }

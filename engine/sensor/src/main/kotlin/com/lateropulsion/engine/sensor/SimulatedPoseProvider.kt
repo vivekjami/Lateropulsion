@@ -35,6 +35,12 @@ public class SimulatedPoseProvider(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val seed: Long = 42L,
     private val realTime: Boolean = true,
+    /**
+     * Real-time mode stamps samples with this clock so pose age, block timers and the `.lpx` log line up with the
+     * rest of the app (the renderer measures pose age against `SystemClock.elapsedRealtimeNanos`; a synthetic timeline
+     * read as 200 ms-old poses and tripped the latency watchdog on hardware). Tests leave it null for a deterministic timeline.
+     */
+    private val nowNanos: (() -> Long)? = null,
 ) : PoseProvider {
     public data class PatientModel(
         val leanDeg: Double = 8.0,
@@ -85,7 +91,8 @@ public class SimulatedPoseProvider(
         val rnd = Random(seed)
         val dt = 1.0 / rateHz
         var t = 0.0
-        var tNs = 1_000_000_000L
+        val t0Ns = nowNanos?.invoke() ?: 1_000_000_000L
+        var tNs = t0Ns
         var prevRoll = 0.0
         var count = 0
         var lastDiag = 0.0
@@ -118,9 +125,16 @@ public class SimulatedPoseProvider(
                     thetaHeadDeg = pipeline.current.thetaHeadDeg, thetaDeg = pipeline.current.thetaDeg, running = true,
                 )
             }
-            t += dt
-            tNs += (dt * 1e9).toLong()
             if (realTime) delay((dt * 1000).toLong().coerceAtLeast(1)) else if (count % 100 == 0) kotlinx.coroutines.yield()
+            val clock = nowNanos
+            if (realTime && clock != null) {
+                // follow the real clock so delay() jitter never accumulates into stale-looking poses
+                tNs = maxOf(clock(), tNs + 1_000_000L)
+                t = (tNs - t0Ns) / 1e9
+            } else {
+                t += dt
+                tNs += (dt * 1e9).toLong()
+            }
         }
     }
 

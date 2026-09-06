@@ -90,19 +90,33 @@ class ProtocolSetupViewModel @Inject constructor(
             val b = baselines.current(patientId)
             val all = config.protocols().filter { "assessment" !in it.tags }
             val hist = HistoryMapper.entries(sessions.listForPatient(patientId), sessions.summariesForPatient(patientId))
-            val proto = defaultProtocol(all, hist, b)
-            state.value = SetupState(p, name, b, all, proto, proto?.visualMode ?: VisualMode.VERTICAL_REFERENCE, history = hist, researchMode = settings.current().researchMode,
-                sessionNumber = sessions.nextSessionNumber(patientId))
-            proto?.let { selectProtocol(it) }
+            val research = settings.current().researchMode
+            state.value = SetupState(p, name, b, all, null, history = hist, researchMode = research, sessionNumber = sessions.nextSessionNumber(patientId))
+            defaultProtocol(all, hist, b)?.let { selectProtocol(it) }
         }
     }
 
-    /** Last protocol used → the standing programme for patients recorded as able to stand → sitting. Gates still apply. */
-    private fun defaultProtocol(all: List<ProtocolSpec>, hist: List<SessionHistoryEntry>, b: Baseline?): ProtocolSpec? {
-        val last = hist.lastOrNull()
-        all.firstOrNull { it.protocolId == last?.protocolId }?.let { return it }
+    /**
+     * Preference order: last protocol used → the standing programme for patients recorded as able to stand → sitting.
+     * The first candidate whose progression gate is open wins, so the operator never lands on a "cannot start" default.
+     */
+    private suspend fun defaultProtocol(all: List<ProtocolSpec>, hist: List<SessionHistoryEntry>, b: Baseline?): ProtocolSpec? {
         val canStand = b != null && b.walkingAbility != WalkingAbility.NON_AMBULANT
-        return (if (canStand) all.firstOrNull { it.protocolId == "std-standing-v3" } else null) ?: all.firstOrNull { it.protocolId == "std-sitting-v3" } ?: all.firstOrNull()
+        val candidates = listOfNotNull(
+            all.firstOrNull { it.protocolId == hist.lastOrNull()?.protocolId },
+            if (canStand) all.firstOrNull { it.protocolId == "std-standing-v3" } else null,
+            all.firstOrNull { it.protocolId == "std-sitting-v3" },
+            all.firstOrNull(),
+        ).distinct()
+        return candidates.firstOrNull { gateOpen(it) } ?: candidates.firstOrNull()
+    }
+
+    private suspend fun gateOpen(p: ProtocolSpec): Boolean {
+        val s = state.value; val patient = s.patient ?: return false
+        val (dev, hs) = runtime.resolveProfiles()
+        val spec = buildSpec(s.copy(protocol = p, mode = p.visualMode, gain = p.gainInitial ?: appConfig.visual.gainInitial), p, dev, hs) ?: return false
+        val full = PreSessionChecklist(true, true, true, true, true, true, true, true, true)
+        return SessionPreconditions.check(PreconditionContext(spec, patient, full, s.history, s.protocols.associateBy { it.protocolId }, s.researchMode || draft.simulated)).canStart
     }
 
     fun selectProtocol(p: ProtocolSpec) {

@@ -81,7 +81,7 @@ class SessionRuntime @Inject constructor(
         val (dev, _) = resolveProfiles()
         simulated = simulatedPatient
         val p: PoseProvider = if (simulatedPatient || !imuCapabilities.measurementCapable) {
-            SimulatedPoseProvider(dev.copy(rollSign = 1, thetaMountDeg = 0.0), rateHz = appConfig.metrics.sampleRateHz)
+            SimulatedPoseProvider(dev.copy(rollSign = 1, thetaMountDeg = 0.0), rateHz = appConfig.metrics.sampleRateHz, nowNanos = { android.os.SystemClock.elapsedRealtimeNanos() })
         } else {
             AndroidPoseProvider(ctx.getSystemService(Context.SENSOR_SERVICE) as android.hardware.SensorManager, dev, appConfig.safety, appConfig.metrics)
         }
