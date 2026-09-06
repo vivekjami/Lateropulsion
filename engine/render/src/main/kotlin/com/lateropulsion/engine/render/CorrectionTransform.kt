@@ -20,9 +20,12 @@ public class CorrectionTransform(
     public fun predictTheta(thetaDeg: Double, omegaDegPerS: Double, latencyS: Double): Double =
         thetaDeg + omegaDegPerS * min(latencyS.coerceAtLeast(0.0), predictionClampS)
 
-    /** Advances toward the target rotation for this frame; returns the rotation to apply (degrees). */
-    public fun update(gain: Double, thetaPredDeg: Double, dtS: Double): Double {
-        val target = -gain * thetaPredDeg
+    /**
+     * Advances toward the target rotation for this frame; returns the rotation to apply (degrees).
+     * @param staticDeg constant rotation added to the target (the entered baseline error, countered; ADR-021).
+     */
+    public fun update(gain: Double, thetaPredDeg: Double, dtS: Double, staticDeg: Double = 0.0): Double {
+        val target = -gain * thetaPredDeg + staticDeg
         val maxStep = slewLimitDegPerS * dtS.coerceIn(0.0, 0.1)
         val delta = target - appliedDeg
         appliedDeg = if (abs(delta) <= maxStep) target else appliedDeg + sign(delta) * maxStep

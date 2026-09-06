@@ -230,4 +230,19 @@ class RenderMathTest {
         assertEquals(0, RenderState.NEUTRAL.countdownS)
         assertEquals(7, RenderState.NEUTRAL.copy(countdownS = 7).countdownS)
     }
+
+    @Test
+    fun `REQ-VIS-015 the entered baseline error is a constant picture rotation in every mode, slew limited`() {
+        val c = CorrectionTransform(slewLimitDegPerS = 30.0, predictionClampS = 0.05)
+        // Mode A (gain 0): the picture settles at the static offset alone
+        repeat(120) { c.update(0.0, 7.0, 1.0 / 60, staticDeg = -12.0) }
+        assertEquals(-12.0, c.appliedDeg, 1e-9)
+        // Mode B (gain 1): head roll compensation adds on top of it
+        repeat(120) { c.update(1.0, 5.0, 1.0 / 60, staticDeg = -12.0) }
+        assertEquals(-17.0, c.appliedDeg, 1e-9)
+        // and the first step toward it is still slew limited, never a jump
+        val fresh = CorrectionTransform(slewLimitDegPerS = 30.0, predictionClampS = 0.05)
+        assertEquals(-0.5, fresh.update(0.0, 0.0, 1.0 / 60, staticDeg = -12.0), 1e-9)
+        assertEquals(0.0, RenderState.NEUTRAL.staticOffsetDeg)
+    }
 }

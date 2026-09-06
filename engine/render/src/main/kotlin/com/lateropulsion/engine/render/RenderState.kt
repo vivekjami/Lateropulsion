@@ -25,6 +25,11 @@ public data class RenderState(
     val messageKey: String? = null,
     /** Seconds left before the next block starts by itself (ADR-020); 0 = no countdown shown. Drawn even when idle. */
     val countdownS: Int = 0,
+    /**
+     * Constant picture rotation (degrees, before the device's render-rotation sign) that counters the patient's entered
+     * baseline error (ADR-021). Applied in every mode while a block runs; 0 when idle or neutral.
+     */
+    val staticOffsetDeg: Double = 0.0,
 ) {
     public companion object {
         public val NEUTRAL: RenderState = RenderState()

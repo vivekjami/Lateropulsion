@@ -147,7 +147,7 @@ class ProtocolSetupViewModel @Inject constructor(
             sessionId = Ids.session(), patientId = patient.id, patientDisplayId = patient.displayId, clinicianId = me, protocol = p, visualMode = s.mode,
             gain = if (s.mode == VisualMode.VERTICAL_REFERENCE) 0.0 else s.gain, thetaRefDeg = b?.thetaRefDeg ?: 0.0, thetaRefSetBy = b?.thetaRefSetBy ?: me,
             baselineId = b?.id, deviceProfile = dev, headsetProfile = hs, sessionNumber = sessions.nextSessionNumber(patient.id), advancedProtocol = s.advanced,
-            config = appConfig, overrideReason = s.override.ifBlank { null },
+            config = appConfig, overrideReason = s.override.ifBlank { null }, baselineErrorDeg = b?.headDeviationDeg ?: 0.0,
         )
     }
 
@@ -180,7 +180,7 @@ fun ProtocolSetupScreen(nav: NavHostController, patientId: String, vm: ProtocolS
                         }
                         Text(if (p.visualMode == VisualMode.VERTICAL_REFERENCE) stringResource(R.string.mode_a_explain) else stringResource(R.string.mode_b_explain, st.gain),
                             style = MaterialTheme.typography.bodyMedium)
-                        st.baseline?.measured?.let { m -> Text(stringResource(R.string.session_vs_baseline, Baseline.describeTilt(m.meanDeg)), style = MaterialTheme.typography.bodyMedium) }
+                        st.baseline?.let { b -> Text(stringResource(R.string.session_vs_baseline, Baseline.describeTilt(b.headDeviationDeg)), style = MaterialTheme.typography.bodyMedium) }
                     }
                 }
             }

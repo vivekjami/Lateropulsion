@@ -53,6 +53,7 @@ IDs are referenced in test names (`REQ-MET-014_episode_hysteresis`) and in the r
 | REQ-VIS-012 | Visor (mono) headset profile parses, validates without lens data, overlays stay gravity-locked with a viewport-wide horizon | ADR-019 | I | `RenderMathTest` |
 | REQ-VIS-013 | `rotation_fit = FIT` keeps the whole rotated camera frame inside the viewport at every angle, never stretched, always maximal | ADR-019 | I | `RenderMathTest` |
 | REQ-VIS-014 | Auto-start countdown is drawn unsigned in the patient view; a zero countdown draws nothing | ADR-020 | I | `RenderMathTest` |
+| REQ-VIS-015 | The entered baseline error is a constant, slew-limited picture rotation in every mode; Mode B compensation adds on top | ADR-021 | I | `RenderMathTest` |
 | REQ-PAT-030 | Baseline defaults are conservative and complete only once the tilt is measured; tilt is described in words with the clinical sign (positive = right) | ADR-020 | I | `EntityValidationTest` |
 | REQ-SES-040 | `auto_start_delay_s` and `baseline_capture_s` are range-checked at config load | ADR-020 | I | `EntityValidationTest` |
 | REQ-VIS-020 | Overlay cues are gravity-locked | ARCH §7.4 | I | `RenderMathTest` (+ plumb line vs physical plumb, Phase 3) |

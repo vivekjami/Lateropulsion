@@ -259,6 +259,7 @@ class SessionController @Inject constructor(
                     mode = sp.visualMode, gain = e.gain, cues = e.block.cues.toSet(), toleranceDeg = e.block.toleranceDeg,
                     bandPrimaryDeg = sp.config.metrics.bandPrimaryDeg, bandSecondaryDeg = sp.config.metrics.bandSecondaryDeg,
                     targetDeg = e.block.targetDeg, progress01 = 0.0, showReadout = CueType.DEVIATION_READOUT in e.block.cues, idle = false,
+                    staticOffsetDeg = -sp.baselineErrorDeg,
                 ))
                 poses?.setBand(e.block.toleranceDeg)
                 writer?.sync()

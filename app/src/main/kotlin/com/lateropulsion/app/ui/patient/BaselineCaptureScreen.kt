@@ -31,10 +31,8 @@ import com.lateropulsion.app.session.SessionRuntime
 import com.lateropulsion.app.ui.components.AngleDial
 import com.lateropulsion.app.ui.components.BigButton
 import com.lateropulsion.app.ui.components.BigNumber
-import com.lateropulsion.app.ui.components.Expander
 import com.lateropulsion.app.ui.components.LpScreen
 import com.lateropulsion.app.ui.components.PatientBanner
-import com.lateropulsion.app.ui.components.StepHeader
 import com.lateropulsion.app.ui.components.WarningText
 import com.lateropulsion.app.ui.nav.Routes
 import com.lateropulsion.core.common.Clock
@@ -68,9 +66,10 @@ data class CaptureState(
 )
 
 /**
- * The baseline is the patient's error: how far from true vertical they hold their head when they believe they are
- * upright, and how steady they are. One tap, [captureS] seconds, saved automatically (ADR-020). The clinical
- * picture (severity, balance, assistance) gets defaults if the operator has not filled it in yet.
+ * Sensor zero (ADR-021): records the patient's posture for [captureS] seconds and takes its average as the sensor's
+ * zero, so a session measures sway and instability only. It is not a clinical metric; the patient's baseline error is
+ * entered in the disease details. Optional; saved automatically. Creates the disease-details row with "none"
+ * defaults if the operator has not filled it in yet.
  */
 @HiltViewModel
 class BaselineCaptureViewModel @Inject constructor(
@@ -120,16 +119,6 @@ class BaselineCaptureViewModel @Inject constructor(
         }
     }
 
-    /** Default: measure against true vertical. */
-    fun useTrueVertical() { poses?.setThetaRef(0.0); poses?.clearMountShift(); state.value = state.value.copy(thetaRef = 0.0, setBy = "") }
-
-    /** Optional clinical judgement: take the patient's current posture as their midline (ARCH §6.4), recorded with who set it. */
-    fun useCurrentPostureAsMidline() {
-        val ref = state.value.thetaHead
-        poses?.setThetaRef(ref); poses?.clearMountShift()
-        state.value = state.value.copy(thetaRef = ref, setBy = auth.current?.displayName ?: "")
-    }
-
     fun startCapture() {
         if (state.value.needsCalibration) return
         poses?.clearMountShift()
@@ -147,20 +136,22 @@ class BaselineCaptureViewModel @Inject constructor(
         )
     }
 
-    /** Saves straight away: a measurement the operator has to remember to save is a measurement that gets lost. */
+    /** The average posture becomes the new zero (θ_ref); saved straight away with who zeroed it. */
     private fun save(m: BaselineMeasurement) = viewModelScope.launch {
         val s = state.value
         val me = auth.current?.id ?: return@launch
         val patient = s.patient ?: return@launch
         val now = clock.nowUtcMillis()
+        val zero = s.thetaRef + m.meanDeg
         val base = s.baseline ?: Baseline.defaultFor(patient, me, now)
         val updated = if (base.locked) {
-            base.copy(id = com.lateropulsion.core.model.Ids.baseline(), supersedes = base.id, locked = false, measured = m, thetaRefDeg = s.thetaRef, thetaRefSetBy = me,
+            base.copy(id = com.lateropulsion.core.model.Ids.baseline(), supersedes = base.id, locked = false, measured = m, thetaRefDeg = zero, thetaRefSetBy = me,
                 thetaRefSetAt = now, recordedAt = now, recordedBy = me)
         } else {
-            base.copy(measured = m, thetaRefDeg = s.thetaRef, thetaRefSetBy = me, thetaRefSetAt = now)
+            base.copy(measured = m, thetaRefDeg = zero, thetaRefSetBy = me, thetaRefSetAt = now)
         }
-        baselines.save(updated).fold({ state.value = state.value.copy(saved = true, baseline = updated) }, { e -> state.value = state.value.copy(error = e.message) })
+        poses?.setThetaRef(zero)
+        baselines.save(updated).fold({ state.value = state.value.copy(saved = true, baseline = updated, thetaRef = zero) }, { e -> state.value = state.value.copy(error = e.message) })
     }
 
     override fun onCleared() { poseJob?.cancel(); runtime.releasePoseProvider() }
@@ -169,9 +160,9 @@ class BaselineCaptureViewModel @Inject constructor(
 @Composable
 fun BaselineCaptureScreen(nav: NavHostController, patientId: String, vm: BaselineCaptureViewModel = hiltViewModel()) {
     val st by vm.state.collectAsState()
-    LpScreen(stringResource(R.string.baseline_measurement), onBack = { nav.popBackStack() }, banner = { st.patient?.let { PatientBanner(it.displayId, st.name) } }) { mod ->
+    LpScreen(stringResource(R.string.sensor_zero), onBack = { nav.popBackStack() }, banner = { st.patient?.let { PatientBanner(it.displayId, st.name) } }) { mod ->
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            StepHeader(2, 3, stringResource(R.string.step_baseline), stringResource(R.string.step_baseline_hint))
+            Text(stringResource(R.string.sensor_zero_hint), style = MaterialTheme.typography.bodyLarge)
             if (st.uncalibrated) {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -184,35 +175,21 @@ fun BaselineCaptureScreen(nav: NavHostController, patientId: String, vm: Baselin
             if (m != null && st.saved) {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(stringResource(R.string.baseline_result_title), style = MaterialTheme.typography.titleMedium)
-                        BigNumber(Baseline.describeTilt(m.meanDeg), stringResource(R.string.baseline_result_mean))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                            BigNumber("±${"%.1f".format(m.madDeg)}°", stringResource(R.string.baseline_result_steadiness), emphasis = false)
-                            BigNumber("${"%.0f".format(m.tib5Pct)} %", stringResource(R.string.baseline_result_tib5), emphasis = false)
-                        }
-                        Text(stringResource(R.string.baseline_saved_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.sensor_zero_result, st.thetaRef), style = MaterialTheme.typography.titleMedium)
+                        BigNumber("±${"%.1f".format(m.madDeg)}°", stringResource(R.string.instability))
+                        Text(stringResource(R.string.sensor_zero_saved), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                BigButton(stringResource(R.string.continue_to_session), { nav.navigate(Routes.setup(patientId)) }, Modifier.fillMaxWidth())
-                BigButton(stringResource(R.string.repeat_measurement), { vm.startCapture() }, Modifier.fillMaxWidth(), secondary = true, enabled = st.running && !st.needsCalibration)
+                BigButton(stringResource(R.string.done), { nav.popBackStack() }, Modifier.fillMaxWidth())
+                BigButton(stringResource(R.string.zero_again), { vm.startCapture() }, Modifier.fillMaxWidth(), secondary = true, enabled = st.running && !st.needsCalibration)
             } else {
-                Text(stringResource(R.string.baseline_instruction), style = MaterialTheme.typography.bodyLarge)
                 AngleDial(st.thetaHead - st.thetaRef, 5.0, kotlin.math.abs(st.thetaHead - st.thetaRef) <= 5.0, st.valid, Modifier.size(240.dp))
-                Text(Baseline.describeTilt(st.thetaHead - st.thetaRef), style = MaterialTheme.typography.titleMedium)
                 if (!st.valid && st.running) WarningText(stringResource(R.string.visor_not_level))
                 if (st.capturing) {
                     LinearProgressIndicator(progress = { st.elapsedS / st.captureS.toFloat() }, modifier = Modifier.fillMaxWidth())
                     Text(stringResource(R.string.capture_progress_of, st.elapsedS, st.captureS), style = MaterialTheme.typography.titleMedium)
                 } else {
-                    BigButton(stringResource(R.string.start_capture_s, st.captureS), { vm.startCapture() }, Modifier.fillMaxWidth(), enabled = st.running && !st.needsCalibration)
-                }
-                Expander(stringResource(R.string.reference_title),
-                    if (st.thetaRef == 0.0) stringResource(R.string.reference_true_vertical) else stringResource(R.string.midline_set, st.thetaRef, st.setBy.ifBlank { "—" })) {
-                    Text(stringResource(R.string.reference_explain), style = MaterialTheme.typography.bodyMedium)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        BigButton(stringResource(R.string.use_true_vertical), { vm.useTrueVertical() }, Modifier.weight(1f), secondary = true, enabled = !st.capturing)
-                        BigButton(stringResource(R.string.set_midline), { vm.useCurrentPostureAsMidline() }, Modifier.weight(1f), secondary = true, enabled = st.running && !st.capturing)
-                    }
+                    BigButton(stringResource(R.string.start_zero_s, st.captureS), { vm.startCapture() }, Modifier.fillMaxWidth(), enabled = st.running && !st.needsCalibration)
                 }
             }
             st.error?.let { WarningText(it) }

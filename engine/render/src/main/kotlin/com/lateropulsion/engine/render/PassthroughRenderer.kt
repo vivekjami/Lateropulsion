@@ -182,15 +182,18 @@ public class PassthroughRenderer(
             telemetry.cameraFrames++
         }
 
-        // Correction: predicted head roll, gain-scaled, slew-limited. Neutral resets instantly.
+        // Rotation = the entered baseline error, countered (every mode, ADR-021) + Mode B head-roll compensation, all
+        // slew-limited. Neutral resets instantly; idle relaxes to a truthful picture.
         val applied: Double
-        if (neutral || state.idle || state.mode != VisualMode.COMPENSATED_VIEW) {
-            if (neutral) correction.reset() else correction.update(0.0, 0.0, dt)
-            applied = correction.appliedDeg
+        if (neutral) {
+            correction.reset(); applied = 0.0
+        } else if (state.idle) {
+            applied = correction.update(0.0, 0.0, dt)
         } else {
+            val gain = if (state.mode == VisualMode.COMPENSATED_VIEW) state.gain else 0.0
             val omegaDegS = Angles.radToDeg(pose.wz) * (if (device.rollSign == 0) 1 else device.rollSign)
             val predicted = correction.predictTheta(pose.thetaDeg, omegaDegS, poseAgeNs / 1e9)
-            applied = correction.update(state.gain, CorrectionTransform.target(predicted, pose.flags), dt)
+            applied = correction.update(gain, CorrectionTransform.target(predicted, pose.flags), dt, state.staticOffsetDeg)
         }
         telemetry.appliedRotationDeg = applied
         telemetry.neutral = neutral

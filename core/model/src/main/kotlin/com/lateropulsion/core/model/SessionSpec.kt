@@ -22,6 +22,11 @@ public data class SessionSpec(
     val config: AppConfig,
     val position: BodyPosition = protocol.positionRequired,
     val overrideReason: String? = null,
+    /**
+     * The patient's baseline tilt error as entered in the disease details (degrees, + right; ADR-021). The primary
+     * input of every session: the camera picture is tilted to counter it. The sensor only follows head sway on top.
+     */
+    val baselineErrorDeg: Double = 0.0,
 )
 
 /** Pre-session checklist state (REQ-SAF-001, REQ-SAF-002). Every item must be true to start. */

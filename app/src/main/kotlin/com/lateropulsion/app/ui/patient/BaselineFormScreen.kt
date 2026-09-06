@@ -107,13 +107,14 @@ class BaselineFormViewModel @Inject constructor(
 fun BaselineFormScreen(nav: NavHostController, patientId: String, vm: BaselineFormViewModel = hiltViewModel()) {
     val f by vm.form.collectAsState()
     f.savedId?.let { nav.popBackStack(); return }
-    LpScreen(stringResource(R.string.patient_condition), onBack = { nav.popBackStack() }, banner = { f.patient?.let { PatientBanner(it.displayId, f.name, "${it.age} y · pushes ${it.lateropulsionDirection.name.lowercase()}") } }) { mod ->
+    LpScreen(stringResource(R.string.disease_details), onBack = { nav.popBackStack() }, banner = { f.patient?.let { PatientBanner(it.displayId, f.name, "${it.age} y · pushes ${it.lateropulsionDirection.name.lowercase()}") } }) { mod ->
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(R.string.patient_condition_hint), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.disease_details_hint), style = MaterialTheme.typography.bodyMedium)
             f.existing?.let { if (it.locked) WarningText(stringResource(R.string.baseline_locked_supersede)) }
+            Text(stringResource(R.string.baseline_error_title), style = MaterialTheme.typography.titleMedium)
             Selector(stringResource(R.string.severity), Severity.entries, f.severity, { it.name.lowercase().replace('_', ' ') }, { v -> vm.update { it.copy(severity = v) } })
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                LpTextField(f.head, { v -> vm.update { it.copy(head = v) } }, stringResource(R.string.head_deviation), Modifier.weight(1f), number = true)
+                LpTextField(f.head, { v -> vm.update { it.copy(head = v) } }, stringResource(R.string.baseline_error_label), Modifier.weight(1f), number = true)
                 LpTextField(f.trunk, { v -> vm.update { it.copy(trunk = v) } }, stringResource(R.string.trunk_deviation), Modifier.weight(1f), number = true)
             }
             Selector(stringResource(R.string.sitting_balance), SittingBalance.entries, f.sitting, { it.name.lowercase().replace('_', ' ') }, { v -> vm.update { it.copy(sitting = v) } })

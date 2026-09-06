@@ -69,8 +69,8 @@ class PatientProfileViewModel @Inject constructor(
 }
 
 /**
- * The patient's home screen reads as the three-step flow (ADR-020): baseline measured? → start a session; the
- * clinical picture and the scales are there to change, never a gate.
+ * Three steps (ADR-021): patient registered → disease details entered (including the baseline tilt error, the
+ * primary input of every session) → session. The sensor zero is an optional tool, not a step.
  */
 @Composable
 fun PatientProfileScreen(nav: NavHostController, patientId: String, vm: PatientProfileViewModel = hiltViewModel()) {
@@ -81,39 +81,33 @@ fun PatientProfileScreen(nav: NavHostController, patientId: String, vm: PatientP
         Column(mod.verticalScroll(rememberScrollState()).padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (p == null) return@Column
             val b = st.baseline
-            val m = b?.measured
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     StepRow(true, stringResource(R.string.step_register))
-                    StepRow(m != null, stringResource(R.string.step_baseline))
+                    StepRow(b != null, stringResource(R.string.step_baseline))
                     StepRow(st.sessions.any { it.endReason == EndReason.COMPLETED }, stringResource(R.string.step_session_n, st.sessions.size + 1))
                 }
             }
-            if (m == null) {
-                Text(stringResource(R.string.baseline_why), style = MaterialTheme.typography.bodyLarge)
-                BigButton(stringResource(R.string.measure_baseline), { nav.navigate(Routes.baselineCapture(patientId)) }, Modifier.fillMaxWidth())
+            if (b == null) {
+                Text(stringResource(R.string.no_disease_details), style = MaterialTheme.typography.bodyLarge)
+                BigButton(stringResource(R.string.enter_disease_details), { nav.navigate(Routes.baselineForm(patientId)) }, Modifier.fillMaxWidth())
             } else {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(stringResource(R.string.baseline_result_title), style = MaterialTheme.typography.titleMedium)
-                        BigNumber(Baseline.describeTilt(m.meanDeg), stringResource(R.string.baseline_result_mean))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                            BigNumber("±${"%.1f".format(m.madDeg)}°", stringResource(R.string.baseline_result_steadiness), emphasis = false)
-                            BigNumber("${"%.0f".format(m.tib5Pct)} %", stringResource(R.string.baseline_result_tib5), emphasis = false)
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            StatusChip(if (b.locked) stringResource(R.string.baseline_locked) else stringResource(R.string.baseline_editable), null)
-                            b.thetaRefDeg?.takeIf { it != 0.0 }?.let { StatusChip(stringResource(R.string.midline_chip, it), null) }
-                        }
-                        BigButton(stringResource(R.string.repeat_measurement), { nav.navigate(Routes.baselineCapture(patientId)) }, Modifier.fillMaxWidth(), secondary = true)
+                        Text(stringResource(R.string.disease_details), style = MaterialTheme.typography.titleMedium)
+                        BigNumber(Baseline.describeTilt(b.headDeviationDeg), stringResource(R.string.baseline_error_entered))
+                        Text(conditionSummary(b), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (b.locked) StatusChip(stringResource(R.string.baseline_locked), null)
+                        BigButton(stringResource(R.string.edit_disease_details), { nav.navigate(Routes.baselineForm(patientId)) }, Modifier.fillMaxWidth(), secondary = true)
                     }
                 }
                 BigButton(stringResource(R.string.start_session_n, st.sessions.size + 1), { nav.navigate(Routes.setup(patientId)) }, Modifier.fillMaxWidth())
             }
-            Expander(stringResource(R.string.patient_condition), conditionSummary(b)) {
-                Text(stringResource(R.string.patient_condition_hint), style = MaterialTheme.typography.bodyMedium)
-                BigButton(stringResource(R.string.edit_condition), { nav.navigate(Routes.baselineForm(patientId)) }, Modifier.fillMaxWidth(), secondary = true)
-                Text(stringResource(R.string.scales_optional), style = MaterialTheme.typography.titleSmall)
+            Expander(stringResource(R.string.sensor_zero), b?.measured?.let { m -> stringResource(R.string.sensor_zero_summary, b.thetaRefDeg ?: 0.0, m.madDeg) } ?: stringResource(R.string.sensor_not_zeroed)) {
+                Text(stringResource(R.string.sensor_zero_hint), style = MaterialTheme.typography.bodyMedium)
+                BigButton(stringResource(R.string.zero_sensor), { nav.navigate(Routes.baselineCapture(patientId)) }, Modifier.fillMaxWidth(), secondary = true)
+            }
+            Expander(stringResource(R.string.clinical_scales), st.assessments.take(3).joinToString(" · ") { a -> "${a.scaleCode} ${"%.1f".format(a.totalScore)}" }) {
                 st.assessments.take(6).forEach { a -> Text("${a.scaleCode} ${"%.1f".format(a.totalScore)} · ${DateFormat.getDateInstance(DateFormat.SHORT).format(Date(a.recordedAt))}") }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("SCP", "BLS", "FAC").forEach { code -> BigButton(code, { nav.navigate(Routes.scale(patientId, code)) }, Modifier.weight(1f), secondary = true) }
@@ -150,5 +144,5 @@ fun PatientProfileScreen(nav: NavHostController, patientId: String, vm: PatientP
     }
 }
 
-private fun conditionSummary(b: Baseline?): String = if (b == null) "defaults will be recorded with the baseline" else
+private fun conditionSummary(b: Baseline): String =
     "${b.severity.name.lowercase().replace('_', ' ')} · ${b.walkingAbility.name.lowercase().replace('_', ' ')} · assistance ${b.assistanceLevel.level} · fall risk ${b.fallRisk.name.lowercase()}"
