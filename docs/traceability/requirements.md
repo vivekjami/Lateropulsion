@@ -56,6 +56,7 @@ IDs are referenced in test names (`REQ-MET-014_episode_hysteresis`) and in the r
 | REQ-VIS-015 | The entered baseline error is a constant, slew-limited picture rotation in every mode; Mode B compensation adds on top | ADR-021 | I | `RenderMathTest` |
 | REQ-VIS-016 | Applied picture tilt starts at the entered error and fades by a fixed fraction per session; overrides carry forward; never below 0 or above the error | ADR-022 | I | `TiltSchedulerTest` |
 | REQ-VIS-017 | Preview size matches the landscape screen's aspect at or above its resolution, with 16:9 fallbacks | ADR-022 | I | `PreviewSizeTest` |
+| REQ-VIS-018 | The camera picture is upright and unmirrored on any phone: the rotation the camera service applied is decoded from the SurfaceTexture matrix and combined with sensor orientation and display rotation; the drawn aspect follows the total turns | ADR-023 | I | `RenderMathTest` |
 | REQ-PAT-030 | Baseline defaults are conservative and complete only once the tilt is measured; tilt is described in words with the clinical sign (positive = right) | ADR-020 | I | `EntityValidationTest` |
 | REQ-SES-040 | `auto_start_delay_s` and `baseline_capture_s` are range-checked at config load | ADR-020 | I | `EntityValidationTest` |
 | REQ-VIS-020 | Overlay cues are gravity-locked | ARCH §7.4 | I | `RenderMathTest` (+ plumb line vs physical plumb, Phase 3) |

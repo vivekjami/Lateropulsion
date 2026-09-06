@@ -108,13 +108,68 @@ class RenderMathTest {
         assertTrue(tiny.overflowed)
     }
 
+    /** GLConsumer's constants (column-major): the consumer matrix is flipV ∘ rot(k); crop scaling never changes the axes. */
+    private val flipV = floatArrayOf(1f, 0f, 0f, 0f, 0f, -1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 1f)
+    private val rot90 = floatArrayOf(0f, 1f, 0f, 0f, -1f, 0f, 0f, 0f, 0f, 0f, 1f, 0f, 1f, 0f, 0f, 1f)
+    private val flipH = floatArrayOf(-1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 1f, 0f, 0f, 1f)
+    private fun mul(a: FloatArray, b: FloatArray): FloatArray = FloatArray(16) { i -> val r = i % 4; val c = i / 4; (0..3).sumOf { k -> (a[k * 4 + r] * b[c * 4 + k]).toDouble() }.toFloat() }
+    private fun consumerMatrix(turns: Int, mirrored: Boolean = false): FloatArray {
+        var m = floatArrayOf(1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f)
+        repeat(turns) { m = mul(m, rot90) }
+        if (mirrored) m = mul(flipH, m)
+        return mul(flipV, m)
+    }
+
     @Test
-    fun `REQ-VIS-002 camera quarter turns for landscape HMD on any phone`() {
-        assertEquals(0, CameraOrientation.quarterTurns(90, 90))   // typical phone, landscape ROTATION_90
-        assertEquals(2, CameraOrientation.quarterTurns(270, 90))  // sensor mounted the other way round
-        assertEquals(0, CameraOrientation.quarterTurns(270, 270)) // reverse landscape
-        assertEquals(1, CameraOrientation.quarterTurns(90, 0))    // portrait display
-        assertEquals(3, CameraOrientation.quarterTurns(0, 90))
+    fun `REQ-VIS-018 the framework rotation is read off the SurfaceTexture matrix`() {
+        assertEquals(-1, CameraOrientation.frameworkTurns(FloatArray(16))) // before the first frame
+        for (k in 0..3) assertEquals(k, CameraOrientation.frameworkTurns(consumerMatrix(k)), "k=$k")
+        assertFalse(CameraOrientation.frameworkMirrored(consumerMatrix(1)))
+        assertTrue(CameraOrientation.frameworkMirrored(consumerMatrix(1, mirrored = true)))
+        // A crop only scales and shifts; the decode must not care.
+        val cropped = consumerMatrix(1).also { it[0] *= 0.98f; it[1] *= 0.98f; it[4] *= 0.98f; it[5] *= 0.98f; it[12] += 0.01f }
+        assertEquals(1, CameraOrientation.frameworkTurns(cropped))
+    }
+
+    @Test
+    fun `REQ-VIS-018 camera quarter turns for a landscape HMD on any phone`() {
+        // Camera2 rotated the stream to natural-upright (the usual case): only the display rotation is left to undo.
+        assertEquals(1, CameraOrientation.quarterTurns(90, 90, appliedTurns = 1))   // typical phone, landscape ROTATION_90
+        assertEquals(3, CameraOrientation.quarterTurns(90, 270, appliedTurns = 1))  // reverse landscape
+        assertEquals(0, CameraOrientation.quarterTurns(90, 0, appliedTurns = 1))    // portrait display
+        assertEquals(1, CameraOrientation.quarterTurns(270, 90, appliedTurns = 3))  // sensor mounted the other way round
+        // The buffer was left in sensor orientation: the sensor orientation has to be undone here too.
+        assertEquals(0, CameraOrientation.quarterTurns(90, 90, appliedTurns = 0))
+        assertEquals(2, CameraOrientation.quarterTurns(90, 270, appliedTurns = 0))
+        assertEquals(3, CameraOrientation.quarterTurns(90, 0, appliedTurns = 0))
+        // The drawn aspect follows the total number of turns.
+        assertEquals(16.0 / 9, CameraOrientation.drawnAspect(16.0 / 9, 1, 1), 1e-9)
+        assertEquals(9.0 / 16, CameraOrientation.drawnAspect(16.0 / 9, 1, 0), 1e-9)
+        assertEquals(16.0 / 9, CameraOrientation.drawnAspect(16.0 / 9, 0, 0), 1e-9)
+    }
+
+    /**
+     * End to end, in the shader's own arithmetic: window pixel → GL quad (s, t) → quarterTurn → consumer matrix → buffer
+     * pixel. A 90° sensor held in landscape (ROTATION_90) sees the world exactly as the buffer stores it, so the map must
+     * be the identity; reverse landscape must be the half turn. Both with and without the framework's rotation.
+     */
+    @Test
+    fun `REQ-VIS-018 the world comes out upright and unmirrored for both stream conventions`() {
+        fun bufferPixel(wx: Double, wy: Double, displayDeg: Int, appliedTurns: Int): Pair<Double, Double> {
+            val q = CameraOrientation.quarterTurns(90, displayDeg, appliedTurns)
+            val (s, t) = wx to 1.0 - wy // the quad: v = 0 at the bottom of the window
+            val (qx, qy) = CameraOrientation.quarterTurn(s, t, q)
+            return CameraOrientation.apply(consumerMatrix(appliedTurns), qx, qy)
+        }
+        val corners = listOf(0.0 to 0.0, 1.0 to 0.0, 0.0 to 1.0, 1.0 to 1.0, 0.25 to 0.75)
+        for (applied in listOf(1, 0)) {
+            for ((wx, wy) in corners) {
+                val (u, v) = bufferPixel(wx, wy, 90, applied)
+                assertEquals(wx, u, 1e-9, "ROTATION_90 u applied=$applied"); assertEquals(wy, v, 1e-9, "ROTATION_90 v applied=$applied")
+                val (u2, v2) = bufferPixel(wx, wy, 270, applied)
+                assertEquals(1 - wx, u2, 1e-9, "ROTATION_270 u applied=$applied"); assertEquals(1 - wy, v2, 1e-9, "ROTATION_270 v applied=$applied")
+            }
+        }
     }
 
     @Test

@@ -40,8 +40,8 @@ class SessionRuntime @Inject constructor(
         private set
     var simulated: Boolean = false
         private set
-    /** Read at HMD start; -1 = automatic. */
-    var cameraQuarterTurnsOverride: Int = -1
+    /** Extra quarter turns of the camera picture chosen on the display check (Flip 180° = 2); read at HMD start. */
+    var cameraExtraQuarterTurns: Int = 0
         private set
     /** Mode B rotation direction override from the lens check; 0 = use the device profile. */
     var renderRotationSignOverride: Int = 0
@@ -71,7 +71,7 @@ class SessionRuntime @Inject constructor(
                 ?: headsets.firstOrNull { it.isMono } ?: headsets.firstOrNull()
                 ?: HeadsetProfile("default", "Default", displayMode = HeadsetDisplayMode.MONO_VISOR, overscan = 1.0)
             ).let { h -> s.ipdMm?.let { h.copy(ipdMm = it) } ?: h }
-        cameraQuarterTurnsOverride = s.cameraQuarterTurnsOverride
+        cameraExtraQuarterTurns = s.cameraExtraQuarterTurns
         cameraMirror = s.cameraMirror
         renderRotationSignOverride = s.renderRotationSign
         if (renderRotationSignOverride != 0) dev = dev.copy(renderRotationSign = renderRotationSignOverride)

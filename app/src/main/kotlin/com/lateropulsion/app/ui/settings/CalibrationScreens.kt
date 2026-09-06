@@ -83,7 +83,7 @@ class SensorViewModel @Inject constructor(private val runtime: SessionRuntime, p
     }
 
     fun setRotationSign(sign: Int) = viewModelScope.launch { settings.update { it.copy(renderRotationSign = sign) }; runtime.resolveProfiles() }
-    fun setCameraTurns(turns: Int) = viewModelScope.launch { settings.update { it.copy(cameraQuarterTurnsOverride = turns) }; runtime.resolveProfiles() }
+    fun setCameraTurns(extra: Int) = viewModelScope.launch { settings.update { it.copy(cameraExtraQuarterTurns = extra) }; runtime.resolveProfiles() }
     fun setMirror(on: Boolean) = viewModelScope.launch { settings.update { it.copy(cameraMirror = on) }; runtime.resolveProfiles() }
     fun setIpd(mm: Double) = viewModelScope.launch { settings.update { it.copy(ipdMm = mm) }; runtime.resolveProfiles() }
 
@@ -173,11 +173,10 @@ fun LensCalibrationScreen(nav: NavHostController, vm: SensorViewModel = hiltView
                 BigButton("Rotation +1", { vm.setRotationSign(1) }, Modifier.weight(1f), secondary = true)
                 BigButton("Rotation −1", { vm.setRotationSign(-1) }, Modifier.weight(1f), secondary = true)
             }
-            // Only half turns: a landscape-locked view on a phone whose camera buffer is landscape never needs a quarter turn,
-            // and a quarter turn would show a portrait strip in the middle of the screen (ADR-017).
+            // The quarter turn is worked out from the camera stream itself (ADR-023); the operator only ever adds a half turn.
             Text(stringResource(R.string.camera_orientation_hint))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BigButton(stringResource(R.string.camera_auto), { vm.setCameraTurns(-1) }, Modifier.weight(1f), secondary = true)
+                BigButton(stringResource(R.string.camera_auto), { vm.setCameraTurns(0) }, Modifier.weight(1f), secondary = true)
                 BigButton(stringResource(R.string.flip_180), { vm.setCameraTurns(2) }, Modifier.weight(1f), secondary = true)
             }
             Text(stringResource(R.string.mirror_hint_check))

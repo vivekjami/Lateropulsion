@@ -32,8 +32,8 @@ public data class Settings(
     /** 0 = use the device profile value; +1/-1 overrides the Mode B rotation direction after the lens check. */
     val renderRotationSign: Int = 0,
     val retentionPendingCount: Int = 0,
-    /** -1 = automatic from camera sensor orientation and display rotation; 0..3 forces quarter turns of the camera image. */
-    val cameraQuarterTurnsOverride: Int = -1,
+    /** Extra quarter turns of the camera picture on top of the automatic orientation (ADR-023); 2 = the operator's Flip 180°. */
+    val cameraExtraQuarterTurns: Int = 0,
     /** Left–right flip of the camera picture (ADR-022); off unless the display check shows a mirrored world. */
     val cameraMirror: Boolean = false,
 )
@@ -60,7 +60,7 @@ public class SettingsStore(context: Context) {
             language = p[LANG] ?: "en",
             renderRotationSign = p[ROT_SIGN] ?: 0,
             retentionPendingCount = p[RETENTION_PENDING] ?: 0,
-            cameraQuarterTurnsOverride = p[CAM_TURNS] ?: -1,
+            cameraExtraQuarterTurns = p[CAM_TURNS] ?: 0,
             cameraMirror = p[CAM_MIRROR] ?: false,
         )
     }
@@ -85,7 +85,7 @@ public class SettingsStore(context: Context) {
             p[LANG] = next.language
             p[ROT_SIGN] = next.renderRotationSign
             p[RETENTION_PENDING] = next.retentionPendingCount
-            p[CAM_TURNS] = next.cameraQuarterTurnsOverride
+            p[CAM_TURNS] = next.cameraExtraQuarterTurns
             p[CAM_MIRROR] = next.cameraMirror
         }
     }
@@ -106,8 +106,8 @@ public class SettingsStore(context: Context) {
         val LANG = stringPreferencesKey("language")
         val ROT_SIGN = intPreferencesKey("render_rotation_sign")
         val RETENTION_PENDING = intPreferencesKey("retention_pending")
-        /** v2: the quad orientation changed (ADR-022), so overrides stored under the old key must not carry over. */
-        val CAM_TURNS = intPreferencesKey("camera_quarter_turns_override_v2")
+        /** New key per orientation change (ADR-022, ADR-023) so a stale override never carries over. */
+        val CAM_TURNS = intPreferencesKey("camera_extra_quarter_turns")
         val CAM_MIRROR = booleanPreferencesKey("camera_mirror")
     }
 }

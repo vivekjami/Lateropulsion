@@ -28,7 +28,6 @@ import com.lateropulsion.core.common.LpLog
 import com.lateropulsion.core.model.CueType
 import com.lateropulsion.engine.render.AbortController
 import com.lateropulsion.engine.render.AudioPanCue
-import com.lateropulsion.engine.render.CameraOrientation
 import com.lateropulsion.engine.render.OverlayGeometry
 import com.lateropulsion.engine.render.RenderListener
 import com.lateropulsion.engine.render.RenderStateHolder
@@ -166,12 +165,15 @@ class HmdActivity : ComponentActivity(), RenderListener {
         val dev = runtime.device.value ?: return
         val hs = runtime.headset.value ?: return
         val renderer = PassthroughRenderer(hs, dev, runtime.appConfig.visual)
-        // Landscape-locked activity: rotate the camera image by whole quarter turns so it is upright on any phone.
+        // Landscape-locked activity: the renderer turns the camera image by whole quarter turns from the sensor orientation,
+        // the display rotation and what the camera service already rotated (ADR-023), plus the operator's Flip 180°.
         val sensorOrientation = runCatching { CameraCapabilities.probe(this).sensorOrientation }.getOrDefault(90)
         val displayDeg = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display?.rotation else @Suppress("DEPRECATION") windowManager.defaultDisplay.rotation)?.times(90) ?: 90
-        renderer.cameraQuarterTurns = runtime.cameraQuarterTurnsOverride.takeIf { it >= 0 } ?: CameraOrientation.quarterTurns(sensorOrientation, displayDeg)
+        renderer.sensorOrientationDeg = sensorOrientation
+        renderer.displayRotationDeg = displayDeg
+        renderer.extraQuarterTurns = runtime.cameraExtraQuarterTurns
         renderer.cameraMirror = runtime.cameraMirror
-        LpLog.i(TAG, "camera orientation", "sensor_deg" to sensorOrientation, "display_deg" to displayDeg, "quarter_turns" to renderer.cameraQuarterTurns, "display_mode" to hs.displayMode)
+        LpLog.i(TAG, "camera orientation", "sensor_deg" to sensorOrientation, "display_deg" to displayDeg, "extra_turns" to renderer.extraQuarterTurns, "mirror" to renderer.cameraMirror, "display_mode" to hs.displayMode)
         val refresh = currentDisplayRefreshRate()
         val t = RenderThread(holder.surface, renderer, poses, renderStates, abort, this, vsyncHz = refresh, abortMs = runtime.appConfig.safety.motionToPhotonAbortMs.toDouble(),
             watchdogFrames = runtime.appConfig.safety.watchdogFrames, cameraStallMs = runtime.appConfig.safety.cameraStallMs.toDouble())

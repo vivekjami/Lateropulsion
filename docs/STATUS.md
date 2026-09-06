@@ -36,6 +36,8 @@ Honest inventory of what exists in this repository, what has been verified and h
 
 Found and fixed on hardware: hand motion produced false mount-shift flags and spurious drift until the gyro reference became a full 3D gyro-only orientation re-aligned at rest. With the phone lying flat (pitch guard active) the Mode B preview followed the noisy roll estimate by ±40°; the correction now relaxes to neutral whenever the pose is invalid (REQ-VIS-002).
 
+Found on hardware (ADR-023): the Redmi's Camera2 preview stream reaches the SurfaceTexture already rotated to portrait-upright inside the transform matrix, so the old sensor-minus-display rule left the visor picture a quarter turn out, and a manual quarter turn came out squeezed because the aspect ignored the framework's rotation. The renderer now decodes that rotation from the matrix each frame (REQ-VIS-018).
+
 ## Implemented, compiles, needs device verification (Phases 3–4 exit criteria)
 
 - Three-step operator flow with defaults and hands-free session start from the patient view (ADR-020): register → baseline (auto-saved, stated in words) → session; countdown, Volume Up start, touch-restarts-countdown, view closes at the end. Needs a run with a person wearing the visor.

@@ -3,6 +3,7 @@ package com.lateropulsion.engine.render
 import android.graphics.SurfaceTexture
 import android.opengl.GLES30
 import com.lateropulsion.core.common.Angles
+import com.lateropulsion.core.common.LpLog
 import com.lateropulsion.core.model.CueType
 import com.lateropulsion.core.model.DeviceProfile
 import com.lateropulsion.core.model.HeadsetProfile
@@ -40,11 +41,21 @@ public class PassthroughRenderer(
     private val device: DeviceProfile,
     visual: VisualConfig,
     private val gridN: Int = 32,
-    /** (sensorOrientation − displayRotation) / 90, so any phone's camera comes out upright in the landscape HMD. */
-    @Volatile public var cameraQuarterTurns: Int = 0,
 ) {
+    /** CameraCharacteristics.SENSOR_ORIENTATION of the streaming camera, degrees. */
+    @Volatile public var sensorOrientationDeg: Int = 90
+    /** The activity's display rotation, degrees (Surface.ROTATION_x × 90). */
+    @Volatile public var displayRotationDeg: Int = 90
+    /** The operator's extra quarter turns on top of the automatic value (Flip 180° = 2), verified by eye (ADR-022). */
+    @Volatile public var extraQuarterTurns: Int = 0
     /** Left–right flip for the odd device whose picture comes out mirrored; verified on the display-alignment screen (ADR-022). */
     @Volatile public var cameraMirror: Boolean = false
+    /** Quarter turns the camera service already applied, read off the transform matrix on every camera frame; -1 until the first (ADR-023). */
+    @Volatile public var frameworkTurns: Int = -1
+        private set
+    /** Quarter turns given to the shader for the last frame: display rotation, framework rotation, sensor orientation and the operator's extra. */
+    @Volatile public var cameraQuarterTurns: Int = 0
+        private set
 
     public val correction: CorrectionTransform = CorrectionTransform(visual.slewLimitDegPerS, visual.predictionClampMs / 1000.0)
     public val telemetry: RenderTelemetry = RenderTelemetry()
@@ -186,6 +197,11 @@ public class PassthroughRenderer(
             cameraTexture.updateTexImage()
             cameraTexture.getTransformMatrix(texMatrix)
             telemetry.cameraFrames++
+            frameworkTurns = CameraOrientation.frameworkTurns(texMatrix)
+            if (telemetry.cameraFrames == 1L) {
+                LpLog.i(TAG, "camera texture transform", "matrix" to texMatrix.joinToString(",") { "%.2f".format(it) }, "framework_turns" to frameworkTurns,
+                    "framework_mirrored" to CameraOrientation.frameworkMirrored(texMatrix), "sensor_deg" to sensorOrientationDeg, "display_deg" to displayRotationDeg)
+            }
         }
 
         // Rotation = the entered baseline error, countered (every mode, ADR-021) + Mode B head-roll compensation, all
@@ -259,8 +275,10 @@ public class PassthroughRenderer(
     }
 
     private fun drawCamera(angleRad: Double, state: RenderState, eye: Int) {
-        val turns = ((cameraQuarterTurns % 4) + 4) % 4
-        val camAspect = ViewMapping.turnedAspect(cameraBufferAspect, turns)
+        val applied = frameworkTurns.takeIf { it >= 0 } ?: CameraOrientation.wrap(sensorOrientationDeg / 90)
+        val turns = CameraOrientation.wrap(CameraOrientation.quarterTurns(sensorOrientationDeg, displayRotationDeg, applied) + extraQuarterTurns)
+        cameraQuarterTurns = turns
+        val camAspect = CameraOrientation.drawnAspect(cameraBufferAspect, applied, turns)
         val cover = if (fitWholeFrame) ViewMapping.fit(eyeAspect.toDouble(), camAspect, angleRad) else ViewMapping.cover(eyeAspect.toDouble(), camAspect)
         // Lenses: opposite shifts per eye act like a prism. Visor: one shift moves the whole scene.
         val shiftSign = if (mono || eye == 0) 1 else -1
@@ -330,6 +348,7 @@ public class PassthroughRenderer(
     }
 
     private companion object {
+        const val TAG = "Render"
         const val FILL_R = 0.12f; const val FILL_G = 0.12f; const val FILL_B = 0.13f
         const val COUNTDOWN_X = -0.2f; const val COUNTDOWN_Y = -0.25f; const val COUNTDOWN_H = 0.5f
         /** 16:9 is what CameraSource asks for first; the real buffer size replaces this when the stream starts. */
