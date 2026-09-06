@@ -17,11 +17,10 @@
     <string name="sign_out">Lock</string>
 
     <!-- dashboard -->
-    <string name="treatment">Treatment</string>
-    <string name="treatment_sub">Start or run a session</string>
-    <string name="reports">Reports</string>
-    <string name="reports_sub">Look up by Patient ID</string>
-    <string name="today_summary">Today: %1$d sessions · %2$d patients</string>
+    <string name="treatment">Test the patient</string>
+    <string name="treatment_sub">Register a new patient or continue with an existing one</string>
+    <string name="reports">Reports and records</string>
+    <string name="reports_sub">Find a patient to see sessions, progress and reports</string>
     <string name="device_check">Device check</string>
     <string name="check_camera">camera</string>
     <string name="check_imu">IMU</string>
@@ -189,7 +188,7 @@
     <string name="generate_pdf">Session report (PDF)</string>
 
     <!-- reports -->
-    <string name="patient_search">Patient search</string>
+    <string name="patient_search">Find patient</string>
     <string name="export_csv">Export CSV</string>
     <string name="export_json">Export JSON</string>
     <string name="export_deidentified">De-identified (default)</string>
@@ -306,9 +305,6 @@
     <string name="auto_start_explain">Open the patient view, mount the visor and step back: the session starts by itself after %1$d s (the patient sees the countdown). Volume Up starts at once. Touching the screen during the countdown restarts it; once a block is running, any touch or Volume Down stops the session.</string>
     <string name="start_from_here">Start from this screen instead (second display / mirror setup)</string>
     <string name="rest_auto_explain">The next block starts by itself %1$d s after the rest ends while the patient view is open; Volume Up starts it at once.</string>
-    <string name="recent_patients">Recent patients</string>
-    <string name="flow_guide">Three steps: register the patient → measure the baseline (the patient\'s error) → run the session. Each session is compared against the baseline.</string>
-    <string name="calibrate_first_title">One-time setup for this phone</string>
     <string name="camera_auto">Auto</string>
     <string name="flip_180">Flip 180°</string>
     <string name="camera_orientation_hint">Camera picture orientation (automatic; use Flip only if the picture is upside down):</string>

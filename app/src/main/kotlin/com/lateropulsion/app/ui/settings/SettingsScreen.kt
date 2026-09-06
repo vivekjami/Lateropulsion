@@ -94,6 +94,8 @@ fun SettingsScreen(nav: NavHostController, vm: SettingsViewModel = hiltViewModel
                 BigButton(stringResource(R.string.sensor_debug), { nav.navigate(Routes.SENSOR_DEBUG) }, Modifier.weight(1f), secondary = true)
             }
             BigButton(stringResource(if (mono) R.string.display_check else R.string.lens_calibration), { nav.navigate(Routes.LENS) }, Modifier.fillMaxWidth(), secondary = true)
+            DeviceCheckCard(nav)
+            BigButton(stringResource(R.string.training_mode), { nav.navigate(Routes.TRAINING) }, Modifier.fillMaxWidth(), secondary = true)
             InfoCard("Retention") {
                 if (ui.retentionPending > 0) { WarningText(stringResource(R.string.retention_pending, ui.retentionPending)); BigButton("Confirm deletion", { vm.confirmDeletion() }, Modifier.fillMaxWidth(), danger = true) }
                 BigButton(stringResource(R.string.retention_check), { vm.runRetention() }, Modifier.fillMaxWidth(), secondary = true)
