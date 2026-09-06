@@ -147,6 +147,7 @@ data class SessionEntity(
     @ColumnInfo(name = "app_version") val appVersion: String,
     @ColumnInfo(name = "crash_recovered") val crashRecovered: Boolean,
     @ColumnInfo(name = "override_reason") val overrideReason: String?,
+    @ColumnInfo(name = "applied_tilt_deg", defaultValue = "0") val appliedTiltDeg: Double = 0.0,
 )
 
 @Entity(

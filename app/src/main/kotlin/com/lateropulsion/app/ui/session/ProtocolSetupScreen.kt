@@ -58,6 +58,7 @@ import com.lateropulsion.feature.protocol.PreconditionContext
 import com.lateropulsion.feature.protocol.PreconditionResult
 import com.lateropulsion.feature.protocol.SessionHistoryEntry
 import com.lateropulsion.feature.protocol.SessionPreconditions
+import com.lateropulsion.feature.protocol.TiltScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -68,6 +69,8 @@ data class SetupState(
     val protocol: ProtocolSpec? = null, val mode: VisualMode = VisualMode.VERTICAL_REFERENCE, val gain: Double = 0.0, val proposedGain: Double = 0.0,
     val override: String = "", val advanced: Boolean = false, val history: List<SessionHistoryEntry> = emptyList(),
     val preview: PreconditionResult? = null, val ready: Boolean = false, val researchMode: Boolean = false, val sessionNumber: Int = 1,
+    /** Picture tilt for this session: proposed by the fading schedule, adjustable by the operator (ADR-022). */
+    val tiltDeg: Double = 0.0, val proposedTiltDeg: Double = 0.0,
 )
 
 /**
@@ -91,7 +94,9 @@ class ProtocolSetupViewModel @Inject constructor(
             val all = config.protocols().filter { "assessment" !in it.tags }
             val hist = HistoryMapper.entries(sessions.listForPatient(patientId), sessions.summariesForPatient(patientId))
             val research = settings.current().researchMode
-            state.value = SetupState(p, name, b, all, null, history = hist, researchMode = research, sessionNumber = sessions.nextSessionNumber(patientId))
+            val tilt = TiltScheduler.proposeNext(b?.headDeviationDeg ?: 0.0, hist, appConfig.visual.tiltFadeStep)
+            state.value = SetupState(p, name, b, all, null, history = hist, researchMode = research, sessionNumber = sessions.nextSessionNumber(patientId),
+                tiltDeg = tilt, proposedTiltDeg = tilt)
             defaultProtocol(all, hist, b)?.let { selectProtocol(it) }
         }
     }
@@ -127,6 +132,7 @@ class ProtocolSetupViewModel @Inject constructor(
     }
 
     fun setGain(g: Double) { state.value = state.value.copy(gain = (Math.round(g * 20) / 20.0)); preview() }
+    fun setTilt(deg: Double) { state.value = state.value.copy(tiltDeg = Math.round(deg * 2) / 2.0) }
     fun setOverride(t: String) { state.value = state.value.copy(override = t); preview() }
     fun setAdvanced(a: Boolean) { state.value = state.value.copy(advanced = a); preview() }
 
@@ -147,7 +153,7 @@ class ProtocolSetupViewModel @Inject constructor(
             sessionId = Ids.session(), patientId = patient.id, patientDisplayId = patient.displayId, clinicianId = me, protocol = p, visualMode = s.mode,
             gain = if (s.mode == VisualMode.VERTICAL_REFERENCE) 0.0 else s.gain, thetaRefDeg = b?.thetaRefDeg ?: 0.0, thetaRefSetBy = b?.thetaRefSetBy ?: me,
             baselineId = b?.id, deviceProfile = dev, headsetProfile = hs, sessionNumber = sessions.nextSessionNumber(patient.id), advancedProtocol = s.advanced,
-            config = appConfig, overrideReason = s.override.ifBlank { null }, baselineErrorDeg = b?.headDeviationDeg ?: 0.0,
+            config = appConfig, overrideReason = s.override.ifBlank { null }, baselineErrorDeg = b?.headDeviationDeg ?: 0.0, appliedTiltDeg = s.tiltDeg,
         )
     }
 
@@ -180,7 +186,11 @@ fun ProtocolSetupScreen(nav: NavHostController, patientId: String, vm: ProtocolS
                         }
                         Text(if (p.visualMode == VisualMode.VERTICAL_REFERENCE) stringResource(R.string.mode_a_explain) else stringResource(R.string.mode_b_explain, st.gain),
                             style = MaterialTheme.typography.bodyMedium)
-                        st.baseline?.let { b -> Text(stringResource(R.string.session_vs_baseline, Baseline.describeTilt(b.headDeviationDeg)), style = MaterialTheme.typography.bodyMedium) }
+                        st.baseline?.let { b ->
+                            Text(stringResource(R.string.session_vs_baseline, Baseline.describeTilt(b.headDeviationDeg)), style = MaterialTheme.typography.bodyMedium)
+                            BigNumber(Baseline.describeTilt(st.tiltDeg), stringResource(R.string.tilt_this_session, kotlin.math.abs(b.headDeviationDeg)))
+                            if (st.tiltDeg != st.proposedTiltDeg) Text(stringResource(R.string.tilt_overridden, st.proposedTiltDeg), style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
             }
@@ -193,6 +203,13 @@ fun ProtocolSetupScreen(nav: NavHostController, patientId: String, vm: ProtocolS
                         Text("${stringResource(R.string.gain)}: ${"%.2f".format(st.gain)}")
                         Slider(value = st.gain.toFloat(), onValueChange = { vm.setGain(it.toDouble()) }, valueRange = 0f..1f, steps = 19)
                         CheckRow(st.advanced, { vm.setAdvanced(it) }, stringResource(R.string.advanced_protocol))
+                    }
+                }
+                st.baseline?.let { b ->
+                    val max = kotlin.math.abs(b.headDeviationDeg).toFloat()
+                    if (max > 0f) {
+                        Text(stringResource(R.string.tilt_slider, kotlin.math.abs(st.tiltDeg), max), style = MaterialTheme.typography.bodyMedium)
+                        Slider(value = kotlin.math.abs(st.tiltDeg).toFloat(), onValueChange = { vm.setTilt(it.toDouble() * kotlin.math.sign(b.headDeviationDeg)) }, valueRange = 0f..max)
                     }
                 }
                 LpTextField(st.override, { vm.setOverride(it) }, stringResource(R.string.override_reason), singleLine = false)

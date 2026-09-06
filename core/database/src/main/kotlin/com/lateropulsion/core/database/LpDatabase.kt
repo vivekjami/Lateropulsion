@@ -48,7 +48,7 @@ abstract class LpDatabase : RoomDatabase() {
     abstract fun clinicians(): ClinicianDao
 
     companion object {
-        const val VERSION = 2
+        const val VERSION = 3
         const val FILE_NAME = "lateropulsion.db"
 
         /** v1 → v2: consent form version on the patient record (DPDP consent traceability). */
@@ -58,7 +58,14 @@ abstract class LpDatabase : RoomDatabase() {
             }
         }
 
-        val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2)
+        /** v2 → v3: the picture tilt applied in each session (ADR-022). */
+        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE session ADD COLUMN applied_tilt_deg REAL NOT NULL DEFAULT 0")
+            }
+        }
+
+        val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
 
         /** Production: SQLCipher-encrypted file database. `factory` comes from [com.lateropulsion.core.database.security.EncryptedOpenHelperFactory]. */
         fun encrypted(context: Context, factory: SupportSQLiteOpenHelper.Factory): LpDatabase =

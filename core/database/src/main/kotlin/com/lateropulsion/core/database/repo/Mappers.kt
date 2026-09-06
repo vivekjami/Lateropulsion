@@ -114,7 +114,7 @@ internal fun Session.toEntity() = SessionEntity(
     deviceProfileId, headsetProfileId, position.name, startedAtUtc, startedMonoNs, deviceTimezone, endedAtUtc, endReason?.name, abortReason,
     ssqPre?.let { json.encodeToString(SsqScore.serializer(), it) }, ssqPost?.let { json.encodeToString(SsqScore.serializer(), it) }, notes,
     assistanceLevelBefore?.level, assistanceLevelAfter?.level, gyroBias?.let { json.encodeToString(Vec3.serializer(), it) }, driftDegPerMin, appVersion,
-    crashRecovered, overrideReason,
+    crashRecovered, overrideReason, appliedTiltDeg,
 )
 
 internal fun SessionEntity.toDomain() = Session(
@@ -123,7 +123,7 @@ internal fun SessionEntity.toDomain() = Session(
     endedAtUtc, endReason?.let { EndReason.valueOf(it) }, abortReason, ssqPreJson?.let { json.decodeFromString(SsqScore.serializer(), it) },
     ssqPostJson?.let { json.decodeFromString(SsqScore.serializer(), it) }, notes, assistanceBefore?.let { AssistanceLevel.fromLevel(it) },
     assistanceAfter?.let { AssistanceLevel.fromLevel(it) }, gyroBiasJson?.let { json.decodeFromString(Vec3.serializer(), it) }, driftDegPerMin, appVersion,
-    crashRecovered, overrideReason,
+    crashRecovered, overrideReason, appliedTiltDeg,
 )
 
 private val cueListSer = ListSerializer(CueType.serializer())

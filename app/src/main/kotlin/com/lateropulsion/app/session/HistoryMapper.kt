@@ -9,7 +9,7 @@ object HistoryMapper {
         val byId = summaries.associateBy { it.sessionId }
         return sessions.filter { it.isFinished }.sortedBy { it.sessionNumber }.mapNotNull { s ->
             val m = byId[s.id] ?: return@mapNotNull null
-            SessionHistoryEntry(s.protocolId, s.visualMode, s.position, s.gainUsed, m, s.ssqPost?.flagged == true)
+            SessionHistoryEntry(s.protocolId, s.visualMode, s.position, s.gainUsed, m, s.ssqPost?.flagged == true, s.appliedTiltDeg)
         }
     }
 }

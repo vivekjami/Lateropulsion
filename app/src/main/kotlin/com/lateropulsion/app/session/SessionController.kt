@@ -174,6 +174,7 @@ class SessionController @Inject constructor(
             thetaRefDeg = spec.thetaRefDeg, baselineId = spec.baselineId, deviceProfileId = spec.deviceProfile.id, headsetProfileId = spec.headsetProfile.id,
             position = spec.position, startedAtUtc = now, startedMonoNs = t0MonoNs, deviceTimezone = TimeZone.getDefault().id,
             ssqPre = ssqPre, assistanceLevelBefore = assistanceBefore, appVersion = com.lateropulsion.app.BuildConfig.VERSION_NAME, overrideReason = spec.overrideReason,
+            appliedTiltDeg = spec.appliedTiltDeg,
         )
         session = sess
         sessions.start(sess).getOrThrow()
@@ -259,7 +260,7 @@ class SessionController @Inject constructor(
                     mode = sp.visualMode, gain = e.gain, cues = e.block.cues.toSet(), toleranceDeg = e.block.toleranceDeg,
                     bandPrimaryDeg = sp.config.metrics.bandPrimaryDeg, bandSecondaryDeg = sp.config.metrics.bandSecondaryDeg,
                     targetDeg = e.block.targetDeg, progress01 = 0.0, showReadout = CueType.DEVIATION_READOUT in e.block.cues, idle = false,
-                    staticOffsetDeg = -sp.baselineErrorDeg,
+                    staticOffsetDeg = -sp.appliedTiltDeg,
                 ))
                 poses?.setBand(e.block.toleranceDeg)
                 writer?.sync()

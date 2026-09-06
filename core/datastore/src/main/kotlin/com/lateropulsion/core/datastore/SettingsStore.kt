@@ -34,6 +34,8 @@ public data class Settings(
     val retentionPendingCount: Int = 0,
     /** -1 = automatic from camera sensor orientation and display rotation; 0..3 forces quarter turns of the camera image. */
     val cameraQuarterTurnsOverride: Int = -1,
+    /** Left–right flip of the camera picture (ADR-022); off unless the display check shows a mirrored world. */
+    val cameraMirror: Boolean = false,
 )
 
 private val Context.lpDataStore: DataStore<Preferences> by preferencesDataStore(name = "lateropulsion_settings")
@@ -59,6 +61,7 @@ public class SettingsStore(context: Context) {
             renderRotationSign = p[ROT_SIGN] ?: 0,
             retentionPendingCount = p[RETENTION_PENDING] ?: 0,
             cameraQuarterTurnsOverride = p[CAM_TURNS] ?: -1,
+            cameraMirror = p[CAM_MIRROR] ?: false,
         )
     }
 
@@ -83,6 +86,7 @@ public class SettingsStore(context: Context) {
             p[ROT_SIGN] = next.renderRotationSign
             p[RETENTION_PENDING] = next.retentionPendingCount
             p[CAM_TURNS] = next.cameraQuarterTurnsOverride
+            p[CAM_MIRROR] = next.cameraMirror
         }
     }
 
@@ -102,6 +106,8 @@ public class SettingsStore(context: Context) {
         val LANG = stringPreferencesKey("language")
         val ROT_SIGN = intPreferencesKey("render_rotation_sign")
         val RETENTION_PENDING = intPreferencesKey("retention_pending")
-        val CAM_TURNS = intPreferencesKey("camera_quarter_turns_override")
+        /** v2: the quad orientation changed (ADR-022), so overrides stored under the old key must not carry over. */
+        val CAM_TURNS = intPreferencesKey("camera_quarter_turns_override_v2")
+        val CAM_MIRROR = booleanPreferencesKey("camera_mirror")
     }
 }

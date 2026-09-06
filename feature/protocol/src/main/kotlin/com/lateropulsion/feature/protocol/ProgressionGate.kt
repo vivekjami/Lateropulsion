@@ -14,6 +14,8 @@ public data class SessionHistoryEntry(
     val gainUsed: Double,
     val summary: SessionSummary,
     val ssqPostFlagged: Boolean,
+    /** Picture tilt applied in that session (ADR-022). */
+    val appliedTiltDeg: Double = 0.0,
 )
 
 public data class GateResult(val passed: Boolean, val failures: List<String>) {

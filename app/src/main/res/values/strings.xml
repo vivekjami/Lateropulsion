@@ -213,7 +213,7 @@
     <string name="sensor_debug">Sensor debug</string>
     <string name="lens_calibration">Lens / IPD calibration (lens headset)</string>
     <string name="display_check">Display alignment check (visor)</string>
-    <string name="visor_check_text">The patient looks at the phone screen directly, so there is nothing to focus or fuse: this check is about orientation only. Start the preview, mount the phone on the visor and look at a door frame while rolling your head. The picture must be upright and not mirrored, keep its true proportions, and the white plumb line must stay on the real vertical edge. If the picture turns the wrong way as you roll, flip the rotation direction. The whole camera frame stays visible while it tilts, so the picture gets a little smaller at large rolls; that is by design.</string>
+    <string name="visor_check_text">The patient looks at the phone screen directly, so this check is about orientation only. Start the preview and look at a door frame. Check three things: (1) the picture is upright; (2) raise your RIGHT hand, it must appear on the RIGHT and printed text must read normally; (3) roll your head, the white plumb line must stay on the real vertical edge. Fix each with the buttons below: Flip 180° for upside down, Mirror for left-right swapped, Rotation −1 if the picture turns the wrong way.</string>
     <string name="lens_check_text">1. Set the IPD to the wearer\'s measurement. 2. Start the preview, put the phone in the headset and look at a door frame or plumb line while rolling your head. The white plumb line must stay on the real vertical edge. If the camera image rotates the wrong way as you roll, flip the rotation direction.</string>
     <string name="start_preview">Start preview (Mode B at k = 1, plumb line)</string>
     <string name="retention_check">Run retention check</string>
@@ -290,7 +290,7 @@
     <string name="mode_label">mode</string>
     <string name="mode_a_explain">Mode A: the patient sees the real camera picture with a true-vertical line and a green band. They practise bringing their head into the band.</string>
     <string name="mode_b_explain">Mode B: the camera picture itself is tilted against the patient\'s error (gain k = %1$.2f) so upright feels upright, then faded out over sessions. Experimental.</string>
-    <string name="session_vs_baseline">Baseline error (entered): %1$s. The picture is tilted to counter it during the session.</string>
+    <string name="session_vs_baseline">Baseline error (entered): %1$s.</string>
     <string name="adjust">Adjust</string>
     <string name="continue_to_checklist">Continue to safety check</string>
     <string name="confirm_title">Before we start, confirm:</string>
@@ -308,7 +308,13 @@
     <string name="rest_auto_explain">The next block starts by itself %1$d s after the rest ends while the patient view is open; Volume Up starts it at once.</string>
     <string name="camera_auto">Auto</string>
     <string name="flip_180">Flip 180°</string>
-    <string name="camera_orientation_hint">Camera picture orientation (automatic; use Flip only if the picture is upside down):</string>
+    <string name="camera_orientation_hint">Picture upside down?</string>
+    <string name="mirror_hint_check">Left and right swapped (your right hand appears on the left, text reads backwards)?</string>
+    <string name="mirror_off">Mirror off (normal)</string>
+    <string name="mirror_on">Mirror on</string>
+    <string name="tilt_this_session">picture tilt this session (baseline error %1$.1f°)</string>
+    <string name="tilt_overridden">Schedule proposed %1$.1f°; this session uses your value.</string>
+    <string name="tilt_slider">Picture tilt: %1$.1f° of %2$.1f°. The schedule lowers it every session so the patient is weaned toward the true world.</string>
     <string name="delete_patient_title">Delete %1$s?</string>
     <string name="delete_patient_text">%1$s and everything recorded for them will be removed: baseline, %2$d session(s), recordings and reports. This cannot be undone.</string>
     <string name="delete">Delete</string>

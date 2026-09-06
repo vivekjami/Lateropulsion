@@ -27,6 +27,8 @@ public data class SessionSpec(
      * input of every session: the camera picture is tilted to counter it. The sensor only follows head sway on top.
      */
     val baselineErrorDeg: Double = 0.0,
+    /** Tilt actually applied to the picture in this session (degrees, + right): the error faded per session, or the operator's choice (ADR-022). */
+    val appliedTiltDeg: Double = baselineErrorDeg,
 )
 
 /** Pre-session checklist state (REQ-SAF-001, REQ-SAF-002). Every item must be true to start. */

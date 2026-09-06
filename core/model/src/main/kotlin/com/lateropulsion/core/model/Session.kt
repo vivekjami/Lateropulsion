@@ -34,6 +34,8 @@ public data class Session(
     val appVersion: String,
     val crashRecovered: Boolean = false,
     val overrideReason: String? = null,
+    /** Picture tilt applied in this session (degrees, + right), faded from the entered baseline error over sessions (ADR-022). */
+    val appliedTiltDeg: Double = 0.0,
 ) {
     public val isFinished: Boolean get() = endReason != null
 }

@@ -80,14 +80,32 @@ public data class CameraCapabilities(
             else -> 0
         }
 
-        /** Closest 16:9-ish size at or above the target; falls back to the largest available (works on any phone). */
-        public fun choosePreviewSize(sizes: List<Size>, targetW: Int = 1280, targetH: Int = 720): Size? {
+        /** Android's Size is not available in plain JVM tests, so the choice works on this and [choosePreviewSize] wraps it. */
+        public data class Dim(val w: Int, val h: Int) { public val area: Long get() = w.toLong() * h }
+
+        /**
+         * The picture should fill the landscape screen and be at least as sharp as it (ADR-022): first a size whose
+         * aspect matches the display within 3 % and is at least the display's resolution (smallest such), then the
+         * largest display-aspect size, then 16:9 at or above 1920×1080, then 16:9 at or above 1280×720, then the
+         * largest available. Works on any phone; [displayW] × [displayH] is the landscape screen size.
+         */
+        public fun choosePreviewDim(sizes: List<Dim>, displayW: Int = 1920, displayH: Int = 1080): Dim? {
             if (sizes.isEmpty()) return null
-            val wide = sizes.filter { abs(it.width.toDouble() / it.height - 16.0 / 9.0) < 0.05 }
-            val pool = if (wide.isNotEmpty()) wide else sizes
-            return pool.filter { it.width >= targetW && it.height >= targetH }.minByOrNull { it.width * it.height }
-                ?: pool.maxByOrNull { it.width * it.height }
+            val displayAspect = displayW.toDouble() / displayH
+            val matching = sizes.filter { abs(it.w.toDouble() / it.h - displayAspect) < 0.03 * displayAspect }
+            matching.filter { it.w >= displayW && it.h >= displayH }.minByOrNull { it.area }?.let { return it }
+            matching.filter { it.w >= MIN_W && it.h >= MIN_H }.maxByOrNull { it.area }?.let { return it }
+            val wide = sizes.filter { abs(it.w.toDouble() / it.h - 16.0 / 9.0) < 0.05 }
+            wide.filter { it.w >= FULL_HD_W && it.h >= FULL_HD_H }.minByOrNull { it.area }?.let { return it }
+            wide.filter { it.w >= MIN_W && it.h >= MIN_H }.minByOrNull { it.area }?.let { return it }
+            return sizes.maxByOrNull { it.area }
         }
+
+        public fun choosePreviewSize(sizes: List<Size>, displayW: Int = 1920, displayH: Int = 1080): Size? =
+            choosePreviewDim(sizes.map { Dim(it.width, it.height) }, displayW, displayH)?.let { Size(it.w, it.h) }
+
+        private const val MIN_W = 1280; private const val MIN_H = 720
+        private const val FULL_HD_W = 1920; private const val FULL_HD_H = 1080
 
         /** Highest fixed-rate range (min == max) up to [maxFps]; a fixed rate keeps latency predictable. */
         public fun chooseFpsRange(ranges: List<Range<Int>>, maxFps: Int = 60): Range<Int>? {
@@ -122,11 +140,11 @@ public class CameraSource(context: Context, private val handler: Handler) {
     public val capabilities: CameraCapabilities by lazy { CameraCapabilities.probe(context) }
 
     @SuppressLint("MissingPermission")
-    public fun open(texture: SurfaceTexture, targetFps: Int = 60) {
+    public fun open(texture: SurfaceTexture, targetFps: Int = 60, displayW: Int = 1920, displayH: Int = 1080) {
         val id = capabilities.cameraId ?: run { _state.value = CameraState.Error(-1, "No back camera"); return }
         _state.value = CameraState.Opening
         val chars = cm.getCameraCharacteristics(id)
-        val size = CameraCapabilities.choosePreviewSize(capabilities.previewSizes) ?: run { _state.value = CameraState.Error(-2, "No preview sizes"); return }
+        val size = CameraCapabilities.choosePreviewSize(capabilities.previewSizes, displayW, displayH) ?: run { _state.value = CameraState.Error(-2, "No preview sizes"); return }
         val fps = CameraCapabilities.chooseFpsRange(chars.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)?.toList() ?: emptyList(), targetFps)
             ?: Range(30, 30)
         texture.setDefaultBufferSize(size.width, size.height)

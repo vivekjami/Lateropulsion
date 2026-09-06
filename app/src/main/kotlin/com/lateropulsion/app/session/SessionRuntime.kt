@@ -46,6 +46,9 @@ class SessionRuntime @Inject constructor(
     /** Mode B rotation direction override from the lens check; 0 = use the device profile. */
     var renderRotationSignOverride: Int = 0
         private set
+    /** Left–right flip of the camera picture (ADR-022). */
+    var cameraMirror: Boolean = false
+        private set
 
     val imuCapabilities: ImuCapabilities by lazy {
         ImuCapabilities.probe(ctx.getSystemService(Context.SENSOR_SERVICE) as android.hardware.SensorManager)
@@ -69,6 +72,7 @@ class SessionRuntime @Inject constructor(
                 ?: HeadsetProfile("default", "Default", displayMode = HeadsetDisplayMode.MONO_VISOR, overscan = 1.0)
             ).let { h -> s.ipdMm?.let { h.copy(ipdMm = it) } ?: h }
         cameraQuarterTurnsOverride = s.cameraQuarterTurnsOverride
+        cameraMirror = s.cameraMirror
         renderRotationSignOverride = s.renderRotationSign
         if (renderRotationSignOverride != 0) dev = dev.copy(renderRotationSign = renderRotationSignOverride)
         _device.value = dev; _headset.value = hs

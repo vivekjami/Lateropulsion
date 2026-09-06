@@ -43,6 +43,9 @@ public class PassthroughRenderer(
     /** (sensorOrientation − displayRotation) / 90, so any phone's camera comes out upright in the landscape HMD. */
     @Volatile public var cameraQuarterTurns: Int = 0,
 ) {
+    /** Left–right flip for the odd device whose picture comes out mirrored; verified on the display-alignment screen (ADR-022). */
+    @Volatile public var cameraMirror: Boolean = false
+
     public val correction: CorrectionTransform = CorrectionTransform(visual.slewLimitDegPerS, visual.predictionClampMs / 1000.0)
     public val telemetry: RenderTelemetry = RenderTelemetry()
     public val mono: Boolean = headset.isMono
@@ -87,6 +90,7 @@ public class PassthroughRenderer(
     // uniform/attrib locations
     private var pAPos = 0; private var pATex = 0; private var pUTexMatrix = 0; private var pUAngle = 0; private var pUCenter = 0
     private var pUAspect = 0; private var pUZoom = 0; private var pUShift = 0; private var pUFill = 0; private var pUCamera = 0; private var pUQuarter = 0; private var pUCover = 0
+    private var pUMirror = 0
     private var oAPos = 0; private var oAColor = 0; private var oUAspect = 0
     private var dAPos = 0; private var dATexR = 0; private var dATexG = 0; private var dATexB = 0; private var dUTex = 0
 
@@ -104,13 +108,15 @@ public class PassthroughRenderer(
         pUTexMatrix = passthrough.uniform("uTexMatrix"); pUAngle = passthrough.uniform("uAngle"); pUCenter = passthrough.uniform("uCenter")
         pUAspect = passthrough.uniform("uAspect"); pUZoom = passthrough.uniform("uZoom"); pUShift = passthrough.uniform("uShift")
         pUFill = passthrough.uniform("uFill"); pUCamera = passthrough.uniform("uCamera"); pUQuarter = passthrough.uniform("uQuarterTurns")
-        pUCover = passthrough.uniform("uCover")
+        pUCover = passthrough.uniform("uCover"); pUMirror = passthrough.uniform("uMirror")
 
         overlay = GlProgram(Shaders.OVERLAY_VS, Shaders.OVERLAY_FS)
         oAPos = overlay.attrib("aPos"); oAColor = overlay.attrib("aColor"); oUAspect = overlay.uniform("uAspect")
 
-        // full-viewport quad: x, y, u, v  (v flipped so image space has y up)
-        val quad = floatArrayOf(-1f, -1f, 0f, 1f, 1f, -1f, 1f, 1f, -1f, 1f, 0f, 0f, 1f, 1f, 1f, 0f)
+        // full-viewport quad: x, y, u, v in the GL convention (0,0 = bottom-left). The SurfaceTexture transform matrix
+        // already turns these into buffer coordinates; flipping v here (as an earlier version did) shows the camera
+        // upside down and mirrored (ADR-022).
+        val quad = floatArrayOf(-1f, -1f, 0f, 0f, 1f, -1f, 1f, 0f, -1f, 1f, 0f, 1f, 1f, 1f, 1f, 1f)
         quadVbo = GlUtil.genBuffer()
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, quadVbo)
         GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, quad.size * 4, GlUtil.floatBuffer(quad), GLES30.GL_STATIC_DRAW)
@@ -271,6 +277,7 @@ public class PassthroughRenderer(
         GLES30.glUniform3f(pUFill, FILL_R, FILL_G, FILL_B)
         GLES30.glUniform2f(pUCover, cover.width.toFloat(), cover.height.toFloat())
         GLES30.glUniform1i(pUQuarter, turns)
+        GLES30.glUniform1i(pUMirror, if (cameraMirror) 1 else 0)
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, quadVbo)
         GLES30.glEnableVertexAttribArray(pAPos); GLES30.glVertexAttribPointer(pAPos, 2, GLES30.GL_FLOAT, false, 16, 0)
         GLES30.glEnableVertexAttribArray(pATex); GLES30.glVertexAttribPointer(pATex, 2, GLES30.GL_FLOAT, false, 16, 8)

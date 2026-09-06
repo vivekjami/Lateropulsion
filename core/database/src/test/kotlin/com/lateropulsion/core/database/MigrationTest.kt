@@ -5,6 +5,7 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,6 +35,17 @@ class MigrationTest {
             c.moveToFirst()
             assertEquals("LP-2026-0001", c.getString(0))
             assertEquals("", c.getString(1))
+        }
+        db.close()
+    }
+
+    @Test
+    fun `migrate 2 to 3 adds applied_tilt_deg with default 0`() {
+        helper.createDatabase(name, 2).close()
+        val db = helper.runMigrationsAndValidate(name, 3, true, LpDatabase.MIGRATION_1_2, LpDatabase.MIGRATION_2_3)
+        db.query("PRAGMA table_info(session)").use { c ->
+            val cols = generateSequence { if (c.moveToNext()) c.getString(1) else null }.toList()
+            assertTrue("applied_tilt_deg" in cols)
         }
         db.close()
     }

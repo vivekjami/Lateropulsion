@@ -20,6 +20,7 @@ public data class AppConfig(
         if (visual.gainInitial !in GainLimits.MIN_ERROR_AUGMENTATION..GainLimits.MAX) add("visual.gain_initial out of range")
         if (visual.gainMin < GainLimits.MIN_ERROR_AUGMENTATION) add("visual.gain_min below error-augmentation floor")
         if (visual.gainFadeStep <= 0.0) add("visual.gain_fade_step must be positive")
+        if (visual.tiltFadeStep !in 0.0..1.0) add("visual.tilt_fade_step must be 0..1")
         if (metrics.sampleRateHz < 50) add("metrics.sample_rate_hz must be >= 50")
         if (metrics.storeRateHz > metrics.sampleRateHz) add("metrics.store_rate_hz cannot exceed sample rate")
         if (metrics.lowpassCutoffHz <= 0.0 || metrics.lowpassCutoffHz >= metrics.storeRateHz / 2.0) add("metrics.lowpass_cutoff_hz must be below Nyquist")
@@ -65,6 +66,13 @@ public data class VisualConfig(
     val predictionClampMs: Double = 50.0,
     /** Headset profile used when the site has not chosen one in Settings (ADR-019: the visor is the shipped kit). */
     val defaultHeadsetProfileId: String = "phone-visor-mono-v1",
+    /** Lock exposure/white balance a few seconds after the camera starts. Off: the patient walks through changing light (ADR-022). */
+    val lockExposure: Boolean = false,
+    /**
+     * Fraction of the entered baseline error removed from the applied picture tilt at each new session (ADR-022):
+     * 0.15 → 100 %, 85 %, 70 %, … of the error, reaching 0 after seven sessions. The operator can override per session.
+     */
+    val tiltFadeStep: Double = 0.15,
 )
 
 @Serializable

@@ -118,7 +118,7 @@ public class SessionReportBuilder(private val painter: CanvasChartPainter = Canv
             line("${p.displayId}  ·  ${p.age} y, ${p.sex.name.lowercase()}  ·  lesion ${p.lesionSide.name.lowercase()}, pushes ${p.lateropulsionDirection.name.lowercase()}", small)
             line("Session ${s.sessionNumber}  ·  ${Fmt.dateTime(s.startedAtUtc, s.deviceTimezone)} (${s.deviceTimezone})  ·  ${data.siteName}", small)
             line("Clinician: ${data.clinicianName}  ·  Protocol: ${data.protocolName} (${s.protocolId} v${s.protocolVersion})  ·  Position: ${s.position.name.lowercase().replace('_', ' ')}", small)
-            line("${Fmt.mode(s.visualMode)}  ·  gain k = ${Fmt.num(s.gainUsed, 2)}  ·  midline θ_ref = ${Fmt.deg(s.thetaRefDeg)}  ·  device ${s.deviceProfileId}", small)
+            line("${Fmt.mode(s.visualMode)}  ·  picture tilt ${Fmt.deg(s.appliedTiltDeg)}  ·  gain k = ${Fmt.num(s.gainUsed, 2)}  ·  sensor zero ${Fmt.deg(s.thetaRefDeg)}  ·  device ${s.deviceProfileId}", small)
             qualificationNote(data.deviceQualification)
             if (s.endReason == EndReason.ABORTED) line("ABORTED: ${s.abortReason ?: ""}  —  ${ReportText.ABORTED_NOTE}", warn)
             if (s.crashRecovered) line(ReportText.CRASH_RECOVERED_NOTE, warn)

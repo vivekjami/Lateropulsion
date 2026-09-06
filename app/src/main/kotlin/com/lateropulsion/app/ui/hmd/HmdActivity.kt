@@ -170,6 +170,7 @@ class HmdActivity : ComponentActivity(), RenderListener {
         val sensorOrientation = runCatching { CameraCapabilities.probe(this).sensorOrientation }.getOrDefault(90)
         val displayDeg = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display?.rotation else @Suppress("DEPRECATION") windowManager.defaultDisplay.rotation)?.times(90) ?: 90
         renderer.cameraQuarterTurns = runtime.cameraQuarterTurnsOverride.takeIf { it >= 0 } ?: CameraOrientation.quarterTurns(sensorOrientation, displayDeg)
+        renderer.cameraMirror = runtime.cameraMirror
         LpLog.i(TAG, "camera orientation", "sensor_deg" to sensorOrientation, "display_deg" to displayDeg, "quarter_turns" to renderer.cameraQuarterTurns, "display_mode" to hs.displayMode)
         val refresh = currentDisplayRefreshRate()
         val t = RenderThread(holder.surface, renderer, poses, renderStates, abort, this, vsyncHz = refresh, abortMs = runtime.appConfig.safety.motionToPhotonAbortMs.toDouble(),
@@ -204,13 +205,16 @@ class HmdActivity : ComponentActivity(), RenderListener {
                     is CameraState.Streaming -> {
                         renderThread?.renderer?.cameraBufferAspect = s.size.width.toDouble() / s.size.height
                         LpLog.i(TAG, "streaming", "fps" to s.fps.upper, "w" to s.size.width, "h" to s.size.height)
-                        Handler(ct.looper).postDelayed({ cam.setExposureLock(true) }, 2500)
+                        // Auto exposure stays on for a walking patient; a locked exposure turns doorways black (ADR-022).
+                        if (runtime.appConfig.visual.lockExposure) Handler(ct.looper).postDelayed({ cam.setExposureLock(true) }, 2500)
                     }
                     else -> Unit
                 }
             }
         }
-        Handler(ct.looper).post { cam.open(texture, targetFps = 60) }
+        val dm = resources.displayMetrics
+        val (dw, dh) = maxOf(dm.widthPixels, dm.heightPixels) to minOf(dm.widthPixels, dm.heightPixels)
+        Handler(ct.looper).post { cam.open(texture, targetFps = 60, displayW = dw, displayH = dh) }
     }
 
     override fun onPerfDegraded(motionToPhotonMs: Double) { controller.onPerfDegraded(motionToPhotonMs) }

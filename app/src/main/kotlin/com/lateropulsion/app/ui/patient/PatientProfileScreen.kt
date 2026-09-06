@@ -121,7 +121,7 @@ fun PatientProfileScreen(nav: NavHostController, patientId: String, vm: PatientP
                         Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column(Modifier.weight(1f)) {
                                 Text("#${s.sessionNumber} · ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(s.startedAtUtc))}", style = MaterialTheme.typography.bodyLarge)
-                                Text("${s.protocolId} · ${if (s.visualMode.name.startsWith("VERT")) "Mode A" else "Mode B k=${s.gainUsed}"}" +
+                                Text("${s.protocolId} · tilt ${"%.1f".format(s.appliedTiltDeg)}° · ${if (s.visualMode.name.startsWith("VERT")) "Mode A" else "Mode B k=${s.gainUsed}"}" +
                                     (sm?.let { " · ±${"%.1f".format(it.madDeg)}° · in band ${"%.0f".format(it.tib5Pct)} %" } ?: ""), style = MaterialTheme.typography.bodyMedium)
                             }
                             Column(horizontalAlignment = Alignment.End) {

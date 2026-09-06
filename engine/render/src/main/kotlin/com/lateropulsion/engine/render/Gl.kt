@@ -157,6 +157,7 @@ uniform float uShift;      // lateral prism-like offset, fraction of the viewpor
 uniform vec3 uFill;        // neutral grey: never a smeared edge
 uniform vec2 uCover;       // covering camera rectangle (w, h) in viewport-height units (ViewMapping.cover)
 uniform int uQuarterTurns; // 0..3: camera sensor orientation vs the landscape display
+uniform int uMirror;       // 1 = flip left-right (per-device fix, verified by eye)
 in vec2 vTex;
 out vec4 fragColor;
 vec2 quarterTurn(vec2 t, int q) {
@@ -177,6 +178,7 @@ void main() {
     if (t.x < 0.0 || t.x > 1.0 || t.y < 0.0 || t.y > 1.0) {
         fragColor = vec4(uFill, 1.0);
     } else {
+        if (uMirror == 1) t.x = 1.0 - t.x;
         vec2 tt = (uTexMatrix * vec4(quarterTurn(t, uQuarterTurns), 0.0, 1.0)).xy;
         fragColor = texture(uCamera, tt);
     }

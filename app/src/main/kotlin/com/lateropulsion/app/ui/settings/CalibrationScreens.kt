@@ -84,6 +84,7 @@ class SensorViewModel @Inject constructor(private val runtime: SessionRuntime, p
 
     fun setRotationSign(sign: Int) = viewModelScope.launch { settings.update { it.copy(renderRotationSign = sign) }; runtime.resolveProfiles() }
     fun setCameraTurns(turns: Int) = viewModelScope.launch { settings.update { it.copy(cameraQuarterTurnsOverride = turns) }; runtime.resolveProfiles() }
+    fun setMirror(on: Boolean) = viewModelScope.launch { settings.update { it.copy(cameraMirror = on) }; runtime.resolveProfiles() }
     fun setIpd(mm: Double) = viewModelScope.launch { settings.update { it.copy(ipdMm = mm) }; runtime.resolveProfiles() }
 
     /**
@@ -178,6 +179,11 @@ fun LensCalibrationScreen(nav: NavHostController, vm: SensorViewModel = hiltView
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BigButton(stringResource(R.string.camera_auto), { vm.setCameraTurns(-1) }, Modifier.weight(1f), secondary = true)
                 BigButton(stringResource(R.string.flip_180), { vm.setCameraTurns(2) }, Modifier.weight(1f), secondary = true)
+            }
+            Text(stringResource(R.string.mirror_hint_check))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                BigButton(stringResource(R.string.mirror_off), { vm.setMirror(false) }, Modifier.weight(1f), secondary = true)
+                BigButton(stringResource(R.string.mirror_on), { vm.setMirror(true) }, Modifier.weight(1f), secondary = true)
             }
             BigButton(stringResource(R.string.start_preview), { vm.startLensPreview(); ctx.startActivity(Intent(ctx, HmdActivity::class.java)) }, Modifier.fillMaxWidth())
             if (!mono) {
